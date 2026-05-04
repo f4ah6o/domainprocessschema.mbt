@@ -14,6 +14,12 @@ test:
 build:
   moon build
 
+wasm-demo-build:
+  moon build wasm/demo --target wasm-gc --release
+
+wasm-demo-test:
+  moon test wasm/demo
+
 info:
   moon info
 

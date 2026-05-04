@@ -1,0 +1,24 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "f4ah6o/domainprocessschema_mbt/wasm/demo"
+
+// Values
+pub fn render_manifest_preview(String) -> Result[String, Error]
+
+pub fn render_runtime_preview(String, String) -> Result[String, Error]
+
+pub fn render_validation_manifest(String) -> Result[String, Error]
+
+pub fn result_error(Result[String, Error]) -> String
+
+pub fn result_is_ok(Result[String, Error]) -> Bool
+
+pub fn result_unwrap(Result[String, Error]) -> String
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

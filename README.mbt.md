@@ -118,6 +118,32 @@ The public MoonBit API now includes:
 renders a semantic static HTML document with state badge, visible fields,
 action buttons, action-local inputs, and rule/action availability hints.
 
+## MoonBit WASM demo
+
+Issue #2 is broader than the static HTML proof. This branch also adds a first
+**MoonBit WASM browser demo** under `wasm/demo/`.
+
+It keeps the current HTML renderer as a WASM-exported preview engine:
+
+- `render_manifest_preview(yaml)` exports the schema-only HTML preview
+- `render_runtime_preview(yaml, scenario)` exports stateful runtime previews
+- `wasm/demo/index.html` loads the built `.wasm`, fetches
+  `examples/expense_request.yaml`, and renders the returned full HTML document
+  into an `<iframe srcdoc>`
+- the host page also exposes the YAML source as a textarea, so schema edits and
+  compile/validation errors can be exercised directly in the browser demo
+- the host page chrome supports a minimal `en` / `ja` switch; schema labels
+  still pass through from YAML as-is
+
+Build and test it with:
+
+```bash
+just wasm-demo-test
+just wasm-demo-build
+python3 -m http.server
+# then open /wasm/demo/index.html
+```
+
 The runtime uses the validated `Schema` and `Expr` AST directly instead of
 parsing the generated JSON manifests back into memory.
 
