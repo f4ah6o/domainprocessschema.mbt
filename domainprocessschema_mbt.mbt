@@ -96,6 +96,7 @@ pub(all) struct ParsedState {
 pub(all) struct ParsedTransitionInput {
   name : String
   type_name : String
+  required : Bool
   read_only : Bool
   default_value : String?
   target : String?

@@ -103,6 +103,7 @@ fn validate_entity(
   )
   let rules = validate_rules(entity.rules, field_names, path)
   let views = validate_views(entity.views, field_names, path)
+  validate_state_view_mapping(states, views, path)
   let indexes = validate_storage_keys(
     entity.storage.indexes,
     field_names,
@@ -382,7 +383,7 @@ fn validate_transition_inputs(
       name: parsed_input.name,
       kind: TransitionInputKind::Local,
       field_type,
-      required: true,
+      required: parsed_input.required,
       read_only: parsed_input.read_only,
       default_value: parsed_input.default_value,
       target: parsed_input.target,
@@ -438,6 +439,42 @@ fn validate_transition_inputs(
     }
   }
   inputs
+}
+
+///|
+fn validate_state_view_mapping(
+  states : Array[State],
+  views : Array[View],
+  path : String,
+) -> Unit raise SchemaError {
+  let state_names : Map[String, Bool] = {}
+  let view_names : Map[String, Bool] = {}
+  for state in states {
+    state_names[state.name] = true
+  }
+  for view in views {
+    if state_names.length() == 0 {
+      raise SchemaError::ValidationError(
+        path="\{path}.views",
+        "views require a non-empty `states` section",
+      )
+    }
+    if !state_names.contains(view.name) {
+      raise SchemaError::ValidationError(
+        path="\{path}.views.\{view.name}",
+        "view \{view.name} must match a declared state",
+      )
+    }
+    view_names[view.name] = true
+  }
+  for state in states {
+    if !view_names.contains(state.name) {
+      raise SchemaError::ValidationError(
+        path="\{path}.views",
+        "state \{state.name} has no matching view",
+      )
+    }
+  }
 }
 
 ///|

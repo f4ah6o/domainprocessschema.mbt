@@ -36,6 +36,7 @@ Phase 1 supports:
 The validator now checks:
 
 - field/relation/state/transition/view references
+- every declared state has a matching view, and every view name matches a state
 - transition-local input declarations for actions such as `rejectReason`
 - a constrained expression layer for `constraint`, `guard`, and `rule`
 - SQL output generation for the database-oriented subset
@@ -128,6 +129,11 @@ transitions:
 
 `input` remains the ordered list of action input names, while `inputs` holds
 typed transition-local definitions for names that are not entity fields.
+
+If a transition-local input omits `required`, it is treated as:
+
+- `true` when no `default` is present
+- `false` when a `default` is present
 
 ## Example
 

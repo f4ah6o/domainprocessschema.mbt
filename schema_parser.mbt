@@ -215,14 +215,22 @@ fn parse_transition_local_inputs(
         let input_map = expect_yaml_map(input_value, path)
         ensure_allowed_keys(
           input_map,
-          ["type", "readonly", "default", "target"],
+          ["type", "required", "readonly", "default", "target"],
           path,
         )
+        let default_value = optional_string_value(input_map, "default", path)
+        let required =
+          if input_map.contains("required") {
+            optional_bool_value(input_map, "required", path, false)
+          } else {
+            default_value is None
+          }
         inputs.push(ParsedTransitionInput::{
           name: input_name,
           type_name: required_string_value(input_map, "type", "\{path}.type"),
+          required,
           read_only: optional_bool_value(input_map, "readonly", path, false),
-          default_value: optional_string_value(input_map, "default", path),
+          default_value,
           target: optional_string_value(input_map, "target", path),
         })
       }

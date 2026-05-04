@@ -107,6 +107,106 @@ fn manager_actor() -> RuntimeActor {
 }
 
 ///|
+fn schema_missing_rejected_view() -> String {
+  (
+    #|entities:
+    #|  ExpenseRequest:
+    #|    label: 経費申請
+    #|    fields:
+    #|      id:
+    #|        type: id
+    #|        primary: true
+    #|      status:
+    #|        type: state
+    #|        initial: draft
+    #|    states:
+    #|      draft:
+    #|        label: 下書き
+    #|      rejected:
+    #|        label: 却下
+    #|    views:
+    #|      draft:
+    #|        readonly:
+    #|          - id
+  )
+}
+
+///|
+fn schema_with_default_local_input() -> String {
+  (
+    #|entities:
+    #|  User:
+    #|    label: ユーザー
+    #|    fields:
+    #|      id:
+    #|        type: id
+    #|        primary: true
+    #|      role:
+    #|        type: text
+    #|        required: true
+    #|  ExpenseRequest:
+    #|    label: 経費申請
+    #|    fields:
+    #|      id:
+    #|        type: id
+    #|        primary: true
+    #|      amount:
+    #|        type: money
+    #|        required: true
+    #|      reason:
+    #|        type: text
+    #|        required: true
+    #|      applicant:
+    #|        type: ref
+    #|        target: User
+    #|        required: true
+    #|      status:
+    #|        type: state
+    #|        initial: draft
+    #|    constraints:
+    #|      amountPositive:
+    #|        expr: amount > 0
+    #|    states:
+    #|      draft:
+    #|        label: 下書き
+    #|      submitted:
+    #|        label: 申請中
+    #|      rejected:
+    #|        label: 却下
+    #|    transitions:
+    #|      submit:
+    #|        from: draft
+    #|        to: submitted
+    #|        input:
+    #|          - amount
+    #|          - reason
+    #|      reject:
+    #|        from: submitted
+    #|        to: rejected
+    #|        role: manager
+    #|        input:
+    #|          - rejectReason
+    #|        inputs:
+    #|          rejectReason:
+    #|            type: text
+    #|            default: auto-reject
+    #|    views:
+    #|      draft:
+    #|        editable:
+    #|          - amount
+    #|          - reason
+    #|      submitted:
+    #|        readonly:
+    #|          - amount
+    #|          - reason
+    #|      rejected:
+    #|        readonly:
+    #|          - amount
+    #|          - reason
+  )
+}
+
+///|
 fn available_transition_names(
   statuses : Array[RuntimeTransitionStatus],
 ) -> Array[String] {
@@ -228,4 +328,31 @@ test "evaluate_rules and project_gui follow the issue runtime model" {
   let gui = project_gui(runtime, submitted, actor=manager_actor())
   inspect(gui.view_name, content="submitted")
   inspect(action_input_names(gui, "reject"), content="[\"rejectReason\"]")
+}
+
+///|
+test "compile_runtime_from_yaml rejects states without matching views" {
+  let result : Result[Runtime, SchemaError] = try? compile_runtime_from_yaml(
+    schema_missing_rejected_view(),
+  )
+  guard result is Err(SchemaError::ValidationError(_, ..)) else {
+    fail("expected a validation error for missing state view")
+  }
+}
+
+///|
+test "defaulted transition-local input is not treated as missing" {
+  let runtime = compile_runtime_from_yaml(schema_with_default_local_input())
+  let draft = validate_record(runtime, "ExpenseRequest", draft_payload()).record
+  let submitted = apply_transition(runtime, draft, "submit", input={
+    "amount": RuntimeValue::Integer(1200),
+    "reason": RuntimeValue::Text("hotel"),
+  })
+  let rejected = apply_transition(
+    runtime,
+    submitted,
+    "reject",
+    actor=manager_actor(),
+  )
+  inspect(rejected.values.get("status"), content="Some(Text(\"rejected\"))")
 }
