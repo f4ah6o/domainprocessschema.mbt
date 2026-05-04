@@ -3,8 +3,8 @@
 `f4ah6o/domainprocessschema.mbt` is a MoonBit-first compiler for the declarative
 domain/process schema described in issue #1.
 
-The current implementation provides five concrete generated artifacts and one
-in-memory runtime surface:
+The current implementation provides five concrete generated artifacts, one
+static HTML renderer, and one in-memory runtime surface:
 
 - constrained YAML input
 - normalized schema validation
@@ -13,6 +13,7 @@ in-memory runtime surface:
 - API/action manifest generation
 - validation manifest generation
 - GUI manifest generation
+- static HTML preview generation from GUI manifest / runtime state
 - in-memory API/workflow runtime generation target
 - CLI support for compiling a schema file
 
@@ -52,13 +53,16 @@ The runtime now supports:
 - listing available transitions for the current record + actor
 - evaluating rules for the current record + actor
 - projecting a runtime GUI view from current state, actions, and rule statuses
+- rendering static HTML from GUI manifest JSON
+- rendering stateful HTML from runtime GUI projection
 - applying transitions in memory with role / guard enforcement
 
-The first runtime slice is intentionally limited to an in-memory engine:
+The first runtime slice is intentionally limited to a library/static-preview
+engine:
 
 - no HTTP server
 - no persistence adapter
-- no GUI renderer
+- no browser-side interactivity
 
 ## YAML scope
 
@@ -92,6 +96,7 @@ moon run cmd/main -- migration-sql examples/expense_request.yaml
 moon run cmd/main -- api-manifest examples/expense_request.yaml
 moon run cmd/main -- validation-manifest examples/expense_request.yaml
 moon run cmd/main -- gui-manifest examples/expense_request.yaml
+moon run cmd/main -- gui-html examples/expense_request.yaml
 ```
 
 ## Runtime API
@@ -104,7 +109,40 @@ The public MoonBit API now includes:
 - `list_transitions`
 - `evaluate_rules`
 - `project_gui`
+- `render_gui_html_from_manifest`
+- `compile_gui_html_from_yaml`
+- `render_runtime_gui_html`
 - `apply_transition`
+
+`gui-html` is the first issue #2 delivery: it consumes the GUI manifest shape and
+renders a semantic static HTML document with state badge, visible fields,
+action buttons, action-local inputs, and rule/action availability hints.
+
+## MoonBit WASM demo
+
+Issue #2 is broader than the static HTML proof. This branch also adds a first
+**MoonBit WASM browser demo** under `wasm/demo/`.
+
+It keeps the current HTML renderer as a WASM-exported preview engine:
+
+- `render_manifest_preview(yaml)` exports the schema-only HTML preview
+- `render_runtime_preview(yaml, scenario)` exports stateful runtime previews
+- `wasm/demo/index.html` loads the built `.wasm`, fetches
+  `examples/expense_request.yaml`, and renders the returned full HTML document
+  into an `<iframe srcdoc>`
+- the host page also exposes the YAML source as a textarea, so schema edits and
+  compile/validation errors can be exercised directly in the browser demo
+- the host page chrome supports a minimal `en` / `ja` switch; schema labels
+  still pass through from YAML as-is
+
+Build and test it with:
+
+```bash
+just wasm-demo-test
+just wasm-demo-build
+python3 -m http.server
+# then open /wasm/demo/index.html
+```
 
 The runtime uses the validated `Schema` and `Expr` AST directly instead of
 parsing the generated JSON manifests back into memory.

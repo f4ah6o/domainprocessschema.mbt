@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>domainprocessschema.mbt MoonBit WASM demo</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 2rem;
+        line-height: 1.5;
+      }
+      .controls {
+        display: grid;
+        gap: 0.75rem;
+        max-width: 48rem;
+        margin-bottom: 1rem;
+      }
+      .controls label {
+        display: grid;
+        gap: 0.25rem;
+      }
+      textarea {
+        width: 100%;
+        min-height: 18rem;
+        font-family: ui-monospace, SFMono-Regular, monospace;
+      }
+      iframe {
+        width: 100%;
+        min-height: 70vh;
+        border: 1px solid #ccc;
+        border-radius: 12px;
+        background: white;
+      }
+      pre {
+        background: #111;
+        color: #f7f7f7;
+        padding: 1rem;
+        border-radius: 12px;
+        overflow-x: auto;
+      }
+      details {
+        margin-top: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 id="page-title">domainprocessschema.mbt MoonBit WASM demo</h1>
+    <p id="page-description">
+      This page loads the MoonBit WASM build, fetches
+      <code>examples/expense_request.yaml</code>, and renders either the static
+      manifest preview or runtime scenarios into the iframe below.
+    </p>
+
+    <div class="controls">
+      <label>
+        <span id="yaml-label">YAML source</span>
+        <textarea id="yaml"></textarea>
+      </label>
+      <label>
+        <span id="scenario-label">Preview mode</span>
+        <select id="scenario">
+          <option value="manifest">manifest</option>
+          <option value="draft">runtime: draft</option>
+          <option value="submitted">runtime: submitted</option>
+          <option value="submitted-manager" selected>
+            runtime: submitted-manager
+          </option>
+          <option value="approved-manager">runtime: approved-manager</option>
+          <option value="rejected-manager">runtime: rejected-manager</option>
+        </select>
+      </label>
+      <label>
+        <span id="locale-label">Language</span>
+        <select id="locale">
+          <option value="en" selected>English</option>
+          <option value="ja">日本語</option>
+        </select>
+      </label>
+      <div>
+        <button id="render">Render preview</button>
+        <button id="reset" type="button">Reset example</button>
+      </div>
+    </div>
+
+    <pre id="status">Loading WASM demo…</pre>
+    <iframe id="preview" title="MoonBit WASM preview"></iframe>
+    <details>
+      <summary id="validation-summary">validation manifest</summary>
+      <pre id="validation">Loading validation manifest…</pre>
+    </details>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

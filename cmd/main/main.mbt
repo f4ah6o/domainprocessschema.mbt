@@ -8,6 +8,7 @@
 /// moon run cmd/main -- api-manifest examples/expense_request.yaml
 /// moon run cmd/main -- validation-manifest examples/expense_request.yaml
 /// moon run cmd/main -- gui-manifest examples/expense_request.yaml
+/// moon run cmd/main -- gui-html examples/expense_request.yaml
 /// moon run cmd/main -- migration-sql examples/expense_request.yaml
 /// ```
 fn main {
@@ -43,10 +44,11 @@ fn compile_output(mode : String, input : String) -> String raise {
     "validation-manifest" =>
       @schema.compile_validation_manifest_from_yaml(input)
     "gui-manifest" => @schema.compile_gui_manifest_from_yaml(input)
+    "gui-html" => @schema.compile_gui_html_from_yaml(input)
     _ =>
       raise @schema.SchemaError::ValidationError(
         path="cli.mode",
-        "unsupported mode \{mode}; use `sql`, `migration-sql`, `api-manifest`, `validation-manifest`, or `gui-manifest`",
+        "unsupported mode \{mode}; use `sql`, `migration-sql`, `api-manifest`, `validation-manifest`, `gui-manifest`, or `gui-html`",
       )
   }
 }
@@ -54,6 +56,6 @@ fn compile_output(mode : String, input : String) -> String raise {
 ///|
 fn print_usage() -> Unit {
   println(
-    "usage: moon run cmd/main -- [sql|migration-sql|api-manifest|validation-manifest|gui-manifest] <schema.yaml>",
+    "usage: moon run cmd/main -- [sql|migration-sql|api-manifest|validation-manifest|gui-manifest|gui-html] <schema.yaml>",
   )
 }

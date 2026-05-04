@@ -364,6 +364,12 @@ pub(all) suberror RuntimeError {
 } derive(Eq, Show)
 
 ///|
+pub(all) suberror HtmlRenderError {
+  InvalidGuiJson(String)
+  InvalidGuiManifest(path~ : String, String)
+} derive(Eq, Show)
+
+///|
 pub fn RuntimeActor::anonymous() -> RuntimeActor {
   RuntimeActor::{ attributes: {} }
 }
@@ -421,6 +427,33 @@ pub fn generate_validation_manifest(schema : Schema) -> String {
 /// Convert a validated schema into a machine-readable GUI manifest.
 pub fn generate_gui_manifest(schema : Schema) -> String {
   render_gui_manifest(schema)
+}
+
+///|
+/// Render static HTML from a GUI manifest JSON document.
+pub fn render_gui_html_from_manifest(
+  manifest_json : String,
+) -> String raise HtmlRenderError {
+  let manifest = parse_gui_manifest_json(manifest_json)
+  render_gui_manifest_html(manifest)
+}
+
+///|
+/// Compile YAML directly to a static HTML preview derived from GUI manifest output.
+pub fn compile_gui_html_from_yaml(input : String) -> String raise {
+  let manifest = compile_gui_manifest_from_yaml(input)
+  render_gui_html_from_manifest(manifest)
+}
+
+///|
+/// Render a stateful runtime GUI projection as static HTML.
+pub fn render_runtime_gui_html(
+  runtime : Runtime,
+  record : RuntimeRecord,
+  actor? : RuntimeActor = RuntimeActor::anonymous(),
+) -> String raise RuntimeError {
+  let projected = project_gui(runtime, record, actor~)
+  render_runtime_gui_view_html(runtime.schema, projected)
 }
 
 ///|
