@@ -70,7 +70,10 @@ fn sample_schema() -> String {
     #|        to: rejected
     #|        role: manager
     #|        input:
-    #|          - reason
+    #|          - rejectReason
+    #|        inputs:
+    #|          rejectReason:
+    #|            type: text
     #|    rules:
     #|      canApprove:
     #|        when: state == "submitted" && user.role == "manager"
@@ -80,6 +83,14 @@ fn sample_schema() -> String {
     #|          - amount
     #|          - reason
     #|      submitted:
+    #|        readonly:
+    #|          - amount
+    #|          - reason
+    #|      approved:
+    #|        readonly:
+    #|          - amount
+    #|          - reason
+    #|      rejected:
     #|        readonly:
     #|          - amount
     #|          - reason
@@ -262,7 +273,26 @@ test "compile_api_manifest_from_yaml renders routes and actions" {
       #|            "from": "draft",
       #|            "to": "submitted",
       #|            "path": "/expense_requests/{id}/submit",
-      #|            "input": ["amount", "reason"],
+      #|            "inputs": [
+      #|                {
+      #|                  "name": "amount",
+      #|                  "kind": "entity-field",
+      #|                  "type": "money",
+      #|                  "required": true,
+      #|                  "readOnly": false,
+      #|                  "default": null,
+      #|                  "target": null
+      #|                },
+      #|                {
+      #|                  "name": "reason",
+      #|                  "kind": "entity-field",
+      #|                  "type": "text",
+      #|                  "required": true,
+      #|                  "readOnly": false,
+      #|                  "default": null,
+      #|                  "target": null
+      #|                }
+      #|              ],
       #|            "guard": "amount > 0",
       #|            "role": null
       #|          },
@@ -271,7 +301,7 @@ test "compile_api_manifest_from_yaml renders routes and actions" {
       #|            "from": "submitted",
       #|            "to": "approved",
       #|            "path": "/expense_requests/{id}/approve",
-      #|            "input": [],
+      #|            "inputs": [],
       #|            "guard": null,
       #|            "role": "manager"
       #|          },
@@ -280,7 +310,17 @@ test "compile_api_manifest_from_yaml renders routes and actions" {
       #|            "from": "submitted",
       #|            "to": "rejected",
       #|            "path": "/expense_requests/{id}/reject",
-      #|            "input": ["reason"],
+      #|            "inputs": [
+      #|                {
+      #|                  "name": "rejectReason",
+      #|                  "kind": "local",
+      #|                  "type": "text",
+      #|                  "required": true,
+      #|                  "readOnly": false,
+      #|                  "default": null,
+      #|                  "target": null
+      #|                }
+      #|              ],
       #|            "guard": null,
       #|            "role": "manager"
       #|          }
@@ -404,21 +444,50 @@ test "compile_validation_manifest_from_yaml renders validation metadata" {
       #|            "name": "submit",
       #|            "from": "draft",
       #|            "to": "submitted",
-      #|            "input": ["amount", "reason"],
+      #|            "inputs": [
+      #|                {
+      #|                  "name": "amount",
+      #|                  "kind": "entity-field",
+      #|                  "type": "money",
+      #|                  "required": true,
+      #|                  "readOnly": false,
+      #|                  "default": null,
+      #|                  "target": null
+      #|                },
+      #|                {
+      #|                  "name": "reason",
+      #|                  "kind": "entity-field",
+      #|                  "type": "text",
+      #|                  "required": true,
+      #|                  "readOnly": false,
+      #|                  "default": null,
+      #|                  "target": null
+      #|                }
+      #|              ],
       #|            "guard": "amount > 0"
       #|          },
       #|          {
       #|            "name": "approve",
       #|            "from": "submitted",
       #|            "to": "approved",
-      #|            "input": [],
+      #|            "inputs": [],
       #|            "guard": null
       #|          },
       #|          {
       #|            "name": "reject",
       #|            "from": "submitted",
       #|            "to": "rejected",
-      #|            "input": ["reason"],
+      #|            "inputs": [
+      #|                {
+      #|                  "name": "rejectReason",
+      #|                  "kind": "local",
+      #|                  "type": "text",
+      #|                  "required": true,
+      #|                  "readOnly": false,
+      #|                  "default": null,
+      #|                  "target": null
+      #|                }
+      #|              ],
       #|            "guard": null
       #|          }
       #|        ],
@@ -515,7 +584,20 @@ test "compile_gui_manifest_from_yaml renders views and actions" {
       #|                {
       #|                  "name": "submit",
       #|                  "to": "submitted",
-      #|                  "input": ["amount", "reason"],
+      #|                  "inputs": [
+      #|                      {
+      #|                        "name": "amount",
+      #|                        "kind": "entity-field",
+      #|                        "component": "money",
+      #|                        "required": true
+      #|                      },
+      #|                      {
+      #|                        "name": "reason",
+      #|                        "kind": "entity-field",
+      #|                        "component": "textarea",
+      #|                        "required": true
+      #|                      }
+      #|                    ],
       #|                  "enabledWhen": "amount > 0",
       #|                  "role": null
       #|                }
@@ -564,18 +646,107 @@ test "compile_gui_manifest_from_yaml renders views and actions" {
       #|                {
       #|                  "name": "approve",
       #|                  "to": "approved",
-      #|                  "input": [],
+      #|                  "inputs": [],
       #|                  "enabledWhen": null,
       #|                  "role": "manager"
       #|                },
       #|                {
       #|                  "name": "reject",
       #|                  "to": "rejected",
-      #|                  "input": ["reason"],
+      #|                  "inputs": [
+      #|                      {
+      #|                        "name": "rejectReason",
+      #|                        "kind": "local",
+      #|                        "component": "textarea",
+      #|                        "required": true
+      #|                      }
+      #|                    ],
       #|                  "enabledWhen": null,
       #|                  "role": "manager"
       #|                }
       #|              ]
+      #|          },
+      #|          {
+      #|            "name": "approved",
+      #|            "fields": [
+      #|                {
+      #|                  "name": "id",
+      #|                  "component": "text",
+      #|                  "mode": "hidden"
+      #|                },
+      #|                {
+      #|                  "name": "amount",
+      #|                  "component": "money",
+      #|                  "mode": "readonly"
+      #|                },
+      #|                {
+      #|                  "name": "reason",
+      #|                  "component": "textarea",
+      #|                  "mode": "readonly"
+      #|                },
+      #|                {
+      #|                  "name": "applicant",
+      #|                  "component": "reference-select",
+      #|                  "mode": "hidden"
+      #|                },
+      #|                {
+      #|                  "name": "status",
+      #|                  "component": "state-badge",
+      #|                  "mode": "hidden"
+      #|                },
+      #|                {
+      #|                  "name": "createdAt",
+      #|                  "component": "datetime-picker",
+      #|                  "mode": "readonly"
+      #|                },
+      #|                {
+      #|                  "name": "updatedAt",
+      #|                  "component": "datetime-picker",
+      #|                  "mode": "readonly"
+      #|                }
+      #|              ],
+      #|            "actions": []
+      #|          },
+      #|          {
+      #|            "name": "rejected",
+      #|            "fields": [
+      #|                {
+      #|                  "name": "id",
+      #|                  "component": "text",
+      #|                  "mode": "hidden"
+      #|                },
+      #|                {
+      #|                  "name": "amount",
+      #|                  "component": "money",
+      #|                  "mode": "readonly"
+      #|                },
+      #|                {
+      #|                  "name": "reason",
+      #|                  "component": "textarea",
+      #|                  "mode": "readonly"
+      #|                },
+      #|                {
+      #|                  "name": "applicant",
+      #|                  "component": "reference-select",
+      #|                  "mode": "hidden"
+      #|                },
+      #|                {
+      #|                  "name": "status",
+      #|                  "component": "state-badge",
+      #|                  "mode": "hidden"
+      #|                },
+      #|                {
+      #|                  "name": "createdAt",
+      #|                  "component": "datetime-picker",
+      #|                  "mode": "readonly"
+      #|                },
+      #|                {
+      #|                  "name": "updatedAt",
+      #|                  "component": "datetime-picker",
+      #|                  "mode": "readonly"
+      #|                }
+      #|              ],
+      #|            "actions": []
       #|          }
       #|        ],
       #|      "rules": [

@@ -82,12 +82,28 @@ fn render_gui_field_control(field : Field, view : View) -> String {
 
 ///|
 fn render_gui_action(transition : Transition) -> String {
+  let rendered_inputs : Array[String] = []
+  for input in transition.inputs {
+    rendered_inputs.push(render_gui_action_input(input))
+  }
   let body_lines = [
     "\"name\": \{json_quote(transition.name)}",
     "\"to\": \{json_quote(transition.to)}",
-    "\"input\": \{render_string_array_json(transition.input_fields)}",
+    render_named_object_array("inputs", rendered_inputs),
     "\"enabledWhen\": \{json_optional_expr(transition.guard_expr)}",
     "\"role\": \{json_optional_string(transition.role)}",
+  ]
+  let body = indent_block(body_lines.join(",\n"), 2)
+  "{\n\{body}\n}"
+}
+
+///|
+fn render_gui_action_input(input : TransitionInput) -> String {
+  let body_lines = [
+    "\"name\": \{json_quote(input.name)}",
+    "\"kind\": \{json_quote(transition_input_kind_name(input.kind))}",
+    "\"component\": \{json_quote(gui_component(input.field_type))}",
+    "\"required\": \{json_bool(input.required)}",
   ]
   let body = indent_block(body_lines.join(",\n"), 2)
   "{\n\{body}\n}"

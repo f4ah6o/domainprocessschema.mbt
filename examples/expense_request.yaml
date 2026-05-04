@@ -68,7 +68,10 @@ entities:
         to: rejected
         role: manager
         input:
-          - reason
+          - rejectReason
+        inputs:
+          rejectReason:
+            type: text
     rules:
       canApprove:
         when: state == "submitted" && user.role == "manager"
@@ -78,6 +81,14 @@ entities:
           - amount
           - reason
       submitted:
+        readonly:
+          - amount
+          - reason
+      approved:
+        readonly:
+          - amount
+          - reason
+      rejected:
         readonly:
           - amount
           - reason

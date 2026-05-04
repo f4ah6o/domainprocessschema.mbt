@@ -270,12 +270,95 @@ fn runtime_list_transitions(
       from: transition.from,
       to: transition.to,
       role: transition.role,
-      input_fields: transition.input_fields,
+      inputs: transition.inputs,
       available: issues.length() == 0,
       issues,
     })
   }
   statuses
+}
+
+///|
+fn runtime_validate_transition_inputs(
+  transition : Transition,
+  input : Map[String, RuntimeValue],
+  path_prefix : String,
+) -> (Map[String, RuntimeValue], Array[RuntimeIssue]) {
+  let entity_payload : Map[String, RuntimeValue] = {}
+  let local_values : Map[String, RuntimeValue] = {}
+  let issues : Array[RuntimeIssue] = []
+  let known_names : Map[String, Bool] = {}
+
+  for transition_input in transition.inputs {
+    known_names[transition_input.name] = true
+    let input_path = "\{path_prefix}.\{transition_input.name}"
+    match transition_input.kind {
+      TransitionInputKind::EntityField =>
+        match input.get(transition_input.name) {
+          Some(RuntimeValue::Null) | None =>
+            if transition_input.required {
+              issues.push(
+                runtime_issue(
+                  input_path,
+                  "transition input field \{transition_input.name} is required",
+                ),
+              )
+            }
+          Some(value) => entity_payload[transition_input.name] = value
+        }
+      TransitionInputKind::Local =>
+        match input.get(transition_input.name) {
+          Some(value) =>
+            match
+              runtime_parse_transition_input_value(
+                transition_input, value, input_path,
+              ) {
+              Ok(Some(parsed_value)) =>
+                local_values[transition_input.name] = parsed_value
+              Ok(None) =>
+                if transition_input.required {
+                  issues.push(
+                    runtime_issue(
+                      input_path,
+                      "transition input \{transition_input.name} is required",
+                    ),
+                  )
+                }
+              Err(issue) => issues.push(issue)
+            }
+          None =>
+            match
+              runtime_transition_input_default_value(
+                transition_input, input_path,
+              ) {
+              Ok(Some(default_value)) =>
+                local_values[transition_input.name] = default_value
+              Ok(None) =>
+                if transition_input.required {
+                  issues.push(
+                    runtime_issue(
+                      input_path,
+                      "transition input \{transition_input.name} is required",
+                    ),
+                  )
+                }
+              Err(issue) => issues.push(issue)
+            }
+        }
+    }
+  }
+
+  for key, _ in input {
+    if !known_names.contains(key) {
+      issues.push(
+        runtime_issue(
+          "\{path_prefix}.\{key}",
+          "unknown transition input \{key}",
+        ),
+      )
+    }
+  }
+  (entity_payload, issues)
 }
 
 ///|
@@ -288,24 +371,19 @@ fn runtime_apply_transition(
 ) -> RuntimeRecord raise RuntimeError {
   let entity = runtime_find_entity(runtime, record.entity_name)
   let transition = runtime_find_transition(entity, transition_name)
+  let input_path = "runtime.entities.\{entity.name}.transitions.\{transition.name}.inputs"
+  let (entity_payload, input_issues) = runtime_validate_transition_inputs(
+    transition, input, input_path,
+  )
   let validation = runtime_validate_record(
     runtime,
     entity.name,
-    input,
+    entity_payload,
     Some(record),
   )
   let issues = copy_runtime_issues(validation.issues)
-  for field_name in transition.input_fields {
-    match input.get(field_name) {
-      Some(RuntimeValue::Null) | None =>
-        issues.push(
-          runtime_issue(
-            "runtime.entities.\{entity.name}.transitions.\{transition.name}.input.\{field_name}",
-            "transition input field \{field_name} is required",
-          ),
-        )
-      Some(_) => ()
-    }
+  for issue in input_issues {
+    issues.push(issue)
   }
 
   let transition_issues = runtime_transition_issues(

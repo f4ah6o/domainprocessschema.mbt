@@ -38,6 +38,19 @@ fn runtime_find_transition(
 }
 
 ///|
+fn runtime_find_view(
+  entity : Entity,
+  state_name : String,
+) -> View raise RuntimeError {
+  for view in entity.views {
+    if view.name == state_name {
+      return view
+    }
+  }
+  raise RuntimeError::MissingView(entity=entity.name, state=state_name)
+}
+
+///|
 fn runtime_find_state_field(entity : Entity) -> Field? {
   for field in entity.fields {
     if field.field_type == FieldType::State {
@@ -70,6 +83,30 @@ fn copy_runtime_issues(issues : Array[RuntimeIssue]) -> Array[RuntimeIssue] {
     copied.push(issue)
   }
   copied
+}
+
+///|
+fn runtime_current_state(
+  entity : Entity,
+  values : Map[String, RuntimeValue],
+  path : String,
+) -> Result[String, RuntimeIssue] {
+  match runtime_find_state_field(entity) {
+    Some(state_field) =>
+      match values.get(state_field.name) {
+        Some(RuntimeValue::Text(state_name)) => Ok(state_name)
+        Some(_) =>
+          Err(
+            runtime_issue(
+              path,
+              "state field \{state_field.name} must be stored as text",
+            ),
+          )
+        None =>
+          Err(runtime_issue(path, "state field \{state_field.name} is missing"))
+      }
+    None => Err(runtime_issue(path, "entity \{entity.name} has no state field"))
+  }
 }
 
 ///|
@@ -111,6 +148,18 @@ fn runtime_default_value(
         runtime_parse_field_value(field, RuntimeValue::Text(raw), path)
       None => Ok(None)
     }
+  }
+}
+
+///|
+fn runtime_transition_input_default_value(
+  input : TransitionInput,
+  path : String,
+) -> Result[RuntimeValue?, RuntimeIssue] {
+  match input.default_value {
+    Some(raw) =>
+      runtime_parse_transition_input_value(input, RuntimeValue::Text(raw), path)
+    None => Ok(None)
   }
 }
 
@@ -179,6 +228,82 @@ fn runtime_parse_field_value(
           runtime_issue(
             path,
             "expected \{field_type_name(field.field_type)} value for field \{field.name}",
+          ),
+        )
+      }
+  }
+}
+
+///|
+fn runtime_parse_transition_input_value(
+  input : TransitionInput,
+  value : RuntimeValue,
+  path : String,
+) -> Result[RuntimeValue?, RuntimeIssue] {
+  match value {
+    RuntimeValue::Null => Ok(None)
+    RuntimeValue::Text(text) =>
+      match input.field_type {
+        FieldType::Id
+        | FieldType::Text
+        | FieldType::Date
+        | FieldType::DateTime
+        | FieldType::Enum
+        | FieldType::Ref
+        | FieldType::File => Ok(Some(RuntimeValue::Text(text)))
+        FieldType::Boolean => {
+          let normalized = normalize_token(text)
+          if normalized == "true" {
+            Ok(Some(RuntimeValue::Flag(true)))
+          } else if normalized == "false" {
+            Ok(Some(RuntimeValue::Flag(false)))
+          } else {
+            Err(
+              runtime_issue(
+                path,
+                "expected boolean for transition input \{input.name}, got \{text}",
+              ),
+            )
+          }
+        }
+        FieldType::Number | FieldType::Money =>
+          if is_integer_literal(text) {
+            Ok(Some(RuntimeValue::Integer(parse_runtime_integer(text))))
+          } else {
+            Err(
+              runtime_issue(
+                path,
+                "expected integer for transition input \{input.name}, got \{text}",
+              ),
+            )
+          }
+        FieldType::State =>
+          Err(
+            runtime_issue(
+              path, "transition-local inputs cannot use `state` values",
+            ),
+          )
+      }
+    RuntimeValue::Integer(number) =>
+      match input.field_type {
+        FieldType::Number | FieldType::Money =>
+          Ok(Some(RuntimeValue::Integer(number)))
+        _ =>
+          Err(
+            runtime_issue(
+              path,
+              "expected \{field_type_name(input.field_type)} text value for transition input \{input.name}",
+            ),
+          )
+      }
+    RuntimeValue::Flag(flag) =>
+      if input.field_type == FieldType::Boolean {
+        Ok(Some(RuntimeValue::Flag(flag)))
+      } else {
+        Err(
+          runtime_issue(
+            path,
+            "expected \{field_type_name(input.field_type)} value for transition input \{input.name}",
           ),
         )
       }

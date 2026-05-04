@@ -93,12 +93,23 @@ pub(all) struct ParsedState {
 } derive(Eq, Show)
 
 ///|
+pub(all) struct ParsedTransitionInput {
+  name : String
+  type_name : String
+  required : Bool
+  read_only : Bool
+  default_value : String?
+  target : String?
+} derive(Eq, Show)
+
+///|
 pub(all) struct ParsedTransition {
   name : String
   from : String
   to : String
   role : String?
-  input_fields : Array[String]
+  input_names : Array[String]
+  inputs : Array[ParsedTransitionInput]
   guard_expr : String?
 } derive(Eq, Show)
 
@@ -182,12 +193,29 @@ pub(all) struct State {
 } derive(Eq, Show)
 
 ///|
+pub(all) enum TransitionInputKind {
+  EntityField
+  Local
+} derive(Eq, Show)
+
+///|
+pub(all) struct TransitionInput {
+  name : String
+  kind : TransitionInputKind
+  field_type : FieldType
+  required : Bool
+  read_only : Bool
+  default_value : String?
+  target : String?
+} derive(Eq, Show)
+
+///|
 pub(all) struct Transition {
   name : String
   from : String
   to : String
   role : String?
-  input_fields : Array[String]
+  inputs : Array[TransitionInput]
   guard_expr : Expr?
 } derive(Eq, Show)
 
@@ -268,9 +296,52 @@ pub(all) struct RuntimeTransitionStatus {
   from : String
   to : String
   role : String?
-  input_fields : Array[String]
+  inputs : Array[TransitionInput]
   available : Bool
   issues : Array[RuntimeIssue]
+} derive(Eq, Show)
+
+///|
+pub(all) struct RuntimeRuleStatus {
+  name : String
+  active : Bool
+  issues : Array[RuntimeIssue]
+} derive(Eq, Show)
+
+///|
+pub(all) struct RuntimeGuiField {
+  name : String
+  component : String
+  mode : String
+  value : RuntimeValue?
+} derive(Eq, Show)
+
+///|
+pub(all) struct RuntimeGuiActionInput {
+  name : String
+  kind : TransitionInputKind
+  component : String
+  required : Bool
+  value : RuntimeValue?
+} derive(Eq, Show)
+
+///|
+pub(all) struct RuntimeGuiAction {
+  name : String
+  to : String
+  available : Bool
+  issues : Array[RuntimeIssue]
+  inputs : Array[RuntimeGuiActionInput]
+} derive(Eq, Show)
+
+///|
+pub(all) struct RuntimeGuiView {
+  entity_name : String
+  state : String
+  view_name : String
+  fields : Array[RuntimeGuiField]
+  actions : Array[RuntimeGuiAction]
+  rules : Array[RuntimeRuleStatus]
 } derive(Eq, Show)
 
 ///|
@@ -283,6 +354,8 @@ pub(all) suberror RuntimeError {
   UnknownEntity(entity~ : String)
   EntityMismatch(expected~ : String, found~ : String)
   UnknownTransition(entity~ : String, transition~ : String)
+  MissingView(entity~ : String, state~ : String)
+  InvalidRecord(entity~ : String, issues~ : Array[RuntimeIssue])
   TransitionRejected(
     entity~ : String,
     transition~ : String,
@@ -383,6 +456,26 @@ pub fn list_transitions(
   actor? : RuntimeActor = RuntimeActor::anonymous(),
 ) -> Array[RuntimeTransitionStatus] raise RuntimeError {
   runtime_list_transitions(runtime, record, actor)
+}
+
+///|
+/// Evaluate entity rules for a record and actor context.
+pub fn evaluate_rules(
+  runtime : Runtime,
+  record : RuntimeRecord,
+  actor? : RuntimeActor = RuntimeActor::anonymous(),
+) -> Array[RuntimeRuleStatus] raise RuntimeError {
+  runtime_evaluate_rules(runtime, record, actor)
+}
+
+///|
+/// Project a runtime GUI view for the current record state.
+pub fn project_gui(
+  runtime : Runtime,
+  record : RuntimeRecord,
+  actor? : RuntimeActor = RuntimeActor::anonymous(),
+) -> RuntimeGuiView raise RuntimeError {
+  runtime_project_gui(runtime, record, actor)
 }
 
 ///|

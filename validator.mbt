@@ -98,10 +98,12 @@ fn validate_entity(
     entity.transitions,
     state_names,
     field_names,
+    entity_names,
     path,
   )
   let rules = validate_rules(entity.rules, field_names, path)
   let views = validate_views(entity.views, field_names, path)
+  validate_state_view_mapping(states, views, path)
   let indexes = validate_storage_keys(
     entity.storage.indexes,
     field_names,
@@ -278,6 +280,7 @@ fn validate_transitions(
   parsed_transitions : Array[ParsedTransition],
   state_names : Map[String, Bool],
   field_names : Map[String, Field],
+  entity_names : Map[String, Bool],
   path : String,
 ) -> Array[Transition] raise SchemaError {
   let transitions : Array[Transition] = []
@@ -295,14 +298,13 @@ fn validate_transitions(
         "unknown target state \{transition.to}",
       )
     }
-    for field_name in transition.input_fields {
-      if !field_names.contains(field_name) {
-        raise SchemaError::ValidationError(
-          path=transition_path,
-          "transition input field \{field_name} does not exist",
-        )
-      }
-    }
+    let inputs = validate_transition_inputs(
+      transition.input_names,
+      transition.inputs,
+      field_names,
+      entity_names,
+      transition_path,
+    )
     let guard_expr = match transition.guard_expr {
       Some(raw_expr) => {
         let expr_path = "\{transition_path}.guard"
@@ -317,11 +319,162 @@ fn validate_transitions(
       from: transition.from,
       to: transition.to,
       role: transition.role,
-      input_fields: transition.input_fields,
+      inputs,
       guard_expr,
     })
   }
   transitions
+}
+
+///|
+fn validate_transition_inputs(
+  input_names : Array[String],
+  parsed_inputs : Array[ParsedTransitionInput],
+  field_names : Map[String, Field],
+  entity_names : Map[String, Bool],
+  transition_path : String,
+) -> Array[TransitionInput] raise SchemaError {
+  let local_inputs : Map[String, TransitionInput] = {}
+  for parsed_input in parsed_inputs {
+    let input_path = "\{transition_path}.inputs.\{parsed_input.name}"
+    if field_names.contains(parsed_input.name) {
+      raise SchemaError::ValidationError(
+        path=input_path,
+        "transition-local input \{parsed_input.name} conflicts with an entity field",
+      )
+    }
+    if local_inputs.contains(parsed_input.name) {
+      raise SchemaError::ValidationError(
+        path=input_path,
+        "duplicate transition-local input \{parsed_input.name}",
+      )
+    }
+    let field_type = parse_field_type(
+      parsed_input.type_name,
+      "\{input_path}.type",
+    )
+    if field_type == FieldType::State {
+      raise SchemaError::ValidationError(
+        path=input_path,
+        "transition-local inputs cannot use `state` type",
+      )
+    }
+    match (field_type, parsed_input.target) {
+      (FieldType::Ref, None) =>
+        raise SchemaError::ValidationError(
+          path=input_path,
+          "`ref` transition-local inputs require a `target` entity",
+        )
+      (FieldType::Ref, Some(target)) =>
+        if !entity_names.contains(target) {
+          raise SchemaError::ValidationError(
+            path=input_path,
+            "unknown ref target \{target}",
+          )
+        }
+      (_, Some(_)) =>
+        raise SchemaError::ValidationError(
+          path=input_path,
+          "`target` is only valid for `ref` transition-local inputs",
+        )
+      _ => ()
+    }
+    local_inputs[parsed_input.name] = TransitionInput::{
+      name: parsed_input.name,
+      kind: TransitionInputKind::Local,
+      field_type,
+      required: parsed_input.required,
+      read_only: parsed_input.read_only,
+      default_value: parsed_input.default_value,
+      target: parsed_input.target,
+    }
+  }
+
+  let inputs : Array[TransitionInput] = []
+  let seen_names : Map[String, Bool] = {}
+  for input_name in input_names {
+    if seen_names.contains(input_name) {
+      raise SchemaError::ValidationError(
+        path=transition_path,
+        "duplicate transition input \{input_name}",
+      )
+    }
+    seen_names[input_name] = true
+    match field_names.get(input_name) {
+      Some(field) => {
+        if field.system {
+          raise SchemaError::ValidationError(
+            path=transition_path,
+            "system field \{input_name} cannot be used as transition input",
+          )
+        }
+        inputs.push(TransitionInput::{
+          name: field.name,
+          kind: TransitionInputKind::EntityField,
+          field_type: field.field_type,
+          required: true,
+          read_only: field.read_only,
+          default_value: field.default_value,
+          target: field.target,
+        })
+      }
+      None =>
+        match local_inputs.get(input_name) {
+          Some(input) => inputs.push(input)
+          None =>
+            raise SchemaError::ValidationError(
+              path=transition_path,
+              "transition input \{input_name} must be an entity field or declared in `inputs`",
+            )
+        }
+    }
+  }
+
+  for local_name, _ in local_inputs {
+    if !seen_names.contains(local_name) {
+      raise SchemaError::ValidationError(
+        path=transition_path,
+        "transition-local input \{local_name} must be referenced from `input`",
+      )
+    }
+  }
+  inputs
+}
+
+///|
+fn validate_state_view_mapping(
+  states : Array[State],
+  views : Array[View],
+  path : String,
+) -> Unit raise SchemaError {
+  let state_names : Map[String, Bool] = {}
+  let view_names : Map[String, Bool] = {}
+  for state in states {
+    state_names[state.name] = true
+  }
+  for view in views {
+    if state_names.length() == 0 {
+      raise SchemaError::ValidationError(
+        path="\{path}.views",
+        "views require a non-empty `states` section",
+      )
+    }
+    if !state_names.contains(view.name) {
+      raise SchemaError::ValidationError(
+        path="\{path}.views.\{view.name}",
+        "view \{view.name} must match a declared state",
+      )
+    }
+    view_names[view.name] = true
+  }
+  for state in states {
+    if !view_names.contains(state.name) {
+      raise SchemaError::ValidationError(
+        path="\{path}.views",
+        "state \{state.name} has no matching view",
+      )
+    }
+  }
 }
 
 ///|
