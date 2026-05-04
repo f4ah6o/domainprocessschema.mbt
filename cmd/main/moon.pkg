@@ -1,0 +1,9 @@
+import {
+  "f4ah6o/domainprocessschema_mbt" @schema,
+  "moonbitlang/x/fs",
+  "moonbitlang/x/sys",
+}
+
+options(
+  "is-main": true,
+)
