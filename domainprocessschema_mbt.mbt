@@ -232,6 +232,82 @@ pub(all) struct Schema {
 } derive(Eq, Show)
 
 ///|
+pub(all) enum RuntimeValue {
+  Null
+  Text(String)
+  Integer(Int)
+  Flag(Bool)
+} derive(Eq, Show)
+
+///|
+pub(all) struct RuntimeIssue {
+  path : String
+  message : String
+} derive(Eq, Show)
+
+///|
+pub(all) struct RuntimeRecord {
+  entity_name : String
+  values : Map[String, RuntimeValue]
+} derive(Eq, Show)
+
+///|
+pub(all) struct RuntimeActor {
+  attributes : Map[String, RuntimeValue]
+} derive(Eq, Show)
+
+///|
+pub(all) struct RuntimeValidation {
+  record : RuntimeRecord
+  issues : Array[RuntimeIssue]
+} derive(Eq, Show)
+
+///|
+pub(all) struct RuntimeTransitionStatus {
+  name : String
+  from : String
+  to : String
+  role : String?
+  input_fields : Array[String]
+  available : Bool
+  issues : Array[RuntimeIssue]
+} derive(Eq, Show)
+
+///|
+pub(all) struct Runtime {
+  schema : Schema
+} derive(Eq, Show)
+
+///|
+pub(all) suberror RuntimeError {
+  UnknownEntity(entity~ : String)
+  EntityMismatch(expected~ : String, found~ : String)
+  UnknownTransition(entity~ : String, transition~ : String)
+  TransitionRejected(
+    entity~ : String,
+    transition~ : String,
+    issues~ : Array[RuntimeIssue]
+  )
+} derive(Eq, Show)
+
+///|
+pub fn RuntimeActor::anonymous() -> RuntimeActor {
+  RuntimeActor::{ attributes: {} }
+}
+
+///|
+pub fn RuntimeValidation::is_ok(self : RuntimeValidation) -> Bool {
+  self.issues.length() == 0
+}
+
+///|
+pub fn RuntimeTransitionStatus::is_available(
+  self : RuntimeTransitionStatus,
+) -> Bool {
+  self.available && self.issues.length() == 0
+}
+
+///|
 /// Parse the supported YAML subset into a stringly typed draft model.
 pub fn parse_schema_yaml(input : String) -> ParsedSchema raise SchemaError {
   let root = parse_yaml_document(input)
@@ -272,6 +348,53 @@ pub fn generate_validation_manifest(schema : Schema) -> String {
 /// Convert a validated schema into a machine-readable GUI manifest.
 pub fn generate_gui_manifest(schema : Schema) -> String {
   render_gui_manifest(schema)
+}
+
+///|
+/// Prepare a validated schema for in-memory runtime operations.
+pub fn build_runtime(schema : Schema) -> Runtime {
+  Runtime::{ schema, }
+}
+
+///|
+/// Compile YAML directly to a prepared runtime.
+pub fn compile_runtime_from_yaml(input : String) -> Runtime raise SchemaError {
+  let parsed = parse_schema_yaml(input)
+  let schema = validate_schema(parsed)
+  build_runtime(schema)
+}
+
+///|
+/// Validate a partial or full entity payload in memory.
+pub fn validate_record(
+  runtime : Runtime,
+  entity_name : String,
+  payload : Map[String, RuntimeValue],
+  current? : RuntimeRecord,
+) -> RuntimeValidation raise RuntimeError {
+  runtime_validate_record(runtime, entity_name, payload, current)
+}
+
+///|
+/// List transition availability for the current record and actor context.
+pub fn list_transitions(
+  runtime : Runtime,
+  record : RuntimeRecord,
+  actor? : RuntimeActor = RuntimeActor::anonymous(),
+) -> Array[RuntimeTransitionStatus] raise RuntimeError {
+  runtime_list_transitions(runtime, record, actor)
+}
+
+///|
+/// Apply a transition in memory and return the updated record.
+pub fn apply_transition(
+  runtime : Runtime,
+  record : RuntimeRecord,
+  transition_name : String,
+  input? : Map[String, RuntimeValue] = {},
+  actor? : RuntimeActor = RuntimeActor::anonymous(),
+) -> RuntimeRecord raise RuntimeError {
+  runtime_apply_transition(runtime, record, transition_name, input, actor)
 }
 
 ///|

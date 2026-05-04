@@ -3,7 +3,8 @@
 `f4ah6o/domainprocessschema.mbt` is a MoonBit-first compiler for the declarative
 domain/process schema described in issue #1.
 
-The current implementation provides five concrete generated artifacts:
+The current implementation provides five concrete generated artifacts and one
+in-memory runtime surface:
 
 - constrained YAML input
 - normalized schema validation
@@ -12,6 +13,7 @@ The current implementation provides five concrete generated artifacts:
 - API/action manifest generation
 - validation manifest generation
 - GUI manifest generation
+- in-memory API/workflow runtime generation target
 - CLI support for compiling a schema file
 
 The GitHub repository name contains `.mbt`, but the MoonBit module name is
@@ -40,6 +42,19 @@ The validator now checks:
 - API/action manifest generation for entities and transitions
 - validation manifest generation for field/constraint/rule metadata
 - GUI manifest generation for views, controls, and actions
+
+The runtime now supports:
+
+- building an in-memory runtime from validated `Schema`
+- validating record payloads with defaults, required checks, and constraints
+- listing available transitions for the current record + actor
+- applying transitions in memory with role / guard enforcement
+
+The first runtime slice is intentionally limited to an in-memory engine:
+
+- no HTTP server
+- no persistence adapter
+- no GUI renderer
 
 ## YAML scope
 
@@ -74,6 +89,19 @@ moon run cmd/main -- api-manifest examples/expense_request.yaml
 moon run cmd/main -- validation-manifest examples/expense_request.yaml
 moon run cmd/main -- gui-manifest examples/expense_request.yaml
 ```
+
+## Runtime API
+
+The public MoonBit API now includes:
+
+- `build_runtime`
+- `compile_runtime_from_yaml`
+- `validate_record`
+- `list_transitions`
+- `apply_transition`
+
+The runtime uses the validated `Schema` and `Expr` AST directly instead of
+parsing the generated JSON manifests back into memory.
 
 ## Example
 

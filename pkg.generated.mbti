@@ -2,11 +2,17 @@
 package "f4ah6o/domainprocessschema_mbt"
 
 // Values
+pub fn apply_transition(Runtime, RuntimeRecord, String, input? : Map[String, RuntimeValue], actor? : RuntimeActor) -> RuntimeRecord raise RuntimeError
+
+pub fn build_runtime(Schema) -> Runtime
+
 pub fn compile_api_manifest_from_yaml(String) -> String raise SchemaError
 
 pub fn compile_gui_manifest_from_yaml(String) -> String raise SchemaError
 
 pub fn compile_migration_sql_from_yaml(String) -> String raise SchemaError
+
+pub fn compile_runtime_from_yaml(String) -> Runtime raise SchemaError
 
 pub fn compile_sql_from_yaml(String) -> String raise SchemaError
 
@@ -22,11 +28,22 @@ pub fn generate_sql(Schema) -> String
 
 pub fn generate_validation_manifest(Schema) -> String
 
+pub fn list_transitions(Runtime, RuntimeRecord, actor? : RuntimeActor) -> Array[RuntimeTransitionStatus] raise RuntimeError
+
 pub fn parse_schema_yaml(String) -> ParsedSchema raise SchemaError
+
+pub fn validate_record(Runtime, String, Map[String, RuntimeValue], current? : RuntimeRecord) -> RuntimeValidation raise RuntimeError
 
 pub fn validate_schema(ParsedSchema) -> Schema raise SchemaError
 
 // Errors
+pub(all) suberror RuntimeError {
+  UnknownEntity(entity~ : String)
+  EntityMismatch(expected~ : String, found~ : String)
+  UnknownTransition(entity~ : String, transition~ : String)
+  TransitionRejected(entity~ : String, transition~ : String, issues~ : Array[RuntimeIssue])
+} derive(Eq, Show)
+
 pub(all) suberror SchemaError {
   ParseError(line~ : Int, String)
   ValidationError(path~ : String, String)
@@ -197,6 +214,49 @@ pub(all) enum RelationKind {
 pub(all) struct Rule {
   name : String
   when_expr : Expr
+} derive(Eq, Show)
+
+pub(all) struct Runtime {
+  schema : Schema
+} derive(Eq, Show)
+
+pub(all) struct RuntimeActor {
+  attributes : Map[String, RuntimeValue]
+} derive(Eq, Show)
+pub fn RuntimeActor::anonymous() -> Self
+
+pub(all) struct RuntimeIssue {
+  path : String
+  message : String
+} derive(Eq, Show)
+
+pub(all) struct RuntimeRecord {
+  entity_name : String
+  values : Map[String, RuntimeValue]
+} derive(Eq, Show)
+
+pub(all) struct RuntimeTransitionStatus {
+  name : String
+  from : String
+  to : String
+  role : String?
+  input_fields : Array[String]
+  available : Bool
+  issues : Array[RuntimeIssue]
+} derive(Eq, Show)
+pub fn RuntimeTransitionStatus::is_available(Self) -> Bool
+
+pub(all) struct RuntimeValidation {
+  record : RuntimeRecord
+  issues : Array[RuntimeIssue]
+} derive(Eq, Show)
+pub fn RuntimeValidation::is_ok(Self) -> Bool
+
+pub(all) enum RuntimeValue {
+  Null
+  Text(String)
+  Integer(Int)
+  Flag(Bool)
 } derive(Eq, Show)
 
 pub(all) struct Schema {
