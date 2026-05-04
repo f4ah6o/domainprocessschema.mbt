@@ -17,6 +17,7 @@ test "render_gui_html_from_manifest renders static html preview" {
       #|    .page-header { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
       #|    .entity-name, .view-name, .action-target { color: #666; margin: 0; }
       #|    .state-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; background: #eef; margin-right: 0.5rem; }
+      #|    .state-badge--current { font-weight: 700; background: #ddf; }
       #|    .field-grid, .action-list { display: grid; gap: 1rem; margin-top: 1rem; }
       #|    .field { display: grid; gap: 0.35rem; }
       #|    .field-meta, .required, .rule-state { font-size: 0.85rem; color: #666; }
@@ -26,6 +27,8 @@ test "render_gui_html_from_manifest renders static html preview" {
       #|    .action-card, .view-card { border-top: 1px solid #eee; padding-top: 1rem; margin-top: 1rem; }
       #|    .action-button { padding: 0.5rem 0.9rem; border-radius: 8px; }
       #|    .issue-list, .rule-list, .state-list, .action-notes { margin: 0.5rem 0 0 1rem; }
+      #|    .state-list { list-style: none; padding-left: 0; }
+      #|    .state-list-item { list-style: none; }
       #|    .rule--active .rule-state { color: #070; }
       #|    .rule--inactive .rule-state { color: #999; }
       #|  </style>
@@ -40,10 +43,10 @@ test "render_gui_html_from_manifest renders static html preview" {
       #|<section class="entity-page">
       #|<header class="page-header"><h1>経費申請</h1><p class="entity-name">ExpenseRequest</p></header>
       #|<section class="state-list-section"><h2>States</h2><ul class="state-list">
-      #|<span class="state-badge" data-state="draft">下書き</span>
-      #|<span class="state-badge" data-state="submitted">申請中</span>
-      #|<span class="state-badge" data-state="approved">承認済</span>
-      #|<span class="state-badge" data-state="rejected">却下</span>
+      #|<li class="state-list-item"><span class="state-badge" data-state="draft">下書き</span></li>
+      #|<li class="state-list-item"><span class="state-badge" data-state="submitted">申請中</span></li>
+      #|<li class="state-list-item"><span class="state-badge" data-state="approved">承認済</span></li>
+      #|<li class="state-list-item"><span class="state-badge" data-state="rejected">却下</span></li>
       #|</ul></section>
       #|<section class="rule-list-section"><h2>Rules</h2><ul class="rule-list">
       #|<li class="rule"><span class="rule-name">canApprove</span><code>state == &quot;submitted&quot; &amp;&amp; user.role == &quot;manager&quot;</code></li>
@@ -113,6 +116,7 @@ test "render_gui_html_from_manifest renders static html preview" {
       #|</section>
       #|</body>
       #|</html>
+
     ),
   )
 }
@@ -141,6 +145,7 @@ test "render_runtime_gui_html renders stateful html preview" {
       #|    .page-header { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
       #|    .entity-name, .view-name, .action-target { color: #666; margin: 0; }
       #|    .state-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; background: #eef; margin-right: 0.5rem; }
+      #|    .state-badge--current { font-weight: 700; background: #ddf; }
       #|    .field-grid, .action-list { display: grid; gap: 1rem; margin-top: 1rem; }
       #|    .field { display: grid; gap: 0.35rem; }
       #|    .field-meta, .required, .rule-state { font-size: 0.85rem; color: #666; }
@@ -150,6 +155,8 @@ test "render_runtime_gui_html renders stateful html preview" {
       #|    .action-card, .view-card { border-top: 1px solid #eee; padding-top: 1rem; margin-top: 1rem; }
       #|    .action-button { padding: 0.5rem 0.9rem; border-radius: 8px; }
       #|    .issue-list, .rule-list, .state-list, .action-notes { margin: 0.5rem 0 0 1rem; }
+      #|    .state-list { list-style: none; padding-left: 0; }
+      #|    .state-list-item { list-style: none; }
       #|    .rule--active .rule-state { color: #070; }
       #|    .rule--inactive .rule-state { color: #999; }
       #|  </style>
@@ -178,6 +185,7 @@ test "render_runtime_gui_html renders stateful html preview" {
       #|</section>
       #|</body>
       #|</html>
+
     ),
   )
 }

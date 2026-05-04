@@ -14,7 +14,9 @@ fn render_manifest_entity_html(entity : GuiManifestEntity) -> String {
   let views : Array[String] = []
   let rules : Array[String] = []
   for state in entity.states {
-    states.push(render_state_badge_html(state.name, state.label, false))
+    states.push(
+      "<li class=\"state-list-item\">\{render_state_badge_html(state.name, state.label, false)}</li>",
+    )
   }
   for view in entity.views {
     views.push(render_manifest_view_html(entity, view))
@@ -268,6 +270,7 @@ fn render_html_document(title : String, body : String) -> String {
     $|    .page-header { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
     $|    .entity-name, .view-name, .action-target { color: #666; margin: 0; }
     $|    .state-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; background: #eef; margin-right: 0.5rem; }
+    $|    .state-badge--current { font-weight: 700; background: #ddf; }
     $|    .field-grid, .action-list { display: grid; gap: 1rem; margin-top: 1rem; }
     $|    .field { display: grid; gap: 0.35rem; }
     $|    .field-meta, .required, .rule-state { font-size: 0.85rem; color: #666; }
@@ -277,6 +280,8 @@ fn render_html_document(title : String, body : String) -> String {
     $|    .action-card, .view-card { border-top: 1px solid #eee; padding-top: 1rem; margin-top: 1rem; }
     $|    .action-button { padding: 0.5rem 0.9rem; border-radius: 8px; }
     $|    .issue-list, .rule-list, .state-list, .action-notes { margin: 0.5rem 0 0 1rem; }
+    $|    .state-list { list-style: none; padding-left: 0; }
+    $|    .state-list-item { list-style: none; }
     $|    .rule--active .rule-state { color: #070; }
     $|    .rule--inactive .rule-state { color: #999; }
     $|  </style>
