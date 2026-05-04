@@ -1,5 +1,5 @@
-const wasmUrl = "../../_build/wasm-gc/release/build/wasm/demo/demo.wasm";
-const yamlUrl = "../../examples/expense_request.yaml";
+const wasmUrl = "./demo.wasm";
+const yamlUrl = "./expense_request.yaml";
 
 const statusNode = document.getElementById("status");
 const validationNode = document.getElementById("validation");

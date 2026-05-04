@@ -20,6 +20,10 @@ wasm-demo-build:
 wasm-demo-test:
   moon test wasm/demo
 
+wasm-demo-dev:
+  moon build wasm/demo --target wasm-gc --release
+  cd wasm/demo && npm run dev
+
 info:
   moon info
 
