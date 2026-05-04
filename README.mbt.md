@@ -3,12 +3,15 @@
 `f4ah6o/domainprocessschema.mbt` is a MoonBit-first compiler for the declarative
 domain/process schema described in issue #1.
 
-The current implementation provides two concrete generated artifacts:
+The current implementation provides five concrete generated artifacts:
 
 - constrained YAML input
 - normalized schema validation
 - SQL DDL generation
+- migration SQL generation
 - API/action manifest generation
+- validation manifest generation
+- GUI manifest generation
 - CLI support for compiling a schema file
 
 The GitHub repository name contains `.mbt`, but the MoonBit module name is
@@ -33,7 +36,10 @@ The validator now checks:
 - field/relation/state/transition/view references
 - a constrained expression layer for `constraint`, `guard`, and `rule`
 - SQL output generation for the database-oriented subset
+- migration output generation for initial up/down scripts
 - API/action manifest generation for entities and transitions
+- validation manifest generation for field/constraint/rule metadata
+- GUI manifest generation for views, controls, and actions
 
 ## YAML scope
 
@@ -63,7 +69,10 @@ for phase 1.
 just check
 just test
 moon run cmd/main -- examples/expense_request.yaml
+moon run cmd/main -- migration-sql examples/expense_request.yaml
 moon run cmd/main -- api-manifest examples/expense_request.yaml
+moon run cmd/main -- validation-manifest examples/expense_request.yaml
+moon run cmd/main -- gui-manifest examples/expense_request.yaml
 ```
 
 ## Example

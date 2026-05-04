@@ -257,6 +257,24 @@ pub fn generate_api_manifest(schema : Schema) -> String {
 }
 
 ///|
+/// Convert a validated schema into an initial migration script.
+pub fn generate_migration_sql(schema : Schema) -> String {
+  render_migration_sql(schema)
+}
+
+///|
+/// Convert a validated schema into a machine-readable validation manifest.
+pub fn generate_validation_manifest(schema : Schema) -> String {
+  render_validation_manifest(schema)
+}
+
+///|
+/// Convert a validated schema into a machine-readable GUI manifest.
+pub fn generate_gui_manifest(schema : Schema) -> String {
+  render_gui_manifest(schema)
+}
+
+///|
 /// Compile YAML directly to SQL by chaining parse, validate, and render.
 pub fn compile_sql_from_yaml(input : String) -> String raise SchemaError {
   let parsed = parse_schema_yaml(input)
@@ -272,4 +290,34 @@ pub fn compile_api_manifest_from_yaml(
   let parsed = parse_schema_yaml(input)
   let schema = validate_schema(parsed)
   generate_api_manifest(schema)
+}
+
+///|
+/// Compile YAML directly to an initial migration script.
+pub fn compile_migration_sql_from_yaml(
+  input : String,
+) -> String raise SchemaError {
+  let parsed = parse_schema_yaml(input)
+  let schema = validate_schema(parsed)
+  generate_migration_sql(schema)
+}
+
+///|
+/// Compile YAML directly to a validation manifest JSON document.
+pub fn compile_validation_manifest_from_yaml(
+  input : String,
+) -> String raise SchemaError {
+  let parsed = parse_schema_yaml(input)
+  let schema = validate_schema(parsed)
+  generate_validation_manifest(schema)
+}
+
+///|
+/// Compile YAML directly to a GUI manifest JSON document.
+pub fn compile_gui_manifest_from_yaml(
+  input : String,
+) -> String raise SchemaError {
+  let parsed = parse_schema_yaml(input)
+  let schema = validate_schema(parsed)
+  generate_gui_manifest(schema)
 }

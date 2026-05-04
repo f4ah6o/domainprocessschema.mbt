@@ -4,11 +4,23 @@ package "f4ah6o/domainprocessschema_mbt"
 // Values
 pub fn compile_api_manifest_from_yaml(String) -> String raise SchemaError
 
+pub fn compile_gui_manifest_from_yaml(String) -> String raise SchemaError
+
+pub fn compile_migration_sql_from_yaml(String) -> String raise SchemaError
+
 pub fn compile_sql_from_yaml(String) -> String raise SchemaError
+
+pub fn compile_validation_manifest_from_yaml(String) -> String raise SchemaError
 
 pub fn generate_api_manifest(Schema) -> String
 
+pub fn generate_gui_manifest(Schema) -> String
+
+pub fn generate_migration_sql(Schema) -> String
+
 pub fn generate_sql(Schema) -> String
+
+pub fn generate_validation_manifest(Schema) -> String
 
 pub fn parse_schema_yaml(String) -> ParsedSchema raise SchemaError
 

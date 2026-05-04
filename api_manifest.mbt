@@ -67,9 +67,9 @@ fn render_api_routes(entity : Entity) -> Array[String] {
 }
 
 ///|
-fn render_api_route(method : String, path : String) -> String {
+fn render_api_route(http_method : String, path : String) -> String {
   let body_lines = [
-    "\"method\": \{json_quote(method)}",
+    "\"method\": \{json_quote(http_method)}",
     "\"path\": \{json_quote(path)}",
   ]
   let body = indent_block(body_lines.join(",\n"), 2)
