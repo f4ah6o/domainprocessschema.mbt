@@ -83,7 +83,7 @@ fn render_api_actions(entity : Entity) -> Array[String] {
   let base_path = "/\{entity.table_name}/\{item_param}"
   let actions : Array[String] = []
   for transition in entity.transitions {
-    let input_json = render_string_array_json(transition.input_fields)
+    let input_json = render_transition_inputs_json(transition.inputs)
     let guard_json = json_optional_expr(transition.guard_expr)
     let role_json = json_optional_string(transition.role)
     let action_path = "\{base_path}/\{transition.name}"
@@ -92,7 +92,7 @@ fn render_api_actions(entity : Entity) -> Array[String] {
       "\"from\": \{json_quote(transition.from)}",
       "\"to\": \{json_quote(transition.to)}",
       "\"path\": \{json_quote(action_path)}",
-      "\"input\": \{input_json}",
+      "\"inputs\": \{input_json}",
       "\"guard\": \{guard_json}",
       "\"role\": \{role_json}",
     ]
@@ -117,6 +117,43 @@ fn field_type_name(field_type : FieldType) -> String {
     FieldType::State => "state"
     FieldType::File => "file"
   }
+}
+
+///|
+fn transition_input_kind_name(kind : TransitionInputKind) -> String {
+  match kind {
+    TransitionInputKind::EntityField => "entity-field"
+    TransitionInputKind::Local => "local"
+  }
+}
+
+///|
+fn render_transition_inputs_json(inputs : Array[TransitionInput]) -> String {
+  let rendered : Array[String] = []
+  for input in inputs {
+    rendered.push(render_transition_input_json(input))
+  }
+  if rendered.length() == 0 {
+    "[]"
+  } else {
+    let block = indent_block(rendered.join(",\n"), 4)
+    "[\n\{block}\n  ]"
+  }
+}
+
+///|
+fn render_transition_input_json(input : TransitionInput) -> String {
+  let body_lines = [
+    "\"name\": \{json_quote(input.name)}",
+    "\"kind\": \{json_quote(transition_input_kind_name(input.kind))}",
+    "\"type\": \{json_quote(field_type_name(input.field_type))}",
+    "\"required\": \{json_bool(input.required)}",
+    "\"readOnly\": \{json_bool(input.read_only)}",
+    "\"default\": \{json_optional_string(input.default_value)}",
+    "\"target\": \{json_optional_string(input.target)}",
+  ]
+  let body = indent_block(body_lines.join(",\n"), 2)
+  "{\n\{body}\n}"
 }
 
 ///|

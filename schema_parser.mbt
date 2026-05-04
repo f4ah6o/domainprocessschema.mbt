@@ -179,7 +179,7 @@ fn parse_transitions(
         let transition_map = expect_yaml_map(transition_value, path)
         ensure_allowed_keys(
           transition_map,
-          ["from", "to", "input", "guard", "role"],
+          ["from", "to", "input", "inputs", "guard", "role"],
           path,
         )
         transitions.push(ParsedTransition::{
@@ -187,13 +187,46 @@ fn parse_transitions(
           from: required_string_value(transition_map, "from", "\{path}.from"),
           to: required_string_value(transition_map, "to", "\{path}.to"),
           role: optional_string_value(transition_map, "role", path),
-          input_fields: optional_string_list_value(
-            transition_map, "input", path,
-          ),
+          input_names: optional_string_list_value(transition_map, "input", path),
+          inputs: parse_transition_local_inputs(transition_map, path),
           guard_expr: optional_string_value(transition_map, "guard", path),
         })
       }
       transitions
+    }
+  }
+}
+
+///|
+fn parse_transition_local_inputs(
+  transition_map : Map[String, YamlValue],
+  transition_path : String,
+) -> Array[ParsedTransitionInput] raise SchemaError {
+  let inputs : Array[ParsedTransitionInput] = []
+  match transition_map.get("inputs") {
+    None => inputs
+    Some(inputs_value) => {
+      let inputs_map = expect_yaml_map(
+        inputs_value,
+        "\{transition_path}.inputs",
+      )
+      for input_name, input_value in inputs_map {
+        let path = "\{transition_path}.inputs.\{input_name}"
+        let input_map = expect_yaml_map(input_value, path)
+        ensure_allowed_keys(
+          input_map,
+          ["type", "readonly", "default", "target"],
+          path,
+        )
+        inputs.push(ParsedTransitionInput::{
+          name: input_name,
+          type_name: required_string_value(input_map, "type", "\{path}.type"),
+          read_only: optional_bool_value(input_map, "readonly", path, false),
+          default_value: optional_string_value(input_map, "default", path),
+          target: optional_string_value(input_map, "target", path),
+        })
+      }
+      inputs
     }
   }
 }

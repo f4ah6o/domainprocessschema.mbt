@@ -70,7 +70,7 @@ fn render_validation_transition(transition : Transition) -> String {
     "\"name\": \{json_quote(transition.name)}",
     "\"from\": \{json_quote(transition.from)}",
     "\"to\": \{json_quote(transition.to)}",
-    "\"input\": \{render_string_array_json(transition.input_fields)}",
+    "\"inputs\": \{render_transition_inputs_json(transition.inputs)}",
     "\"guard\": \{json_optional_expr(transition.guard_expr)}",
   ]
   let body = indent_block(body_lines.join(",\n"), 2)

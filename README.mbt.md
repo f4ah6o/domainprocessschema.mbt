@@ -36,6 +36,7 @@ Phase 1 supports:
 The validator now checks:
 
 - field/relation/state/transition/view references
+- transition-local input declarations for actions such as `rejectReason`
 - a constrained expression layer for `constraint`, `guard`, and `rule`
 - SQL output generation for the database-oriented subset
 - migration output generation for initial up/down scripts
@@ -48,6 +49,8 @@ The runtime now supports:
 - building an in-memory runtime from validated `Schema`
 - validating record payloads with defaults, required checks, and constraints
 - listing available transitions for the current record + actor
+- evaluating rules for the current record + actor
+- projecting a runtime GUI view from current state, actions, and rule statuses
 - applying transitions in memory with role / guard enforcement
 
 The first runtime slice is intentionally limited to an in-memory engine:
@@ -98,10 +101,33 @@ The public MoonBit API now includes:
 - `compile_runtime_from_yaml`
 - `validate_record`
 - `list_transitions`
+- `evaluate_rules`
+- `project_gui`
 - `apply_transition`
 
 The runtime uses the validated `Schema` and `Expr` AST directly instead of
 parsing the generated JSON manifests back into memory.
+
+## Transition-local inputs
+
+Issue #1 examples imply that some transition inputs are not persisted entity
+fields. This repository now supports that explicitly:
+
+```yaml
+transitions:
+  reject:
+    from: submitted
+    to: rejected
+    role: manager
+    input:
+      - rejectReason
+    inputs:
+      rejectReason:
+        type: text
+```
+
+`input` remains the ordered list of action input names, while `inputs` holds
+typed transition-local definitions for names that are not entity fields.
 
 ## Example
 

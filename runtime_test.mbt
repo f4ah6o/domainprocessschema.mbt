@@ -58,6 +58,31 @@ fn runtime_sample_schema() -> String {
     #|        from: submitted
     #|        to: rejected
     #|        role: manager
+    #|        input:
+    #|          - rejectReason
+    #|        inputs:
+    #|          rejectReason:
+    #|            type: text
+    #|    rules:
+    #|      canApprove:
+    #|        when: state == "submitted" && user.role == "manager"
+    #|    views:
+    #|      draft:
+    #|        editable:
+    #|          - amount
+    #|          - reason
+    #|      submitted:
+    #|        readonly:
+    #|          - amount
+    #|          - reason
+    #|      approved:
+    #|        readonly:
+    #|          - amount
+    #|          - reason
+    #|      rejected:
+    #|        readonly:
+    #|          - amount
+    #|          - reason
   )
 }
 
@@ -92,6 +117,34 @@ fn available_transition_names(
     }
   }
   names
+}
+
+///|
+fn active_rule_names(statuses : Array[RuntimeRuleStatus]) -> Array[String] {
+  let names : Array[String] = []
+  for status in statuses {
+    if status.active && status.issues.length() == 0 {
+      names.push(status.name)
+    }
+  }
+  names
+}
+
+///|
+fn action_input_names(
+  view : RuntimeGuiView,
+  action_name : String,
+) -> Array[String] {
+  for action in view.actions {
+    if action.name == action_name {
+      let names : Array[String] = []
+      for input in action.inputs {
+        names.push(input.name)
+      }
+      return names
+    }
+  }
+  []
 }
 
 ///|
@@ -159,4 +212,20 @@ test "apply_transition updates the state in memory" {
     actor=manager_actor(),
   )
   inspect(approved.values.get("status"), content="Some(Text(\"approved\"))")
+}
+
+///|
+test "evaluate_rules and project_gui follow the issue runtime model" {
+  let runtime = sample_runtime()
+  let draft = validate_record(runtime, "ExpenseRequest", draft_payload()).record
+  let submitted = apply_transition(runtime, draft, "submit", input={
+    "amount": RuntimeValue::Integer(1200),
+    "reason": RuntimeValue::Text("hotel"),
+  })
+  let rules = evaluate_rules(runtime, submitted, actor=manager_actor())
+  inspect(active_rule_names(rules), content="[\"canApprove\"]")
+
+  let gui = project_gui(runtime, submitted, actor=manager_actor())
+  inspect(gui.view_name, content="submitted")
+  inspect(action_input_names(gui, "reject"), content="[\"rejectReason\"]")
 }
