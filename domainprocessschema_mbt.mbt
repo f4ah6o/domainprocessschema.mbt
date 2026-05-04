@@ -38,6 +38,28 @@ pub(all) enum RelationKind {
 } derive(Eq, Show)
 
 ///|
+pub(all) enum BinaryOp {
+  Or
+  And
+  Eq
+  NotEq
+  Gt
+  Gte
+  Lt
+  Lte
+} derive(Eq, Show)
+
+///|
+pub(all) enum Expr {
+  Path(Array[String])
+  StringLiteral(String)
+  NumberLiteral(String)
+  BoolLiteral(Bool)
+  Not(Expr)
+  Binary(BinaryOp, Expr, Expr)
+} derive(Eq, Show)
+
+///|
 pub(all) struct ParsedField {
   name : String
   type_name : String
@@ -150,7 +172,7 @@ pub(all) struct Relation {
 ///|
 pub(all) struct Constraint {
   name : String
-  expr : String
+  expr : Expr
 } derive(Eq, Show)
 
 ///|
@@ -166,13 +188,13 @@ pub(all) struct Transition {
   to : String
   role : String?
   input_fields : Array[String]
-  guard_expr : String?
+  guard_expr : Expr?
 } derive(Eq, Show)
 
 ///|
 pub(all) struct Rule {
   name : String
-  when_expr : String
+  when_expr : Expr
 } derive(Eq, Show)
 
 ///|
@@ -229,9 +251,25 @@ pub fn generate_sql(schema : Schema) -> String {
 }
 
 ///|
+/// Convert a validated schema into a machine-readable API/action manifest.
+pub fn generate_api_manifest(schema : Schema) -> String {
+  render_api_manifest(schema)
+}
+
+///|
 /// Compile YAML directly to SQL by chaining parse, validate, and render.
 pub fn compile_sql_from_yaml(input : String) -> String raise SchemaError {
   let parsed = parse_schema_yaml(input)
   let schema = validate_schema(parsed)
   generate_sql(schema)
+}
+
+///|
+/// Compile YAML directly to API/action manifest JSON.
+pub fn compile_api_manifest_from_yaml(
+  input : String,
+) -> String raise SchemaError {
+  let parsed = parse_schema_yaml(input)
+  let schema = validate_schema(parsed)
+  generate_api_manifest(schema)
 }

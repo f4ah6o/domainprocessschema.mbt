@@ -2,7 +2,11 @@
 package "f4ah6o/domainprocessschema_mbt"
 
 // Values
+pub fn compile_api_manifest_from_yaml(String) -> String raise SchemaError
+
 pub fn compile_sql_from_yaml(String) -> String raise SchemaError
+
+pub fn generate_api_manifest(Schema) -> String
 
 pub fn generate_sql(Schema) -> String
 
@@ -17,9 +21,20 @@ pub(all) suberror SchemaError {
 } derive(Eq, Show)
 
 // Types and methods
+pub(all) enum BinaryOp {
+  Or
+  And
+  Eq
+  NotEq
+  Gt
+  Gte
+  Lt
+  Lte
+} derive(Eq, Show)
+
 pub(all) struct Constraint {
   name : String
-  expr : String
+  expr : Expr
 } derive(Eq, Show)
 
 pub(all) struct Entity {
@@ -37,6 +52,17 @@ pub(all) struct Entity {
   unique_keys : Array[StorageKey]
   soft_delete : Bool
 } derive(Eq, Show)
+
+pub(all) enum Expr {
+  Path(Array[String])
+  StringLiteral(String)
+  NumberLiteral(String)
+  BoolLiteral(Bool)
+  Not(Expr)
+  Binary(BinaryOp, Expr, Expr)
+} derive(Eq, Show)
+
+type ExprToken derive(Eq, Show)
 
 pub(all) struct Field {
   name : String
@@ -158,7 +184,7 @@ pub(all) enum RelationKind {
 
 pub(all) struct Rule {
   name : String
-  when_expr : String
+  when_expr : Expr
 } derive(Eq, Show)
 
 pub(all) struct Schema {
@@ -180,7 +206,7 @@ pub(all) struct Transition {
   to : String
   role : String?
   input_fields : Array[String]
-  guard_expr : String?
+  guard_expr : Expr?
 } derive(Eq, Show)
 
 pub(all) struct View {

@@ -93,14 +93,14 @@ fn validate_entity(
     entity_names,
     path,
   )
-  let constraints = validate_constraints(entity.constraints, path)
+  let constraints = validate_constraints(entity.constraints, field_names, path)
   let transitions = validate_transitions(
     entity.transitions,
     state_names,
     field_names,
     path,
   )
-  let rules = validate_rules(entity.rules, path)
+  let rules = validate_rules(entity.rules, field_names, path)
   let views = validate_views(entity.views, field_names, path)
   let indexes = validate_storage_keys(
     entity.storage.indexes,
@@ -254,20 +254,21 @@ fn validate_relations(
 ///|
 fn validate_constraints(
   parsed_constraints : Array[ParsedConstraint],
+  field_names : Map[String, Field],
   path : String,
 ) -> Array[Constraint] raise SchemaError {
   let constraints : Array[Constraint] = []
   for constraint in parsed_constraints {
+    let expr_path = "\{path}.constraints.\{constraint.name}.expr"
     if constraint.expr.trim().is_empty() {
       raise SchemaError::ValidationError(
-        path="\{path}.constraints.\{constraint.name}",
+        path=expr_path,
         "constraint expressions must not be empty",
       )
     }
-    constraints.push(Constraint::{
-      name: constraint.name,
-      expr: constraint.expr,
-    })
+    let expr = parse_expr_text(constraint.expr, expr_path)
+    validate_expr(expr, field_names, expr_path, false, false)
+    constraints.push(Constraint::{ name: constraint.name, expr })
   }
   constraints
 }
@@ -302,13 +303,22 @@ fn validate_transitions(
         )
       }
     }
+    let guard_expr = match transition.guard_expr {
+      Some(raw_expr) => {
+        let expr_path = "\{transition_path}.guard"
+        let expr = parse_expr_text(raw_expr, expr_path)
+        validate_expr(expr, field_names, expr_path, true, true)
+        Some(expr)
+      }
+      None => None
+    }
     transitions.push(Transition::{
       name: transition.name,
       from: transition.from,
       to: transition.to,
       role: transition.role,
       input_fields: transition.input_fields,
-      guard_expr: transition.guard_expr,
+      guard_expr,
     })
   }
   transitions
@@ -317,17 +327,21 @@ fn validate_transitions(
 ///|
 fn validate_rules(
   parsed_rules : Array[ParsedRule],
+  field_names : Map[String, Field],
   path : String,
 ) -> Array[Rule] raise SchemaError {
   let rules : Array[Rule] = []
   for rule in parsed_rules {
+    let expr_path = "\{path}.rules.\{rule.name}.when"
     if rule.when_expr.trim().is_empty() {
       raise SchemaError::ValidationError(
-        path="\{path}.rules.\{rule.name}",
+        path=expr_path,
         "rule expressions must not be empty",
       )
     }
-    rules.push(Rule::{ name: rule.name, when_expr: rule.when_expr })
+    let expr = parse_expr_text(rule.when_expr, expr_path)
+    validate_expr(expr, field_names, expr_path, true, true)
+    rules.push(Rule::{ name: rule.name, when_expr: expr })
   }
   rules
 }

@@ -1,22 +1,27 @@
 ///|
-/// CLI entry point for the phase-1 SQL compiler.
+/// CLI entry point for the schema compiler.
 ///
 /// Usage:
 ///
 /// ```text
 /// moon run cmd/main -- examples/expense_request.yaml
+/// moon run cmd/main -- api-manifest examples/expense_request.yaml
 /// ```
 fn main {
   let args = @sys.get_cli_args()
-  if args.length() != 2 {
+  if args.length() != 2 && args.length() != 3 {
     print_usage()
     @sys.exit(1)
   } else {
-    let path = args[1]
+    let (mode, path) = if args.length() == 2 {
+      ("sql", args[1])
+    } else {
+      (args[1], args[2])
+    }
     try {
       let input = @fs.read_file_to_string(path)
-      let sql = @schema.compile_sql_from_yaml(input)
-      println(sql)
+      let output = compile_output(mode, input)
+      println(output)
     } catch {
       err => {
         println("error: \{err}")
@@ -27,6 +32,19 @@ fn main {
 }
 
 ///|
+fn compile_output(mode : String, input : String) -> String raise {
+  match mode {
+    "sql" => @schema.compile_sql_from_yaml(input)
+    "api-manifest" => @schema.compile_api_manifest_from_yaml(input)
+    _ =>
+      raise @schema.SchemaError::ValidationError(
+        path="cli.mode",
+        "unsupported mode \{mode}; use `sql` or `api-manifest`",
+      )
+  }
+}
+
+///|
 fn print_usage() -> Unit {
-  println("usage: moon run cmd/main -- <schema.yaml>")
+  println("usage: moon run cmd/main -- [sql|api-manifest] <schema.yaml>")
 }

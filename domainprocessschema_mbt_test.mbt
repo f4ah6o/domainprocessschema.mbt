@@ -126,6 +126,171 @@ test "compile_sql_from_yaml renders the phase-1 vertical slice" {
 }
 
 ///|
+test "compile_api_manifest_from_yaml renders routes and actions" {
+  let manifest = compile_api_manifest_from_yaml(sample_schema())
+  inspect(manifest, content=(
+    
+    #|{
+    #|  "entities": [
+    #|    {
+    #|      "name": "User",
+    #|      "label": "ユーザー",
+    #|      "table": "users",
+    #|      "fields": [
+    #|          {
+    #|            "name": "id",
+    #|            "column": "id",
+    #|            "type": "id",
+    #|            "required": false,
+    #|            "primary": true,
+    #|            "readOnly": false,
+    #|            "system": false
+    #|          },
+    #|          {
+    #|            "name": "role",
+    #|            "column": "role",
+    #|            "type": "text",
+    #|            "required": true,
+    #|            "primary": false,
+    #|            "readOnly": false,
+    #|            "system": false
+    #|          }
+    #|        ],
+    #|      "routes": [
+    #|          {
+    #|            "method": "GET",
+    #|            "path": "/users/{id}"
+    #|          },
+    #|          {
+    #|            "method": "POST",
+    #|            "path": "/users"
+    #|          },
+    #|          {
+    #|            "method": "PATCH",
+    #|            "path": "/users/{id}"
+    #|          }
+    #|        ],
+    #|      "actions": []
+    #|    },
+    #|    {
+    #|      "name": "ExpenseRequest",
+    #|      "label": "経費申請",
+    #|      "table": "expense_requests",
+    #|      "fields": [
+    #|          {
+    #|            "name": "id",
+    #|            "column": "id",
+    #|            "type": "id",
+    #|            "required": false,
+    #|            "primary": true,
+    #|            "readOnly": false,
+    #|            "system": false
+    #|          },
+    #|          {
+    #|            "name": "amount",
+    #|            "column": "amount",
+    #|            "type": "money",
+    #|            "required": true,
+    #|            "primary": false,
+    #|            "readOnly": false,
+    #|            "system": false
+    #|          },
+    #|          {
+    #|            "name": "reason",
+    #|            "column": "reason",
+    #|            "type": "text",
+    #|            "required": true,
+    #|            "primary": false,
+    #|            "readOnly": false,
+    #|            "system": false
+    #|          },
+    #|          {
+    #|            "name": "applicant",
+    #|            "column": "applicant_id",
+    #|            "type": "ref",
+    #|            "required": true,
+    #|            "primary": false,
+    #|            "readOnly": false,
+    #|            "system": false
+    #|          },
+    #|          {
+    #|            "name": "status",
+    #|            "column": "status",
+    #|            "type": "state",
+    #|            "required": false,
+    #|            "primary": false,
+    #|            "readOnly": false,
+    #|            "system": false
+    #|          },
+    #|          {
+    #|            "name": "createdAt",
+    #|            "column": "created_at",
+    #|            "type": "datetime",
+    #|            "required": false,
+    #|            "primary": false,
+    #|            "readOnly": false,
+    #|            "system": true
+    #|          },
+    #|          {
+    #|            "name": "updatedAt",
+    #|            "column": "updated_at",
+    #|            "type": "datetime",
+    #|            "required": false,
+    #|            "primary": false,
+    #|            "readOnly": false,
+    #|            "system": true
+    #|          }
+    #|        ],
+    #|      "routes": [
+    #|          {
+    #|            "method": "GET",
+    #|            "path": "/expense_requests/{id}"
+    #|          },
+    #|          {
+    #|            "method": "POST",
+    #|            "path": "/expense_requests"
+    #|          },
+    #|          {
+    #|            "method": "PATCH",
+    #|            "path": "/expense_requests/{id}"
+    #|          }
+    #|        ],
+    #|      "actions": [
+    #|          {
+    #|            "name": "submit",
+    #|            "from": "draft",
+    #|            "to": "submitted",
+    #|            "path": "/expense_requests/{id}/submit",
+    #|            "input": ["amount", "reason"],
+    #|            "guard": "amount > 0",
+    #|            "role": null
+    #|          },
+    #|          {
+    #|            "name": "approve",
+    #|            "from": "submitted",
+    #|            "to": "approved",
+    #|            "path": "/expense_requests/{id}/approve",
+    #|            "input": [],
+    #|            "guard": null,
+    #|            "role": "manager"
+    #|          },
+    #|          {
+    #|            "name": "reject",
+    #|            "from": "submitted",
+    #|            "to": "rejected",
+    #|            "path": "/expense_requests/{id}/reject",
+    #|            "input": ["reason"],
+    #|            "guard": null,
+    #|            "role": "manager"
+    #|          }
+    #|        ]
+    #|    }
+    #|  ]
+    #|}
+  ))
+}
+
+///|
 test "validate_schema rejects unknown transition states" {
   let invalid =
     #|entities:
@@ -149,6 +314,32 @@ test "validate_schema rejects unknown transition states" {
     result,
     content="Err(ValidationError(path=\"schema.entities.ExpenseRequest.transitions.submit\", \"unknown target state submitted\"))",
   )
+}
+
+///|
+test "validate_schema rejects unknown identifiers in expressions" {
+  let invalid =
+    #|entities:
+    #|  ExpenseRequest:
+    #|    fields:
+    #|      id:
+    #|        type: id
+    #|        primary: true
+    #|      amount:
+    #|        type: money
+    #|      status:
+    #|        type: state
+    #|        initial: draft
+    #|    states:
+    #|      draft:
+    #|        label: 下書き
+    #|    constraints:
+    #|      bad:
+    #|        expr: missing > 0
+  let result : Result[String, SchemaError] = try? compile_sql_from_yaml(invalid)
+  inspect(result, content=(
+    #|Err(ValidationError(path="schema.entities.ExpenseRequest.constraints.bad.expr", "unknown identifier path missing"))
+  ))
 }
 
 ///|

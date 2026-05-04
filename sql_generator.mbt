@@ -78,7 +78,7 @@ fn render_foreign_key(schema : Schema, field : Field) -> String {
 ///|
 fn render_check_constraint(entity : Entity, constraint : Constraint) -> String {
   let field_map = entity_field_map(entity)
-  let expr = translate_expr(constraint.expr, field_map)
+  let expr = expr_to_sql(constraint.expr, field_map, 0)
   "CHECK (\{expr})"
 }
 
@@ -199,52 +199,59 @@ fn is_integer_literal(value : String) -> Bool {
 }
 
 ///|
-fn translate_expr(expr : String, field_map : Map[String, Field]) -> String {
-  let builder = StringBuilder::new()
-  let token = StringBuilder::new()
-  let mut in_quote = false
-  for char in expr {
-    if char == '\'' {
-      flush_identifier(builder, token, field_map)
-      builder.write_char(char)
-      in_quote = !in_quote
-    } else if in_quote {
-      builder.write_char(char)
-    } else if is_identifier_char(char) {
-      token.write_char(char)
-    } else {
-      flush_identifier(builder, token, field_map)
-      builder.write_char(char)
-    }
-  }
-  flush_identifier(builder, token, field_map)
-  builder.to_string()
-}
-
-///|
-fn flush_identifier(
-  builder : StringBuilder,
-  token : StringBuilder,
+fn expr_to_sql(
+  expr : Expr,
   field_map : Map[String, Field],
-) -> Unit {
-  if token.is_empty() {
-    ()
-  } else {
-    let text = token.to_string()
-    match field_map.get(text) {
-      Some(field) => builder.write_string(field.column_name)
-      None => builder.write_string(text)
+  parent_prec : Int,
+) -> String {
+  match expr {
+    Expr::Path(parts) =>
+      if parts.length() == 1 {
+        match field_map.get(parts[0]) {
+          Some(field) => field.column_name
+          None => parts.join(".")
+        }
+      } else {
+        parts.join(".")
+      }
+    Expr::StringLiteral(text) => quote_sql(text)
+    Expr::NumberLiteral(text) => text
+    Expr::BoolLiteral(value) => if value { "TRUE" } else { "FALSE" }
+    Expr::Not(inner) => {
+      let rendered = "NOT \{expr_to_sql(inner, field_map, 4)}"
+      if parent_prec > 4 {
+        "(\{rendered})"
+      } else {
+        rendered
+      }
     }
-    token.reset()
+    Expr::Binary(op, left, right) => {
+      let prec = binary_precedence(op)
+      let op_text = binary_op_sql_text(op)
+      let left_text = expr_to_sql(left, field_map, prec)
+      let right_text = expr_to_sql(right, field_map, prec + 1)
+      let rendered = "\{left_text} \{op_text} \{right_text}"
+      if parent_prec > prec {
+        "(\{rendered})"
+      } else {
+        rendered
+      }
+    }
   }
 }
 
 ///|
-fn is_identifier_char(char : Char) -> Bool {
-  char is ('a'..='z') ||
-  char is ('A'..='Z') ||
-  char is ('0'..='9') ||
-  char == '_'
+fn binary_op_sql_text(op : BinaryOp) -> String {
+  match op {
+    BinaryOp::Or => "OR"
+    BinaryOp::And => "AND"
+    BinaryOp::Eq => "="
+    BinaryOp::NotEq => "!="
+    BinaryOp::Gt => ">"
+    BinaryOp::Gte => ">="
+    BinaryOp::Lt => "<"
+    BinaryOp::Lte => "<="
+  }
 }
 
 ///|
