@@ -1,7 +1,7 @@
 ///|
 /// Normalize locale keys so YAML label maps and browser locale values compare
 /// consistently (`ja_JP`, `ja-jp`, `JA-JP` all become `ja-jp`).
-fn normalize_label_locale(locale : String) -> String {
+pub fn normalize_label_locale(locale : String) -> String {
   locale.trim().to_string().replace_all(old="_", new="-").to_lower()
 }
 
@@ -17,7 +17,7 @@ fn default_localized_text(
 }
 
 ///|
-fn resolve_localized_text(
+pub fn resolve_localized_text(
   default_text : String,
   translations : Map[String, String],
   locale : String,

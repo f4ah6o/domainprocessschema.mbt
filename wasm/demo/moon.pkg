@@ -14,6 +14,7 @@ options(
         "create_demo_session",
         "session_preview_html",
         "session_snapshot_json",
+        "session_reference_catalog_json",
         "apply_session_transition",
         "result_is_ok",
         "result_unwrap",

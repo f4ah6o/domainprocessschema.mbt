@@ -97,6 +97,7 @@ entities:
         input:
           - amount
           - reason
+          - applicant
         guard: amount > 0
       approve:
         from: submitted

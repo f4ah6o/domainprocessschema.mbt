@@ -34,6 +34,8 @@ pub fn generate_validation_manifest(Schema) -> String
 
 pub fn list_transitions(Runtime, RuntimeRecord, actor? : RuntimeActor) -> Array[RuntimeTransitionStatus] raise RuntimeError
 
+pub fn normalize_label_locale(String) -> String
+
 pub fn parse_schema_yaml(String) -> ParsedSchema raise SchemaError
 
 pub fn project_gui(Runtime, RuntimeRecord, actor? : RuntimeActor, locale? : String) -> RuntimeGuiView raise RuntimeError
@@ -41,6 +43,8 @@ pub fn project_gui(Runtime, RuntimeRecord, actor? : RuntimeActor, locale? : Stri
 pub fn render_gui_html_from_manifest(String) -> String raise HtmlRenderError
 
 pub fn render_runtime_gui_html(Runtime, RuntimeRecord, actor? : RuntimeActor, locale? : String) -> String raise RuntimeError
+
+pub fn resolve_localized_text(String, Map[String, String], String) -> String
 
 pub fn validate_record(Runtime, String, Map[String, RuntimeValue], current? : RuntimeRecord) -> RuntimeValidation raise RuntimeError
 
