@@ -10,9 +10,9 @@ pub fn apply_session_transition(DemoSession, String, String) -> Result[DemoSessi
 
 pub fn create_demo_session(String, actor_role? : String) -> Result[DemoSession, Error]
 
-pub fn render_manifest_preview(String) -> Result[String, Error]
+pub fn render_manifest_preview(String, locale? : String) -> Result[String, Error]
 
-pub fn render_runtime_preview(String, String) -> Result[String, Error]
+pub fn render_runtime_preview(String, String, locale? : String) -> Result[String, Error]
 
 pub fn render_validation_manifest(String) -> Result[String, Error]
 
@@ -22,7 +22,7 @@ pub fn result_is_ok(Result[String, Error]) -> Bool
 
 pub fn result_unwrap(Result[String, Error]) -> String
 
-pub fn session_preview_html(DemoSession) -> Result[String, Error]
+pub fn session_preview_html(DemoSession, locale? : String) -> Result[String, Error]
 
 pub fn session_result_error(Result[DemoSession, Error]) -> String
 
@@ -30,7 +30,7 @@ pub fn session_result_is_ok(Result[DemoSession, Error]) -> Bool
 
 pub fn session_result_unwrap(Result[DemoSession, Error]) -> DemoSession
 
-pub fn session_snapshot_json(DemoSession) -> Result[String, Error]
+pub fn session_snapshot_json(DemoSession, locale? : String) -> Result[String, Error]
 
 // Errors
 

@@ -546,36 +546,43 @@ test "compile_gui_manifest_from_yaml renders views and actions" {
       #|            "fields": [
       #|                {
       #|                  "name": "id",
+      #|                  "label": "id",
       #|                  "component": "text",
       #|                  "mode": "hidden"
       #|                },
       #|                {
       #|                  "name": "amount",
+      #|                  "label": "amount",
       #|                  "component": "money",
       #|                  "mode": "editable"
       #|                },
       #|                {
       #|                  "name": "reason",
+      #|                  "label": "reason",
       #|                  "component": "textarea",
       #|                  "mode": "editable"
       #|                },
       #|                {
       #|                  "name": "applicant",
+      #|                  "label": "applicant",
       #|                  "component": "reference-select",
       #|                  "mode": "hidden"
       #|                },
       #|                {
       #|                  "name": "status",
+      #|                  "label": "status",
       #|                  "component": "state-badge",
       #|                  "mode": "hidden"
       #|                },
       #|                {
       #|                  "name": "createdAt",
+      #|                  "label": "createdAt",
       #|                  "component": "datetime-picker",
       #|                  "mode": "readonly"
       #|                },
       #|                {
       #|                  "name": "updatedAt",
+      #|                  "label": "updatedAt",
       #|                  "component": "datetime-picker",
       #|                  "mode": "readonly"
       #|                }
@@ -587,12 +594,14 @@ test "compile_gui_manifest_from_yaml renders views and actions" {
       #|                  "inputs": [
       #|                      {
       #|                        "name": "amount",
+      #|                        "label": "amount",
       #|                        "kind": "entity-field",
       #|                        "component": "money",
       #|                        "required": true
       #|                      },
       #|                      {
       #|                        "name": "reason",
+      #|                        "label": "reason",
       #|                        "kind": "entity-field",
       #|                        "component": "textarea",
       #|                        "required": true
@@ -608,36 +617,43 @@ test "compile_gui_manifest_from_yaml renders views and actions" {
       #|            "fields": [
       #|                {
       #|                  "name": "id",
+      #|                  "label": "id",
       #|                  "component": "text",
       #|                  "mode": "hidden"
       #|                },
       #|                {
       #|                  "name": "amount",
+      #|                  "label": "amount",
       #|                  "component": "money",
       #|                  "mode": "readonly"
       #|                },
       #|                {
       #|                  "name": "reason",
+      #|                  "label": "reason",
       #|                  "component": "textarea",
       #|                  "mode": "readonly"
       #|                },
       #|                {
       #|                  "name": "applicant",
+      #|                  "label": "applicant",
       #|                  "component": "reference-select",
       #|                  "mode": "hidden"
       #|                },
       #|                {
       #|                  "name": "status",
+      #|                  "label": "status",
       #|                  "component": "state-badge",
       #|                  "mode": "hidden"
       #|                },
       #|                {
       #|                  "name": "createdAt",
+      #|                  "label": "createdAt",
       #|                  "component": "datetime-picker",
       #|                  "mode": "readonly"
       #|                },
       #|                {
       #|                  "name": "updatedAt",
+      #|                  "label": "updatedAt",
       #|                  "component": "datetime-picker",
       #|                  "mode": "readonly"
       #|                }
@@ -656,6 +672,7 @@ test "compile_gui_manifest_from_yaml renders views and actions" {
       #|                  "inputs": [
       #|                      {
       #|                        "name": "rejectReason",
+      #|                        "label": "rejectReason",
       #|                        "kind": "local",
       #|                        "component": "textarea",
       #|                        "required": true
@@ -671,36 +688,43 @@ test "compile_gui_manifest_from_yaml renders views and actions" {
       #|            "fields": [
       #|                {
       #|                  "name": "id",
+      #|                  "label": "id",
       #|                  "component": "text",
       #|                  "mode": "hidden"
       #|                },
       #|                {
       #|                  "name": "amount",
+      #|                  "label": "amount",
       #|                  "component": "money",
       #|                  "mode": "readonly"
       #|                },
       #|                {
       #|                  "name": "reason",
+      #|                  "label": "reason",
       #|                  "component": "textarea",
       #|                  "mode": "readonly"
       #|                },
       #|                {
       #|                  "name": "applicant",
+      #|                  "label": "applicant",
       #|                  "component": "reference-select",
       #|                  "mode": "hidden"
       #|                },
       #|                {
       #|                  "name": "status",
+      #|                  "label": "status",
       #|                  "component": "state-badge",
       #|                  "mode": "hidden"
       #|                },
       #|                {
       #|                  "name": "createdAt",
+      #|                  "label": "createdAt",
       #|                  "component": "datetime-picker",
       #|                  "mode": "readonly"
       #|                },
       #|                {
       #|                  "name": "updatedAt",
+      #|                  "label": "updatedAt",
       #|                  "component": "datetime-picker",
       #|                  "mode": "readonly"
       #|                }
@@ -712,36 +736,43 @@ test "compile_gui_manifest_from_yaml renders views and actions" {
       #|            "fields": [
       #|                {
       #|                  "name": "id",
+      #|                  "label": "id",
       #|                  "component": "text",
       #|                  "mode": "hidden"
       #|                },
       #|                {
       #|                  "name": "amount",
+      #|                  "label": "amount",
       #|                  "component": "money",
       #|                  "mode": "readonly"
       #|                },
       #|                {
       #|                  "name": "reason",
+      #|                  "label": "reason",
       #|                  "component": "textarea",
       #|                  "mode": "readonly"
       #|                },
       #|                {
       #|                  "name": "applicant",
+      #|                  "label": "applicant",
       #|                  "component": "reference-select",
       #|                  "mode": "hidden"
       #|                },
       #|                {
       #|                  "name": "status",
+      #|                  "label": "status",
       #|                  "component": "state-badge",
       #|                  "mode": "hidden"
       #|                },
       #|                {
       #|                  "name": "createdAt",
+      #|                  "label": "createdAt",
       #|                  "component": "datetime-picker",
       #|                  "mode": "readonly"
       #|                },
       #|                {
       #|                  "name": "updatedAt",
+      #|                  "label": "updatedAt",
       #|                  "component": "datetime-picker",
       #|                  "mode": "readonly"
       #|                }
@@ -758,8 +789,107 @@ test "compile_gui_manifest_from_yaml renders views and actions" {
       #|    }
       #|  ]
       #|}
+
     ),
   )
+}
+
+///|
+fn localized_label_schema() -> String {
+  (
+    #|entities:
+    #|  ExpenseRequest:
+    #|    label:
+    #|      default: Expense Request
+    #|      ja: 経費申請
+    #|    fields:
+    #|      id:
+    #|        label:
+    #|          default: ID
+    #|          ja: ID
+    #|        type: id
+    #|        primary: true
+    #|      amount:
+    #|        label:
+    #|          default: Amount
+    #|          ja: 金額
+    #|        type: money
+    #|        required: true
+    #|      status:
+    #|        label:
+    #|          default: Status
+    #|          ja: ステータス
+    #|        type: state
+    #|        initial: draft
+    #|    states:
+    #|      draft:
+    #|        label:
+    #|          default: Draft
+    #|          ja: 下書き
+    #|    views:
+    #|      draft:
+    #|        editable:
+    #|          - amount
+  )
+}
+
+///|
+test "compile_gui_manifest_from_yaml resolves localized labels" {
+  let manifest = compile_gui_manifest_from_yaml(localized_label_schema(), locale="ja")
+  inspect(manifest.contains("\"label\": \"経費申請\""), content="true")
+  inspect(manifest.contains("\"label\": \"金額\""), content="true")
+  inspect(manifest.contains("\"label\": \"下書き\""), content="true")
+}
+
+///|
+test "render_runtime_gui_html resolves default locale fallback labels" {
+  let runtime = compile_runtime_from_yaml(localized_label_schema())
+  let record = validate_record(
+    runtime,
+    "ExpenseRequest",
+    {
+      "amount": RuntimeValue::Integer(1200),
+    },
+  ).record
+  let html = render_runtime_gui_html(runtime, record, locale="en")
+  inspect(html.contains("<title>Expense Request - Draft</title>"), content="true")
+  inspect(html.contains("Amount"), content="true")
+}
+
+///|
+test "localized labels without default fall back to original names" {
+  let manifest = compile_gui_manifest_from_yaml(
+    (
+      #|entities:
+      #|  ExpenseRequest:
+      #|    label:
+      #|      ja: 経費申請
+      #|    fields:
+      #|      id:
+      #|        type: id
+      #|        primary: true
+      #|      amount:
+      #|        label:
+      #|          ja: 金額
+      #|        type: money
+      #|        required: true
+      #|      status:
+      #|        type: state
+      #|        initial: draft
+      #|    states:
+      #|      draft:
+      #|        label:
+      #|          ja: 下書き
+      #|    views:
+      #|      draft:
+      #|        editable:
+      #|          - amount
+    ),
+    locale="en",
+  )
+  inspect(manifest.contains("\"label\": \"ExpenseRequest\""), content="true")
+  inspect(manifest.contains("\"label\": \"amount\""), content="true")
+  inspect(manifest.contains("\"label\": \"draft\""), content="true")
 }
 
 ///|

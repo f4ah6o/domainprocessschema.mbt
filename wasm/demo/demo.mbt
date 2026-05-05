@@ -12,8 +12,11 @@ pub(all) struct DemoSession {
 } derive(Eq, Show)
 
 ///|
-pub fn render_manifest_preview(yaml : String) -> Result[String, Error] {
-  try @schema.compile_gui_html_from_yaml(yaml) catch {
+pub fn render_manifest_preview(
+  yaml : String,
+  locale? : String = "",
+) -> Result[String, Error] {
+  try @schema.compile_gui_html_from_yaml(yaml, locale=locale) catch {
     err => Err(err)
   } noraise {
     html => Ok(html)
@@ -24,6 +27,7 @@ pub fn render_manifest_preview(yaml : String) -> Result[String, Error] {
 pub fn render_runtime_preview(
   yaml : String,
   scenario : String,
+  locale? : String = "",
 ) -> Result[String, Error] {
   try {
     let runtime = @schema.compile_runtime_from_yaml(yaml)
@@ -34,6 +38,7 @@ pub fn render_runtime_preview(
             runtime,
             preview.record,
             actor=preview.actor,
+            locale=locale,
           ),
         )
       Err(err) => Err(err)
@@ -71,12 +76,16 @@ pub fn create_demo_session(
 }
 
 ///|
-pub fn session_preview_html(session : DemoSession) -> Result[String, Error] {
+pub fn session_preview_html(
+  session : DemoSession,
+  locale? : String = "",
+) -> Result[String, Error] {
   try
     @schema.render_runtime_gui_html(
       session.runtime,
       session.record,
       actor=session.actor,
+      locale=locale,
     )
   catch {
     err => Err(err)
@@ -86,12 +95,16 @@ pub fn session_preview_html(session : DemoSession) -> Result[String, Error] {
 }
 
 ///|
-pub fn session_snapshot_json(session : DemoSession) -> Result[String, Error] {
+pub fn session_snapshot_json(
+  session : DemoSession,
+  locale? : String = "",
+) -> Result[String, Error] {
   try {
     let view = @schema.project_gui(
       session.runtime,
       session.record,
       actor=session.actor,
+      locale=locale,
     )
     Ok(render_demo_session_snapshot_json(session, view))
   } catch {

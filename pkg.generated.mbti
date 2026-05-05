@@ -8,9 +8,9 @@ pub fn build_runtime(Schema) -> Runtime
 
 pub fn compile_api_manifest_from_yaml(String) -> String raise SchemaError
 
-pub fn compile_gui_html_from_yaml(String) -> String raise
+pub fn compile_gui_html_from_yaml(String, locale? : String) -> String raise
 
-pub fn compile_gui_manifest_from_yaml(String) -> String raise SchemaError
+pub fn compile_gui_manifest_from_yaml(String, locale? : String) -> String raise SchemaError
 
 pub fn compile_migration_sql_from_yaml(String) -> String raise SchemaError
 
@@ -24,7 +24,7 @@ pub fn evaluate_rules(Runtime, RuntimeRecord, actor? : RuntimeActor) -> Array[Ru
 
 pub fn generate_api_manifest(Schema) -> String
 
-pub fn generate_gui_manifest(Schema) -> String
+pub fn generate_gui_manifest(Schema, locale? : String) -> String
 
 pub fn generate_migration_sql(Schema) -> String
 
@@ -36,11 +36,11 @@ pub fn list_transitions(Runtime, RuntimeRecord, actor? : RuntimeActor) -> Array[
 
 pub fn parse_schema_yaml(String) -> ParsedSchema raise SchemaError
 
-pub fn project_gui(Runtime, RuntimeRecord, actor? : RuntimeActor) -> RuntimeGuiView raise RuntimeError
+pub fn project_gui(Runtime, RuntimeRecord, actor? : RuntimeActor, locale? : String) -> RuntimeGuiView raise RuntimeError
 
 pub fn render_gui_html_from_manifest(String) -> String raise HtmlRenderError
 
-pub fn render_runtime_gui_html(Runtime, RuntimeRecord, actor? : RuntimeActor) -> String raise RuntimeError
+pub fn render_runtime_gui_html(Runtime, RuntimeRecord, actor? : RuntimeActor, locale? : String) -> String raise RuntimeError
 
 pub fn validate_record(Runtime, String, Map[String, RuntimeValue], current? : RuntimeRecord) -> RuntimeValidation raise RuntimeError
 
@@ -86,6 +86,7 @@ pub(all) struct Constraint {
 pub(all) struct Entity {
   name : String
   label : String
+  labels : Map[String, String]
   table_name : String
   fields : Array[Field]
   relations : Array[Relation]
@@ -112,6 +113,8 @@ type ExprToken derive(Eq, Show)
 
 pub(all) struct Field {
   name : String
+  label : String
+  labels : Map[String, String]
   column_name : String
   field_type : FieldType
   required : Bool
@@ -145,6 +148,7 @@ pub(all) struct ParsedConstraint {
 pub(all) struct ParsedEntity {
   name : String
   label : String
+  labels : Map[String, String]
   fields : Array[ParsedField]
   relations : Array[ParsedRelation]
   constraints : Array[ParsedConstraint]
@@ -157,6 +161,8 @@ pub(all) struct ParsedEntity {
 
 pub(all) struct ParsedField {
   name : String
+  label : String
+  labels : Map[String, String]
   type_name : String
   required : Bool
   primary : Bool
@@ -186,6 +192,7 @@ pub(all) struct ParsedSchema {
 pub(all) struct ParsedState {
   name : String
   label : String
+  labels : Map[String, String]
 } derive(Eq, Show)
 
 pub(all) struct ParsedStorage {
@@ -262,6 +269,7 @@ pub(all) struct RuntimeGuiAction {
 
 pub(all) struct RuntimeGuiActionInput {
   name : String
+  label : String
   kind : TransitionInputKind
   component : String
   required : Bool
@@ -270,6 +278,7 @@ pub(all) struct RuntimeGuiActionInput {
 
 pub(all) struct RuntimeGuiField {
   name : String
+  label : String
   component : String
   mode : String
   value : RuntimeValue?
@@ -277,7 +286,9 @@ pub(all) struct RuntimeGuiField {
 
 pub(all) struct RuntimeGuiView {
   entity_name : String
+  entity_label : String
   state : String
+  state_label : String
   view_name : String
   fields : Array[RuntimeGuiField]
   actions : Array[RuntimeGuiAction]
@@ -331,6 +342,7 @@ pub(all) struct Schema {
 pub(all) struct State {
   name : String
   label : String
+  labels : Map[String, String]
 } derive(Eq, Show)
 
 pub(all) struct StorageKey {

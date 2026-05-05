@@ -61,8 +61,9 @@ fn render_manifest_field_html(field : GuiManifestField) -> String {
     field.component,
     field.mode,
     None,
+    label=field.label,
   )
-  "<label class=\"field field--\{html_escape_attr(field.mode)}\"><span class=\"field-label\">\{html_escape(field.name)}</span>\{control}</label>"
+  "<label class=\"field field--\{html_escape_attr(field.mode)}\"><span class=\"field-label\">\{html_escape(field.label)}</span>\{control}</label>"
 }
 
 ///|
@@ -102,8 +103,9 @@ fn render_manifest_action_input_html(input : GuiManifestActionInput) -> String {
     input.component,
     "editable",
     None,
+    label=input.label,
   )
-  "<label class=\"field action-input\"><span class=\"field-label\">\{html_escape(input.name)}</span><span class=\"field-meta\">\{html_escape(input.kind)} \{required_badge}</span>\{control}</label>"
+  "<label class=\"field action-input\"><span class=\"field-label\">\{html_escape(input.label)}</span><span class=\"field-meta\">\{html_escape(input.kind)} \{required_badge}</span>\{control}</label>"
 }
 
 ///|
@@ -112,12 +114,7 @@ fn render_manifest_rule_html(rule : GuiManifestRule) -> String {
 }
 
 ///|
-fn render_runtime_gui_view_html(
-  schema : Schema,
-  view : RuntimeGuiView,
-) -> String {
-  let entity = runtime_schema_entity(schema, view.entity_name)
-  let state_label = runtime_schema_state_label(entity, view.state)
+fn render_runtime_gui_view_html(view : RuntimeGuiView) -> String {
   let fields : Array[String] = []
   let actions : Array[String] = []
   let rules : Array[String] = []
@@ -130,12 +127,12 @@ fn render_runtime_gui_view_html(
   for rule in view.rules {
     rules.push(render_runtime_rule_html(rule))
   }
-  let header = "<header class=\"page-header\"><h1>\{html_escape(entity.label)}</h1><p class=\"entity-name\">\{html_escape(entity.name)}</p>\{render_state_badge_html(view.state, state_label, true)}</header>"
+  let header = "<header class=\"page-header\"><h1>\{html_escape(view.entity_label)}</h1><p class=\"entity-name\">\{html_escape(view.entity_name)}</p>\{render_state_badge_html(view.state, view.state_label, true)}</header>"
   let fields_block = render_div_block("field-grid", fields)
   let actions_block = render_div_block("action-list", actions)
   let rules_block = render_list_block("Rules", "rule-list", rules)
   let body = "<section class=\"entity-page runtime-page\">\n\{header}\n<p class=\"view-name\">view: \{html_escape(view.view_name)}</p>\n\{fields_block}\n\{actions_block}\n\{rules_block}\n</section>"
-  let title = "\{entity.label} - \{state_label}"
+  let title = "\{view.entity_label} - \{view.state_label}"
   render_html_document(title, body, lang=detect_document_lang(title, body))
 }
 
@@ -146,8 +143,9 @@ fn render_runtime_field_html(field : RuntimeGuiField) -> String {
     field.component,
     field.mode,
     field.value,
+    label=field.label,
   )
-  "<label class=\"field field--\{html_escape_attr(field.mode)}\"><span class=\"field-label\">\{html_escape(field.name)}</span>\{control}</label>"
+  "<label class=\"field field--\{html_escape_attr(field.mode)}\"><span class=\"field-label\">\{html_escape(field.label)}</span>\{control}</label>"
 }
 
 ///|
@@ -183,8 +181,9 @@ fn render_runtime_action_input_html(input : RuntimeGuiActionInput) -> String {
     input.component,
     "editable",
     input.value,
+    label=input.label,
   )
-  "<label class=\"field action-input\"><span class=\"field-label\">\{html_escape(input.name)}</span><span class=\"field-meta\">\{html_escape(transition_input_kind_name(input.kind))} \{required_badge}</span>\{control}</label>"
+  "<label class=\"field action-input\"><span class=\"field-label\">\{html_escape(input.label)}</span><span class=\"field-meta\">\{html_escape(transition_input_kind_name(input.kind))} \{required_badge}</span>\{control}</label>"
 }
 
 ///|
@@ -374,27 +373,6 @@ fn find_manifest_state_label(
   state_name
 }
 
-///|
-fn runtime_schema_entity(schema : Schema, entity_name : String) -> Entity {
-  for entity in schema.entities {
-    if entity.name == entity_name {
-      return entity
-    }
-  }
-  abort("validated schema lost entity \{entity_name}")
-}
-
-///|
-fn runtime_schema_state_label(entity : Entity, state_name : String) -> String {
-  for state in entity.states {
-    if state.name == state_name {
-      return state.label
-    }
-  }
-  state_name
-}
-
-///|
 fn runtime_value_to_html_value(value : RuntimeValue?) -> String {
   match value {
     None | Some(RuntimeValue::Null) => ""

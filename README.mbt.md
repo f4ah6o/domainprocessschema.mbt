@@ -147,8 +147,37 @@ also exposes a small browser-driven runtime session:
   on the global status area
 - the host page still exposes the YAML source as a textarea, so schema edits and
   compile / validation errors can be exercised directly in the browser demo
-- the host page chrome supports a minimal `en` / `ja` switch; schema labels
-  still pass through from YAML as-is
+- the host page chrome supports a minimal `en` / `ja` switch, and schema-level
+  entity / field / state labels now follow the same locale when YAML uses a
+  locale-keyed label map
+
+Schema labels stay backward compatible:
+
+```yaml
+entities:
+  ExpenseRequest:
+    label:
+      default: Expense Request
+      ja: 経費申請
+    fields:
+      amount:
+        label:
+          default: Amount
+          ja: 金額
+        type: money
+    states:
+      draft:
+        label:
+          default: Draft
+          ja: 下書き
+```
+
+The locale resolution order is:
+
+1. exact locale match
+2. base language match (`ja-jp` -> `ja`)
+3. `default`
+4. existing fallback string/name
 
 Build and test it with:
 
@@ -195,20 +224,30 @@ Input:
 ```yaml
 entities:
   ExpenseRequest:
-    label: 経費申請
+    label:
+      default: Expense Request
+      ja: 経費申請
     fields:
       id:
         type: id
         primary: true
       amount:
+        label:
+          default: Amount
+          ja: 金額
         type: money
         required: true
       status:
+        label:
+          default: Status
+          ja: 状態
         type: state
         initial: draft
     states:
       draft:
-        label: 下書き
+        label:
+          default: Draft
+          ja: 下書き
 ```
 
 Output:
