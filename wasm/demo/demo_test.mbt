@@ -106,6 +106,16 @@ test "render_runtime_preview returns manager-submitted HTML" {
 }
 
 ///|
+test "render_runtime_preview returns an error for unknown scenarios" {
+  let result = render_runtime_preview(demo_yaml(), "unknown-scenario")
+  inspect(result_is_ok(result), content="false")
+  inspect(
+    result_error(result).contains("unsupported preview scenario"),
+    content="true",
+  )
+}
+
+///|
 test "render_validation_manifest returns validation json" {
   let result = render_validation_manifest(demo_yaml())
   inspect(result_is_ok(result), content="true")
