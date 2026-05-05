@@ -1,5 +1,6 @@
 import {
   "moonbitlang/core/builtin" @builtin,
+  "moonbitlang/core/json" @json,
   "f4ah6o/domainprocessschema_mbt" @schema,
 }
 
@@ -10,9 +11,16 @@ options(
         "render_manifest_preview",
         "render_runtime_preview",
         "render_validation_manifest",
+        "create_demo_session",
+        "session_preview_html",
+        "session_snapshot_json",
+        "apply_session_transition",
         "result_is_ok",
         "result_unwrap",
         "result_error",
+        "session_result_is_ok",
+        "session_result_unwrap",
+        "session_result_error",
       ],
       "use-js-builtin-string": true,
     },

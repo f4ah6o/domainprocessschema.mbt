@@ -120,18 +120,27 @@ action buttons, action-local inputs, and rule/action availability hints.
 
 ## MoonBit WASM demo
 
-Issue #2 is broader than the static HTML proof. This branch also adds a first
+Issue #2 is broader than the static HTML proof. This branch also adds a
 **MoonBit WASM browser demo** under `wasm/demo/`.
 
-It keeps the current HTML renderer as a WASM-exported preview engine:
+It keeps the current HTML renderer as a WASM-exported preview engine, and now
+also exposes a small browser-driven runtime session:
 
 - `render_manifest_preview(yaml)` exports the schema-only HTML preview
 - `render_runtime_preview(yaml, scenario)` exports stateful runtime previews
+- `create_demo_session(yaml, actor_role)` builds a live runtime session from the
+  example schema and draft payload
+- `session_snapshot_json(session)` lists current state and available transitions
+- `apply_session_transition(session, name, input_json)` applies a transition and
+  returns the updated session
 - `wasm/demo/index.html` loads the built `.wasm`, fetches
   `examples/expense_request.yaml`, and renders the returned full HTML document
   into an `<iframe srcdoc>`
-- the host page also exposes the YAML source as a textarea, so schema edits and
-  compile/validation errors can be exercised directly in the browser demo
+- the host page now keeps the current `DemoSession` in JS, shows available
+  transitions for the chosen actor role, collects action input values, and
+  rerenders after each transition
+- the host page still exposes the YAML source as a textarea, so schema edits and
+  compile / validation errors can be exercised directly in the browser demo
 - the host page chrome supports a minimal `en` / `ja` switch; schema labels
   still pass through from YAML as-is
 
