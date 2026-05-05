@@ -21,6 +21,7 @@ options(
         "session_result_is_ok",
         "session_result_unwrap",
         "session_result_error",
+        "session_result_error_json",
       ],
       "use-js-builtin-string": true,
     },
