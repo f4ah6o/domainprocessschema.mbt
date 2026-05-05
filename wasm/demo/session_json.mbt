@@ -111,44 +111,10 @@ fn demo_entity_label(
 ) -> String {
   for entity in runtime.schema.entities {
     if entity.name == entity_name {
-      return resolve_demo_localized_text(entity.label, entity.labels, locale)
+      return @schema.resolve_localized_text(entity.label, entity.labels, locale)
     }
   }
   entity_name
-}
-
-///|
-fn resolve_demo_localized_text(
-  default_text : String,
-  translations : Map[String, String],
-  locale : String,
-) -> String {
-  let normalized = normalize_demo_locale(locale)
-  if normalized != "" {
-    match translations.get(normalized) {
-      Some(text) => return text
-      None => ()
-    }
-    match normalized.split_once("-") {
-      Some((language, _)) => {
-        let base = language.to_string()
-        match translations.get(base) {
-          Some(text) => return text
-          None => ()
-        }
-      }
-      None => ()
-    }
-  }
-  match translations.get("default") {
-    Some(text) => text
-    None => default_text
-  }
-}
-
-///|
-fn normalize_demo_locale(locale : String) -> String {
-  locale.trim().to_string().replace_all(old="_", new="-").to_lower()
 }
 
 ///|
