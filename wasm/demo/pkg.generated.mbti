@@ -1,7 +1,15 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "f4ah6o/domainprocessschema_mbt/wasm/demo"
 
+import {
+  "f4ah6o/domainprocessschema_mbt",
+}
+
 // Values
+pub fn apply_session_transition(DemoSession, String, String) -> Result[DemoSession, Error]
+
+pub fn create_demo_session(String, actor_role? : String) -> Result[DemoSession, Error]
+
 pub fn render_manifest_preview(String) -> Result[String, Error]
 
 pub fn render_runtime_preview(String, String) -> Result[String, Error]
@@ -14,9 +22,24 @@ pub fn result_is_ok(Result[String, Error]) -> Bool
 
 pub fn result_unwrap(Result[String, Error]) -> String
 
+pub fn session_preview_html(DemoSession) -> Result[String, Error]
+
+pub fn session_result_error(Result[DemoSession, Error]) -> String
+
+pub fn session_result_is_ok(Result[DemoSession, Error]) -> Bool
+
+pub fn session_result_unwrap(Result[DemoSession, Error]) -> DemoSession
+
+pub fn session_snapshot_json(DemoSession) -> Result[String, Error]
+
 // Errors
 
 // Types and methods
+pub(all) struct DemoSession {
+  runtime : @domainprocessschema_mbt.Runtime
+  record : @domainprocessschema_mbt.RuntimeRecord
+  actor : @domainprocessschema_mbt.RuntimeActor
+} derive(Eq, Show)
 
 // Type aliases
 

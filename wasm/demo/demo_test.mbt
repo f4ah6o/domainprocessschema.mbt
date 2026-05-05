@@ -119,8 +119,28 @@ test "render_runtime_preview returns an error for unknown scenarios" {
 test "render_validation_manifest returns validation json" {
   let result = render_validation_manifest(demo_yaml())
   inspect(result_is_ok(result), content="true")
-  inspect(
-    result_unwrap(result).contains("\"constraints\""),
-    content="true",
+  inspect(result_unwrap(result).contains("\"constraints\""), content="true")
+}
+
+///|
+test "create_demo_session exposes available transitions in snapshot json" {
+  let session_result = create_demo_session(demo_yaml())
+  inspect(session_result_is_ok(session_result), content="true")
+  let session = session_result_unwrap(session_result)
+  let snapshot = result_unwrap(session_snapshot_json(session))
+  inspect(snapshot.contains("\"state\":\"draft\""), content="true")
+  inspect(snapshot.contains("\"name\":\"submit\""), content="true")
+}
+
+///|
+test "apply_session_transition rerenders submitted session state" {
+  let session = session_result_unwrap(
+    create_demo_session(demo_yaml(), actor_role="manager"),
   )
+  let updated = apply_session_transition(
+    session, "submit", "{\"amount\":1200,\"reason\":\"hotel\"}",
+  )
+  inspect(session_result_is_ok(updated), content="true")
+  let html = result_unwrap(session_preview_html(session_result_unwrap(updated)))
+  inspect(html.contains("view: submitted"), content="true")
 }

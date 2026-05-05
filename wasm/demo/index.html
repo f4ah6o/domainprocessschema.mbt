@@ -20,6 +20,26 @@
         display: grid;
         gap: 0.25rem;
       }
+      .action-panel {
+        margin-top: 1rem;
+      }
+      .action-card {
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-top: 0.75rem;
+      }
+      .action-card label {
+        display: grid;
+        gap: 0.25rem;
+        margin-top: 0.75rem;
+      }
+      .action-card button {
+        margin-top: 0.75rem;
+      }
+      .action-issues {
+        color: #a00;
+      }
       textarea {
         width: 100%;
         min-height: 18rem;
@@ -58,16 +78,10 @@
         <textarea id="yaml"></textarea>
       </label>
       <label>
-        <span id="scenario-label">Preview mode</span>
-        <select id="scenario">
-          <option value="manifest">manifest</option>
-          <option value="draft">runtime: draft</option>
-          <option value="submitted">runtime: submitted</option>
-          <option value="submitted-manager" selected>
-            runtime: submitted-manager
-          </option>
-          <option value="approved-manager">runtime: approved-manager</option>
-          <option value="rejected-manager">runtime: rejected-manager</option>
+        <span id="actor-role-label">Actor role</span>
+        <select id="actor-role">
+          <option value="" selected>anonymous</option>
+          <option value="manager">manager</option>
         </select>
       </label>
       <label>
@@ -85,6 +99,10 @@
 
     <pre id="status">Loading WASM demo…</pre>
     <iframe id="preview" title="MoonBit WASM preview"></iframe>
+    <section class="action-panel">
+      <h2 id="actions-heading">Available transitions</h2>
+      <div id="actions"></div>
+    </section>
     <details>
       <summary id="validation-summary">validation manifest</summary>
       <pre id="validation">Loading validation manifest…</pre>
