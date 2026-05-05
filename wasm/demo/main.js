@@ -1,5 +1,109 @@
-const wasmUrl = "../../_build/wasm-gc/release/build/wasm/demo/demo.wasm";
-const yamlUrl = "../../examples/expense_request.yaml";
+const wasmUrl = "./demo.wasm";
+const yamlUrl = "./expense_request.yaml";
+
+const defaultYaml = `entities:
+  User:
+    label: ユーザー
+    fields:
+      id:
+        type: id
+        primary: true
+      role:
+        type: text
+        required: true
+
+  ExpenseRequest:
+    label: 経費申請
+    fields:
+      id:
+        type: id
+        primary: true
+      amount:
+        type: money
+        required: true
+      reason:
+        type: text
+        required: true
+      applicant:
+        type: ref
+        target: User
+        required: true
+      status:
+        type: state
+        initial: draft
+      createdAt:
+        type: datetime
+        system: true
+      updatedAt:
+        type: datetime
+        system: true
+    relations:
+      applicant:
+        kind: many-to-one
+        target: User
+        field: applicant
+    constraints:
+      amountPositive:
+        expr: amount > 0
+    states:
+      draft:
+        label: 下書き
+      submitted:
+        label: 申請中
+      approved:
+        label: 承認済
+      rejected:
+        label: 却下
+    transitions:
+      submit:
+        from: draft
+        to: submitted
+        input:
+          - amount
+          - reason
+        guard: amount > 0
+      approve:
+        from: submitted
+        to: approved
+        role: manager
+      reject:
+        from: submitted
+        to: rejected
+        role: manager
+        input:
+          - rejectReason
+        inputs:
+          rejectReason:
+            type: text
+    rules:
+      canApprove:
+        when: state == "submitted" && user.role == "manager"
+    views:
+      draft:
+        editable:
+          - amount
+          - reason
+      submitted:
+        readonly:
+          - amount
+          - reason
+      approved:
+        readonly:
+          - amount
+          - reason
+      rejected:
+        readonly:
+          - amount
+          - reason
+    storage:
+      table: expense_requests
+      indexes:
+        - fields: [status]
+        - fields: [applicant, createdAt]
+      unique:
+        - fields: [applicant, createdAt]
+      softDelete: true
+`;
 
 const statusNode = document.getElementById("status");
 const validationNode = document.getElementById("validation");
@@ -97,14 +201,28 @@ function applyLocale() {
 }
 
 async function loadWasm() {
-  const { instance } = await WebAssembly.instantiateStreaming(
-    fetch(wasmUrl),
-    {},
-    {
-      builtins: ["js-string"],
-      importedStringConstants: "_",
-    },
-  );
+  const compileOptions = {
+    builtins: ["js-string"],
+    importedStringConstants: "_",
+  };
+  const importObject = { _: {} };
+  let instance;
+  try {
+    ({ instance } = await WebAssembly.instantiateStreaming(
+      fetch(wasmUrl),
+      importObject,
+      compileOptions,
+    ));
+  } catch (e) {
+    const needs = [];
+    if (!/\bjs-string\b/.test(e.message)) {
+      throw e;
+    }
+    throw new Error(
+      "Your browser does not support WebAssembly JavaScript string builtins (js-string). " +
+        "Please use Chrome 137+ or enable the experimental-wasm-stringref flag.",
+    );
+  }
   return instance.exports;
 }
 
@@ -145,6 +263,7 @@ async function renderPreview() {
 
 async function main() {
   applyLocale();
+  yamlNode.value = defaultYaml;
   statusNode.textContent = t().fetching;
   [exampleYamlText, api] = await Promise.all([
     fetch(yamlUrl).then((res) => res.text()),
@@ -168,7 +287,7 @@ async function main() {
     });
   });
   resetButton.addEventListener("click", () => {
-    yamlNode.value = exampleYamlText;
+    yamlNode.value = exampleYamlText || defaultYaml;
     renderPreview().catch((err) => {
       statusNode.textContent = String(err);
     });
