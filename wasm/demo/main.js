@@ -22,6 +22,12 @@ let api = null;
 let exampleYamlText = "";
 let currentLocale = "en";
 let currentSession = null;
+let currentSnapshot = null;
+let currentValidationLookup = null;
+
+// Keep the last failing payload per action so rerenders can preserve the user's
+// input values and show the failure inline instead of only in the global status.
+const actionFailures = new Map();
 
 const translations = {
   en: {
@@ -44,6 +50,15 @@ const translations = {
     applyAction: "Apply transition",
     previewTitle: "MoonBit WASM preview",
     validationLoading: "Loading validation manifest…",
+    guardLabel: "guard",
+    inputKindEntityField: "entity field",
+    inputKindLocal: "local input",
+    readOnlyTag: "read-only",
+    systemTag: "system",
+    targetTag: "target",
+    defaultTag: "default",
+    lastErrorLabel: "Last error",
+    lastPayloadLabel: "Last payload",
     actorRoles: {
       "": "anonymous",
       manager: "manager",
@@ -69,6 +84,15 @@ const translations = {
     applyAction: "transition を実行",
     previewTitle: "MoonBit WASM プレビュー",
     validationLoading: "validation manifest を読み込み中…",
+    guardLabel: "guard",
+    inputKindEntityField: "entity field",
+    inputKindLocal: "local input",
+    readOnlyTag: "read-only",
+    systemTag: "system",
+    targetTag: "target",
+    defaultTag: "default",
+    lastErrorLabel: "直前の error",
+    lastPayloadLabel: "直前の payload",
     actorRoles: {
       "": "anonymous",
       manager: "manager",
@@ -136,18 +160,149 @@ function unwrapSessionResult(result) {
 }
 
 function renderValidationResult(result) {
-  validationNode.textContent = api.result_is_ok(result)
-    ? api.result_unwrap(result)
-    : api.result_error(result);
+  if (api.result_is_ok(result)) {
+    const manifestText = api.result_unwrap(result);
+    validationNode.textContent = manifestText;
+    try {
+      currentValidationLookup = buildValidationLookup(manifestText);
+    } catch {
+      currentValidationLookup = null;
+    }
+    return;
+  }
+  validationNode.textContent = api.result_error(result);
+  currentValidationLookup = null;
 }
 
-function renderActionInputControl(actionName, input) {
-  const inputId = `action-${actionName}-${input.name}`;
-  const value = input.value ?? "";
+// The validation manifest is the schema-side metadata channel into the browser
+// host. Normalize it once so action rendering can look up field/transition
+// details without re-walking raw JSON every time.
+function buildValidationLookup(manifestText) {
+  const manifest = JSON.parse(manifestText);
+  const entities = new Map();
+  for (const entity of manifest.entities ?? []) {
+    const fieldLookup = new Map(
+      (entity.fields ?? []).map((field) => [field.name, field]),
+    );
+    const transitionLookup = new Map(
+      (entity.transitions ?? []).map((transition) => [
+        transition.name,
+        {
+          ...transition,
+          inputLookup: new Map(
+            (transition.inputs ?? []).map((input) => [input.name, input]),
+          ),
+        },
+      ]),
+    );
+    entities.set(entity.name, { fieldLookup, transitionLookup });
+  }
+  return { entities };
+}
+
+function getValidationEntity(snapshot) {
+  return currentValidationLookup?.entities.get(snapshot.entityName) ?? null;
+}
+
+function getValidationAction(snapshot, action) {
+  return getValidationEntity(snapshot)?.transitionLookup.get(action.name) ?? null;
+}
+
+function getValidationInput(snapshot, action, input) {
+  const entity = getValidationEntity(snapshot);
+  const transitionInput =
+    entity?.transitionLookup.get(action.name)?.inputLookup.get(input.name) ?? null;
+  const field =
+    input.kind === "entity-field" ? entity?.fieldLookup.get(input.name) ?? null : null;
+  return { transitionInput, field };
+}
+
+function inputKindLabel(kind) {
+  return kind === "local" ? t().inputKindLocal : t().inputKindEntityField;
+}
+
+function renderChips(chips) {
+  if (chips.length === 0) {
+    return "";
+  }
+  return `<div class="action-input-meta">${chips
+    .map((chip) => `<span class="chip">${escapeHtml(chip)}</span>`)
+    .join("")}</div>`;
+}
+
+function renderActionHeaderMeta(snapshot, action) {
+  const validationAction = getValidationAction(snapshot, action);
+  if (!validationAction?.guard) {
+    return "";
+  }
+  return `<p class="action-meta">${escapeHtml(t().guardLabel)}: ${escapeHtml(
+    validationAction.guard,
+  )}</p>`;
+}
+
+function renderActionInputMeta(snapshot, action, input) {
+  const metadata = getValidationInput(snapshot, action, input);
+  const transitionInput = metadata.transitionInput;
+  const field = metadata.field;
+  const chips = [inputKindLabel(input.kind)];
+  if (transitionInput?.type) {
+    chips.push(transitionInput.type);
+  }
+  if (transitionInput?.readOnly || field?.readOnly) {
+    chips.push(t().readOnlyTag);
+  }
+  if (field?.system) {
+    chips.push(t().systemTag);
+  }
+  if (transitionInput?.target) {
+    chips.push(`${t().targetTag}: ${transitionInput.target}`);
+  }
+  if (transitionInput && transitionInput.default !== null) {
+    chips.push(`${t().defaultTag}: ${transitionInput.default}`);
+  }
+  return renderChips(chips);
+}
+
+function getFailedInputValue(actionName, inputName) {
+  const payload = actionFailures.get(actionName)?.payload;
+  return payload && Object.prototype.hasOwnProperty.call(payload, inputName)
+    ? payload[inputName]
+    : undefined;
+}
+
+function renderActionFailure(actionName) {
+  const failure = actionFailures.get(actionName);
+  if (!failure) {
+    return "";
+  }
+  const payloadText = JSON.stringify(failure.payload, null, 2);
+  return `<div class="action-error">
+    <strong>${escapeHtml(t().lastErrorLabel)}</strong>
+    <div>${escapeHtml(failure.message)}</div>
+    <div class="action-meta">${escapeHtml(t().lastPayloadLabel)}</div>
+    <pre class="action-error-payload">${escapeHtml(payloadText)}</pre>
+  </div>`;
+}
+
+function renderActionInputControl(snapshot, action, input) {
+  const inputId = `action-${action.name}-${input.name}`;
+  const metadata = getValidationInput(snapshot, action, input);
+  const transitionInput = metadata.transitionInput;
+  const field = metadata.field;
+  const failedValue = getFailedInputValue(action.name, input.name);
+  const value =
+    failedValue !== undefined
+      ? failedValue
+      : (input.value ?? transitionInput?.default ?? "");
+  const readOnly = transitionInput?.readOnly || field?.readOnly || field?.system;
+  const requiredAttr = transitionInput?.required ? " required" : "";
+  const readOnlyAttr = readOnly ? " readonly" : "";
+  const disabledAttr = field?.system ? " disabled" : "";
+  const valueType = transitionInput?.type ?? field?.type ?? input.component;
   if (input.component === "textarea") {
     return `<textarea id="${escapeHtml(inputId)}" data-input-name="${escapeHtml(
       input.name,
-    )}" data-component="${escapeHtml(input.component)}">${escapeHtml(
+    )}" data-component="${escapeHtml(input.component)}" data-value-type="${escapeHtml(valueType)}"${requiredAttr}${readOnlyAttr}${disabledAttr}>${escapeHtml(
       value,
     )}</textarea>`;
   }
@@ -155,18 +310,24 @@ function renderActionInputControl(actionName, input) {
     const checked = value === true ? " checked" : "";
     return `<input id="${escapeHtml(inputId)}" type="checkbox" data-input-name="${escapeHtml(
       input.name,
-    )}" data-component="${escapeHtml(input.component)}"${checked}>`;
+    )}" data-component="${escapeHtml(input.component)}" data-value-type="${escapeHtml(valueType)}"${checked}${disabledAttr}>`;
   }
+  const fieldType = transitionInput?.type ?? field?.type ?? null;
   const inputType =
     input.component === "number" || input.component === "money"
       ? "number"
+      : input.component === "date-picker"
+        ? "date"
+        : input.component === "datetime-picker"
+          ? "datetime-local"
       : "text";
+  const stepAttr = fieldType === "money" ? ' step="0.01"' : "";
   const renderedValue = value === null ? "" : String(value);
   return `<input id="${escapeHtml(inputId)}" type="${inputType}" data-input-name="${escapeHtml(
     input.name,
   )}" data-component="${escapeHtml(
     input.component,
-  )}" value="${escapeHtml(renderedValue)}">`;
+  )}" data-value-type="${escapeHtml(valueType)}" value="${escapeHtml(renderedValue)}"${requiredAttr}${readOnlyAttr}${disabledAttr}${stepAttr}>`;
 }
 
 function renderActions(snapshot) {
@@ -183,7 +344,8 @@ function renderActions(snapshot) {
               <span>${escapeHtml(input.name)}${
                 input.required ? " *" : ""
               }</span>
-              ${renderActionInputControl(action.name, input)}
+              ${renderActionInputMeta(snapshot, action, input)}
+              ${renderActionInputControl(snapshot, action, input)}
             </label>`,
         )
         .join("");
@@ -197,8 +359,10 @@ function renderActions(snapshot) {
       return `
         <section class="action-card" data-action-name="${escapeHtml(action.name)}">
           <h3>${escapeHtml(action.name)} → ${escapeHtml(action.to)}</h3>
+          ${renderActionHeaderMeta(snapshot, action)}
           ${issues}
           ${inputs}
+          ${renderActionFailure(action.name)}
           <button type="button" data-action-apply="${escapeHtml(action.name)}"${disabled}>${escapeHtml(
             t().applyAction,
           )}</button>
@@ -211,11 +375,13 @@ function collectActionInputJson(actionCard) {
   const payload = {};
   for (const field of actionCard.querySelectorAll("[data-input-name]")) {
     const name = field.dataset.inputName;
-    const component = field.dataset.component;
+    const valueType = field.dataset.valueType ?? field.dataset.component;
     if (field.type === "checkbox") {
       payload[name] = field.checked;
-    } else if (component === "number" || component === "money") {
+    } else if (valueType === "number") {
       payload[name] = field.value === "" ? null : Number.parseInt(field.value, 10);
+    } else if (valueType === "money") {
+      payload[name] = field.value === "" ? null : Number.parseFloat(field.value);
     } else {
       payload[name] = field.value;
     }
@@ -228,6 +394,8 @@ async function renderSession() {
     statusNode.textContent = t().wasmNotLoaded;
     return;
   }
+  actionFailures.clear();
+  currentSnapshot = null;
   currentSession = unwrapSessionResult(
     api.create_demo_session(yamlNode.value, actorRoleNode.value),
   );
@@ -237,25 +405,34 @@ async function renderSession() {
 async function refreshSessionUi() {
   const html = unwrapStringResult(api.session_preview_html(currentSession));
   previewNode.srcdoc = html;
-  const snapshot = JSON.parse(
+  currentSnapshot = JSON.parse(
     unwrapStringResult(api.session_snapshot_json(currentSession)),
   );
-  renderActions(snapshot);
   renderValidationResult(api.render_validation_manifest(yamlNode.value));
-  statusNode.textContent = t().sessionReady(snapshot.state);
+  renderActions(currentSnapshot);
+  statusNode.textContent = t().sessionReady(currentSnapshot.state);
 }
 
 async function handleApplyTransition(transitionName, actionCard) {
+  const payloadText = collectActionInputJson(actionCard);
   try {
     const result = api.apply_session_transition(
       currentSession,
       transitionName,
-      collectActionInputJson(actionCard),
+      payloadText,
     );
     currentSession = unwrapSessionResult(result);
+    actionFailures.clear();
     await refreshSessionUi();
     statusNode.textContent = t().transitionApplied(transitionName);
   } catch (err) {
+    actionFailures.set(transitionName, {
+      message: String(err),
+      payload: JSON.parse(payloadText),
+    });
+    if (currentSnapshot) {
+      renderActions(currentSnapshot);
+    }
     statusNode.textContent = String(err);
   }
 }

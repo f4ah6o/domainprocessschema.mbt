@@ -139,6 +139,12 @@ also exposes a small browser-driven runtime session:
 - the host page now keeps the current `DemoSession` in JS, shows available
   transitions for the chosen actor role, collects action input values, and
   rerenders after each transition
+- the host page also parses `validation_manifest`, so each action input can show
+  schema-derived hints such as entity-field/local kind, type, target/default
+  metadata, and read-only/system flags
+- failed transition attempts are now preserved per action card, including the
+  last submitted payload, so browser-side retry/debugging does not depend only
+  on the global status area
 - the host page still exposes the YAML source as a textarea, so schema edits and
   compile / validation errors can be exercised directly in the browser demo
 - the host page chrome supports a minimal `en` / `ja` switch; schema labels
