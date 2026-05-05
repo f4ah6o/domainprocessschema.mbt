@@ -150,6 +150,9 @@ also exposes a small browser-driven runtime session:
 - failed transition attempts are now preserved per action card, including the
   last submitted payload, and the host also consumes structured runtime error
   payloads (kind/entity/transition/issues) instead of only a raw error string
+- the demo now also exports a static reference catalog for target entities, so
+  `reference-select` action inputs can render as actual `<select>` controls in
+  the browser host without introducing async lookup yet
 - the host page still exposes the YAML source as a textarea, so schema edits and
   compile / validation errors can be exercised directly in the browser demo
 - the host page chrome supports a minimal `en` / `ja` switch, and schema-level

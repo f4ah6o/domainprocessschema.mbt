@@ -24,6 +24,8 @@ pub fn result_unwrap(Result[String, Error]) -> String
 
 pub fn session_preview_html(DemoSession, locale? : String) -> Result[String, Error]
 
+pub fn session_reference_catalog_json(DemoSession, locale? : String) -> Result[String, Error]
+
 pub fn session_result_error(Result[DemoSession, Error]) -> String
 
 pub fn session_result_error_json(Result[DemoSession, Error]) -> String

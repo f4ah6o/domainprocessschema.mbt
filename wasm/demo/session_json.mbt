@@ -21,6 +21,137 @@ fn render_demo_session_snapshot_json(
 }
 
 ///|
+fn render_demo_reference_catalog_json(
+  runtime : @schema.Runtime,
+  locale : String,
+) -> String {
+  let target_names = collect_demo_reference_targets(runtime)
+  let targets = target_names
+    .map(target => render_demo_reference_target_json(runtime, target, locale))
+    .join(",")
+  "{ \"targets\": [\{targets}] }"
+}
+
+///|
+fn collect_demo_reference_targets(runtime : @schema.Runtime) -> Array[String] {
+  let targets : Array[String] = []
+  let seen : Map[String, Bool] = {}
+  for entity in runtime.schema.entities {
+    for field in entity.fields {
+      match field.target {
+        Some(target) =>
+          if !seen.contains(target) {
+            seen[target] = true
+            targets.push(target)
+          }
+        None => ()
+      }
+    }
+    for transition in entity.transitions {
+      for input in transition.inputs {
+        match input.target {
+          Some(target) =>
+            if !seen.contains(target) {
+              seen[target] = true
+              targets.push(target)
+            }
+          None => ()
+        }
+      }
+    }
+  }
+  targets
+}
+
+///|
+fn render_demo_reference_target_json(
+  runtime : @schema.Runtime,
+  target : String,
+  locale : String,
+) -> String {
+  let label = demo_entity_label(runtime, target, locale)
+  let options = demo_reference_options_for_target(runtime, target, locale).join(",")
+  "{ \"name\": \"\{json_escape(target)}\", \"label\": \"\{json_escape(label)}\", \"options\": [\{options}] }"
+}
+
+///|
+fn demo_reference_options_for_target(
+  runtime : @schema.Runtime,
+  target : String,
+  locale : String,
+) -> Array[String] {
+  match target {
+    "User" => {
+      let target_label = demo_entity_label(runtime, target, locale)
+      [
+        render_demo_reference_option_json(
+          "user-1",
+          "\{target_label} user-1 (employee)",
+        ),
+        render_demo_reference_option_json(
+          "user-2",
+          "\{target_label} user-2 (manager)",
+        ),
+      ]
+    }
+    _ => []
+  }
+}
+
+///|
+fn render_demo_reference_option_json(value : String, label : String) -> String {
+  "{ \"value\": \"\{json_escape(value)}\", \"label\": \"\{json_escape(label)}\" }"
+}
+
+///|
+fn demo_entity_label(
+  runtime : @schema.Runtime,
+  entity_name : String,
+  locale : String,
+) -> String {
+  for entity in runtime.schema.entities {
+    if entity.name == entity_name {
+      return resolve_demo_localized_text(entity.label, entity.labels, locale)
+    }
+  }
+  entity_name
+}
+
+///|
+fn resolve_demo_localized_text(
+  default_text : String,
+  translations : Map[String, String],
+  locale : String,
+) -> String {
+  let normalized = normalize_demo_locale(locale)
+  if normalized != "" {
+    match translations.get(normalized) {
+      Some(text) => return text
+      None => ()
+    }
+    match normalized.split_once("-") {
+      Some((language, _)) => {
+        let base = language.to_string()
+        match translations.get(base) {
+          Some(text) => return text
+          None => ()
+        }
+      }
+      None => ()
+    }
+  }
+  match translations.get("default") {
+    Some(text) => text
+    None => default_text
+  }
+}
+
+///|
+fn normalize_demo_locale(locale : String) -> String {
+  locale.trim().to_string().replace_all(old="_", new="-").to_lower()
+}
+
+///|
 fn render_demo_field_json(field : @schema.RuntimeGuiField) -> String {
   let builder = StringBuilder::new()
   builder.write_string("{")

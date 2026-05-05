@@ -49,6 +49,7 @@ fn demo_yaml() -> String {
     #|        input:
     #|          - amount
     #|          - reason
+    #|          - applicant
     #|        guard: amount > 0
     #|      approve:
     #|        from: submitted
@@ -133,6 +134,7 @@ test "create_demo_session exposes available transitions in snapshot json" {
     snapshot.contains("\"fields\":[{\"name\":\"amount\",\"label\":\"amount\",\"component\":\"money\",\"mode\":\"editable\",\"value\":1200}"),
     content="true",
   )
+  inspect(snapshot.contains("\"component\":\"reference-select\""), content="true")
   inspect(snapshot.contains("\"name\":\"submit\""), content="true")
 }
 
@@ -142,7 +144,7 @@ test "apply_session_transition rerenders submitted session state" {
     create_demo_session(demo_yaml(), actor_role="manager"),
   )
   let updated = apply_session_transition(
-    session, "submit", "{\"amount\":1200,\"reason\":\"hotel\"}",
+    session, "submit", "{\"amount\":1200,\"reason\":\"hotel\",\"applicant\":\"user-1\"}",
   )
   inspect(session_result_is_ok(updated), content="true")
   let html = result_unwrap(session_preview_html(session_result_unwrap(updated)))
@@ -161,6 +163,14 @@ test "session_result_error_json exposes structured transition errors" {
     error_json.contains("transition input field amount is required"),
     content="true",
   )
+}
+
+///|
+test "session_reference_catalog_json exposes demo user options" {
+  let session = session_result_unwrap(create_demo_session(demo_yaml()))
+  let catalog = result_unwrap(session_reference_catalog_json(session))
+  inspect(catalog.contains("\"name\": \"User\""), content="true")
+  inspect(catalog.contains("\"value\": \"user-1\""), content="true")
 }
 
 ///|
@@ -229,6 +239,7 @@ fn localized_demo_yaml() -> String {
     #|        to: submitted
     #|        input:
     #|          - amount
+    #|          - applicant
     #|    views:
     #|      draft:
     #|        editable:
@@ -250,6 +261,13 @@ test "session snapshot json resolves localized labels" {
     content="true",
   )
   inspect(snapshot.contains("\"label\":\"金額\""), content="true")
+}
+
+///|
+test "session_reference_catalog_json localizes target labels" {
+  let session = session_result_unwrap(create_demo_session(localized_demo_yaml()))
+  let catalog = result_unwrap(session_reference_catalog_json(session, locale="ja"))
+  inspect(catalog.contains("\"label\": \"ユーザー\""), content="true")
 }
 
 ///|

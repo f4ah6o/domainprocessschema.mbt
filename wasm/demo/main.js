@@ -26,6 +26,7 @@ let currentLocale = "en";
 let currentSession = null;
 let currentSnapshot = null;
 let currentValidationLookup = null;
+let currentReferenceCatalog = null;
 
 // Keep the last failing payload per action so rerenders can preserve the user's
 // input values and show the failure inline instead of only in the global status.
@@ -65,6 +66,7 @@ const translations = {
     systemTag: "system",
     targetTag: "target",
     defaultTag: "default",
+    referencePlaceholder: "Select a reference…",
     lastErrorLabel: "Last error",
     lastPayloadLabel: "Last payload",
     errorKindLabel: "kind",
@@ -107,6 +109,7 @@ const translations = {
     systemTag: "system",
     targetTag: "target",
     defaultTag: "default",
+    referencePlaceholder: "reference を選択…",
     lastErrorLabel: "直前の error",
     lastPayloadLabel: "直前の payload",
     errorKindLabel: "kind",
@@ -222,12 +225,24 @@ function buildValidationLookup(manifestText) {
   return { entities };
 }
 
+function buildReferenceCatalog(catalogText) {
+  const catalog = JSON.parse(catalogText);
+  const targets = new Map(
+    (catalog.targets ?? []).map((target) => [target.name, target.options ?? []]),
+  );
+  return { targets };
+}
+
 function getValidationEntity(snapshot) {
   return currentValidationLookup?.entities.get(snapshot.entityName) ?? null;
 }
 
 function getValidationAction(snapshot, action) {
   return getValidationEntity(snapshot)?.transitionLookup.get(action.name) ?? null;
+}
+
+function getReferenceOptions(target) {
+  return currentReferenceCatalog?.targets.get(target) ?? [];
 }
 
 function getValidationInput(snapshot, action, input) {
@@ -402,7 +417,31 @@ function renderActionInputControl(snapshot, action, input) {
     const checked = value === true ? " checked" : "";
     return `<input id="${escapeHtml(inputId)}" type="checkbox" data-input-name="${escapeHtml(
       input.name,
-    )}" data-component="${escapeHtml(input.component)}" data-value-type="${escapeHtml(valueType)}"${checked}${disabledAttr}>`;
+     )}" data-component="${escapeHtml(input.component)}" data-value-type="${escapeHtml(valueType)}"${checked}${disabledAttr}>`;
+  }
+  if (input.component === "reference-select") {
+    const target = transitionInput?.target ?? field?.target ?? "";
+    const renderedValue = value === null ? "" : String(value);
+    const options = [...getReferenceOptions(target)];
+    if (renderedValue !== "" && !options.some((option) => option.value === renderedValue)) {
+      options.unshift({ value: renderedValue, label: renderedValue });
+    }
+    const selectDisabledAttr = readOnly || field?.system ? " disabled" : "";
+    return `<select id="${escapeHtml(inputId)}" data-input-name="${escapeHtml(
+      input.name,
+    )}" data-component="${escapeHtml(input.component)}" data-value-type="${escapeHtml(
+      valueType,
+    )}"${requiredAttr}${selectDisabledAttr}>
+      <option value="">${escapeHtml(t().referencePlaceholder)}</option>
+      ${options
+        .map((option) => {
+          const selected = option.value === renderedValue ? " selected" : "";
+          return `<option value="${escapeHtml(option.value)}"${selected}>${escapeHtml(
+            option.label,
+          )}</option>`;
+        })
+        .join("")}
+    </select>`;
   }
   const fieldType = transitionInput?.type ?? field?.type ?? null;
   const inputType =
@@ -503,6 +542,9 @@ async function refreshSessionUi() {
     unwrapStringResult(api.session_snapshot_json(currentSession, currentLocale)),
   );
   renderValidationResult(api.render_validation_manifest(yamlNode.value));
+  currentReferenceCatalog = buildReferenceCatalog(
+    unwrapStringResult(api.session_reference_catalog_json(currentSession, currentLocale)),
+  );
   renderCurrentView(currentSnapshot);
   renderActions(currentSnapshot);
   statusNode.textContent = t().sessionReady(

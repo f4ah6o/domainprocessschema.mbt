@@ -113,6 +113,14 @@ pub fn session_snapshot_json(
 }
 
 ///|
+pub fn session_reference_catalog_json(
+  session : DemoSession,
+  locale? : String = "",
+) -> Result[String, Error] {
+  Ok(render_demo_reference_catalog_json(session.runtime, locale))
+}
+
+///|
 pub fn apply_session_transition(
   session : DemoSession,
   transition_name : String,
@@ -201,6 +209,7 @@ fn build_demo_preview(
   let submitted = @schema.apply_transition(runtime, draft, "submit", input={
     "amount": @schema.RuntimeValue::Integer(1200),
     "reason": @schema.RuntimeValue::Text("hotel"),
+    "applicant": @schema.RuntimeValue::Text("user-1"),
   })
   match scenario {
     "draft" => Ok(DemoPreview::{ record: draft, actor: anonymous })
