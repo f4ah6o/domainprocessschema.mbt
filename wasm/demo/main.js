@@ -201,11 +201,28 @@ function applyLocale() {
 }
 
 async function loadWasm() {
-  const { instance } = await WebAssembly.instantiateStreaming(
-    fetch(wasmUrl),
-    { _: {} },
-    { builtins: ["js-string"], importedStringConstants: "_" },
-  );
+  const compileOptions = {
+    builtins: ["js-string"],
+    importedStringConstants: "_",
+  };
+  const importObject = { _: {} };
+  let instance;
+  try {
+    ({ instance } = await WebAssembly.instantiateStreaming(
+      fetch(wasmUrl),
+      importObject,
+      compileOptions,
+    ));
+  } catch (e) {
+    const needs = [];
+    if (!/\bjs-string\b/.test(e.message)) {
+      throw e;
+    }
+    throw new Error(
+      "Your browser does not support WebAssembly JavaScript string builtins (js-string). " +
+        "Please use Chrome 137+ or enable the experimental-wasm-stringref flag.",
+    );
+  }
   return instance.exports;
 }
 
