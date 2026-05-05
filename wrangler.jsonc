@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "domainprocessschema-wasm-demo",
+  "main": "./wasm/demo/worker.mjs",
+  "compatibility_date": "2026-05-05",
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./_build/cloudflare/wasm-demo",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  },
+  "env": {
+    "preview": {
+      "name": "domainprocessschema-wasm-demo-preview"
+    }
+  }
+}
