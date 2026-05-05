@@ -37,8 +37,39 @@
       .action-card button {
         margin-top: 0.75rem;
       }
+      .action-meta {
+        margin-top: 0.5rem;
+        color: #555;
+        font-size: 0.95rem;
+      }
+      .action-input-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin-top: 0.25rem;
+      }
+      .chip {
+        display: inline-block;
+        padding: 0.1rem 0.55rem;
+        border-radius: 999px;
+        background: #f2f4f8;
+        color: #333;
+        font-size: 0.82rem;
+      }
       .action-issues {
         color: #a00;
+      }
+      .action-error {
+        margin-top: 0.75rem;
+        padding: 0.75rem;
+        border: 1px solid #f3b3b3;
+        border-radius: 10px;
+        background: #fff5f5;
+        color: #7a0000;
+      }
+      .action-error-payload {
+        margin-top: 0.5rem;
+        background: #2b1111;
       }
       textarea {
         width: 100%;
@@ -68,8 +99,8 @@
     <h1 id="page-title">domainprocessschema.mbt MoonBit WASM demo</h1>
     <p id="page-description">
       This page loads the MoonBit WASM build, fetches
-      <code>examples/expense_request.yaml</code>, and renders either the static
-      manifest preview or runtime scenarios into the iframe below.
+      <code>examples/expense_request.yaml</code>, and lets you execute
+      transitions from a live runtime session in the browser host.
     </p>
 
     <div class="controls">
@@ -92,7 +123,7 @@
         </select>
       </label>
       <div>
-        <button id="render">Render preview</button>
+        <button id="render">Start runtime session</button>
         <button id="reset" type="button">Reset example</button>
       </div>
     </div>
