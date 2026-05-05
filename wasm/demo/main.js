@@ -15,6 +15,8 @@ const yamlLabelNode = document.getElementById("yaml-label");
 const actorRoleLabelNode = document.getElementById("actor-role-label");
 const localeLabelNode = document.getElementById("locale-label");
 const validationSummaryNode = document.getElementById("validation-summary");
+const currentViewHeadingNode = document.getElementById("current-view-heading");
+const currentViewNode = document.getElementById("current-view");
 const actionsHeadingNode = document.getElementById("actions-heading");
 const actionsNode = document.getElementById("actions");
 
@@ -37,8 +39,14 @@ const translations = {
     yamlLabel: "YAML source",
     actorRoleLabel: "Actor role",
     localeLabel: "Language",
+    currentViewHeading: "Current view",
     renderButton: "Start runtime session",
     resetButton: "Reset example",
+    noCurrentView: "Start a runtime session to inspect the structured current view.",
+    noCurrentViewFields: "The current view has no visible fields.",
+    stateMetaLabel: "state",
+    viewNameMetaLabel: "view",
+    emptyValue: "(empty)",
     actionsHeading: "Available transitions",
     validationSummary: "validation manifest",
     loading: "Loading WASM demo…",
@@ -71,8 +79,14 @@ const translations = {
     yamlLabel: "YAML ソース",
     actorRoleLabel: "Actor role",
     localeLabel: "表示言語",
+    currentViewHeading: "現在の view",
     renderButton: "runtime session を開始",
     resetButton: "example を戻す",
+    noCurrentView: "runtime session を開始すると、structured current view をここに表示します。",
+    noCurrentViewFields: "現在の view に visible field はありません。",
+    stateMetaLabel: "state",
+    viewNameMetaLabel: "view",
+    emptyValue: "(empty)",
     actionsHeading: "利用可能 transition",
     validationSummary: "validation manifest",
     loading: "WASM デモを読み込み中…",
@@ -113,12 +127,16 @@ function applyLocale() {
   yamlLabelNode.textContent = text.yamlLabel;
   actorRoleLabelNode.textContent = text.actorRoleLabel;
   localeLabelNode.textContent = text.localeLabel;
+  currentViewHeadingNode.textContent = text.currentViewHeading;
   renderButton.textContent = text.renderButton;
   resetButton.textContent = text.resetButton;
   actionsHeadingNode.textContent = text.actionsHeading;
   validationSummaryNode.textContent = text.validationSummary;
   previewNode.title = text.previewTitle;
   validationNode.textContent = text.validationLoading;
+  if (!currentSnapshot) {
+    currentViewNode.innerHTML = `<p>${escapeHtml(text.noCurrentView)}</p>`;
+  }
   for (const option of actorRoleNode.options) {
     option.textContent = text.actorRoles[option.value] ?? option.value;
   }
@@ -238,6 +256,58 @@ function renderActionHeaderMeta(snapshot, action) {
   return `<p class="action-meta">${escapeHtml(t().guardLabel)}: ${escapeHtml(
     validationAction.guard,
   )}</p>`;
+}
+
+function renderRuntimeValue(value) {
+  if (value === null || value === undefined || value === "") {
+    return `<span class="view-empty">${escapeHtml(t().emptyValue)}</span>`;
+  }
+  return escapeHtml(String(value));
+}
+
+function renderCurrentViewFieldMeta(snapshot, field) {
+  const validationField =
+    getValidationEntity(snapshot)?.fieldLookup.get(field.name) ?? null;
+  const chips = [field.component, field.mode];
+  if (validationField?.type) {
+    chips.unshift(validationField.type);
+  }
+  if (validationField?.target) {
+    chips.push(`${t().targetTag}: ${validationField.target}`);
+  }
+  if (validationField?.system) {
+    chips.push(t().systemTag);
+  }
+  return renderChips(chips);
+}
+
+function renderCurrentView(snapshot) {
+  if (!snapshot) {
+    currentViewNode.innerHTML = `<p>${escapeHtml(t().noCurrentView)}</p>`;
+    return;
+  }
+  const fields = snapshot.fields ?? [];
+  const summary = `<div class="view-summary">
+      <strong>${escapeHtml(snapshot.entityLabel ?? snapshot.entityName)}</strong>
+      <p class="action-meta">${escapeHtml(t().stateMetaLabel)}: ${escapeHtml(
+        snapshot.stateLabel ?? snapshot.state,
+      )} · ${escapeHtml(t().viewNameMetaLabel)}: ${escapeHtml(
+        snapshot.viewName,
+      )}</p>
+    </div>`;
+  if (fields.length === 0) {
+    currentViewNode.innerHTML = `${summary}<p>${escapeHtml(t().noCurrentViewFields)}</p>`;
+    return;
+  }
+  currentViewNode.innerHTML = `${summary}<div class="view-field-grid">${fields
+    .map(
+      (field) => `<article class="view-field-card">
+          <h3>${escapeHtml(field.label ?? field.name)}</h3>
+          ${renderCurrentViewFieldMeta(snapshot, field)}
+          <div class="view-field-value">${renderRuntimeValue(field.value)}</div>
+        </article>`,
+    )
+    .join("")}</div>`;
 }
 
 function renderActionInputMeta(snapshot, action, input) {
@@ -411,6 +481,7 @@ async function refreshSessionUi() {
     unwrapStringResult(api.session_snapshot_json(currentSession, currentLocale)),
   );
   renderValidationResult(api.render_validation_manifest(yamlNode.value));
+  renderCurrentView(currentSnapshot);
   renderActions(currentSnapshot);
   statusNode.textContent = t().sessionReady(
     currentSnapshot.stateLabel ?? currentSnapshot.state,
@@ -435,6 +506,7 @@ async function handleApplyTransition(transitionName, actionCard) {
       payload: JSON.parse(payloadText),
     });
     if (currentSnapshot) {
+      renderCurrentView(currentSnapshot);
       renderActions(currentSnapshot);
     }
     statusNode.textContent = String(err);

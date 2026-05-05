@@ -130,7 +130,9 @@ also exposes a small browser-driven runtime session:
 - `render_runtime_preview(yaml, scenario)` exports stateful runtime previews
 - `create_demo_session(yaml, actor_role)` builds a live runtime session from the
   example schema and draft payload
-- `session_snapshot_json(session)` lists current state and available transitions
+- `session_snapshot_json(session)` now exposes structured current-view data
+  (visible fields, labels, components, modes, current values) together with the
+  current state and available transitions
 - `apply_session_transition(session, name, input_json)` applies a transition and
   returns the updated session
 - `wasm/demo/index.html` loads the built `.wasm`, fetches
@@ -142,6 +144,9 @@ also exposes a small browser-driven runtime session:
 - the host page also parses `validation_manifest`, so each action input can show
   schema-derived hints such as entity-field/local kind, type, target/default
   metadata, and read-only/system flags
+- the host page now also renders the structured current view outside the iframe,
+  so the browser side consumes a real JSON bridge from `RuntimeGuiView` instead
+  of relying only on HTML strings
 - failed transition attempts are now preserved per action card, including the
   last submitted payload, so browser-side retry/debugging does not depend only
   on the global status area

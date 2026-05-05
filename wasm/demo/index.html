@@ -23,6 +23,34 @@
       .action-panel {
         margin-top: 1rem;
       }
+      .current-view-panel {
+        margin-top: 1rem;
+      }
+      .view-summary {
+        margin-bottom: 1rem;
+      }
+      .view-field-grid {
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+      }
+      .view-field-card {
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 1rem;
+        background: #fafafa;
+      }
+      .view-field-card h3 {
+        margin: 0 0 0.5rem;
+      }
+      .view-field-value {
+        margin-top: 0.75rem;
+        font-family: ui-monospace, SFMono-Regular, monospace;
+      }
+      .view-empty {
+        color: #777;
+        font-style: italic;
+      }
       .action-card {
         border: 1px solid #ddd;
         border-radius: 12px;
@@ -130,6 +158,10 @@
 
     <pre id="status">Loading WASM demo…</pre>
     <iframe id="preview" title="MoonBit WASM preview"></iframe>
+    <section class="current-view-panel">
+      <h2 id="current-view-heading">Current view</h2>
+      <div id="current-view"></div>
+    </section>
     <section class="action-panel">
       <h2 id="actions-heading">Available transitions</h2>
       <div id="actions"></div>
