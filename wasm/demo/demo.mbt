@@ -20,16 +20,19 @@ pub fn render_runtime_preview(
 ) -> Result[String, Error] {
   try {
     let runtime = @schema.compile_runtime_from_yaml(yaml)
-    let preview = build_demo_preview(runtime, scenario)
-    @schema.render_runtime_gui_html(
-      runtime,
-      preview.record,
-      actor=preview.actor,
-    )
+    match build_demo_preview(runtime, scenario) {
+      Ok(preview) =>
+        Ok(
+          @schema.render_runtime_gui_html(
+            runtime,
+            preview.record,
+            actor=preview.actor,
+          ),
+        )
+      Err(err) => Err(err)
+    }
   } catch {
     err => Err(err)
-  } noraise {
-    html => Ok(html)
   }
 }
 
@@ -67,7 +70,7 @@ pub fn result_error(res : Result[String, Error]) -> String {
 fn build_demo_preview(
   runtime : @schema.Runtime,
   scenario : String,
-) -> DemoPreview raise {
+) -> Result[DemoPreview, Error] raise {
   let draft = @schema.validate_record(
       runtime,
       "ExpenseRequest",
@@ -80,9 +83,9 @@ fn build_demo_preview(
     "reason": @schema.RuntimeValue::Text("hotel"),
   })
   match scenario {
-    "draft" => DemoPreview::{ record: draft, actor: anonymous }
-    "submitted" => DemoPreview::{ record: submitted, actor: anonymous }
-    "submitted-manager" => DemoPreview::{ record: submitted, actor: manager }
+    "draft" => Ok(DemoPreview::{ record: draft, actor: anonymous })
+    "submitted" => Ok(DemoPreview::{ record: submitted, actor: anonymous })
+    "submitted-manager" => Ok(DemoPreview::{ record: submitted, actor: manager })
     "approved-manager" => {
       let approved = @schema.apply_transition(
         runtime,
@@ -90,7 +93,7 @@ fn build_demo_preview(
         "approve",
         actor=manager,
       )
-      DemoPreview::{ record: approved, actor: manager }
+      Ok(DemoPreview::{ record: approved, actor: manager })
     }
     "rejected-manager" => {
       let rejected = @schema.apply_transition(
@@ -102,11 +105,13 @@ fn build_demo_preview(
         },
         actor=manager,
       )
-      DemoPreview::{ record: rejected, actor: manager }
+      Ok(DemoPreview::{ record: rejected, actor: manager })
     }
     _ =>
-      raise @builtin.Failure::Failure(
+      Err(
+        @builtin.Failure::Failure(
         "unsupported preview scenario \{scenario}; use `draft`, `submitted`, `submitted-manager`, `approved-manager`, or `rejected-manager`",
+        ),
       )
   }
 }
