@@ -70,6 +70,93 @@ fn render_demo_action_input_json(
 }
 
 ///|
+fn render_demo_runtime_issue_json(issue : @schema.RuntimeIssue) -> String {
+  let builder = StringBuilder::new()
+  builder.write_string("{")
+  builder.write_string("\"path\":\"\{json_escape(issue.path)}\",")
+  builder.write_string("\"message\":\"\{json_escape(issue.message)}\"")
+  builder.write_string("}")
+  builder.to_string()
+}
+
+///|
+fn render_demo_error_payload_json(
+  kind : String,
+  message : String,
+  issues? : Array[@schema.RuntimeIssue] = [],
+  entity? : String = "",
+  transition? : String = "",
+  expected? : String = "",
+  found? : String = "",
+) -> String {
+  let issue_json = issues.map(render_demo_runtime_issue_json).join(",")
+  let builder = StringBuilder::new()
+  builder.write_string("{")
+  builder.write_string("\"kind\":\"\{json_escape(kind)}\",")
+  builder.write_string("\"message\":\"\{json_escape(message)}\",")
+  if entity != "" {
+    builder.write_string("\"entity\":\"\{json_escape(entity)}\",")
+  }
+  if transition != "" {
+    builder.write_string("\"transition\":\"\{json_escape(transition)}\",")
+  }
+  if expected != "" {
+    builder.write_string("\"expected\":\"\{json_escape(expected)}\",")
+  }
+  if found != "" {
+    builder.write_string("\"found\":\"\{json_escape(found)}\",")
+  }
+  builder.write_string("\"issues\":[\{issue_json}]")
+  builder.write_string("}")
+  builder.to_string()
+}
+
+///|
+fn render_demo_error_json(err : Error) -> String {
+  match err {
+    @schema.RuntimeError::UnknownEntity(entity~) =>
+      render_demo_error_payload_json("unknown-entity", "\{err}", entity=entity)
+    @schema.RuntimeError::EntityMismatch(expected~, found~) =>
+      render_demo_error_payload_json(
+        "entity-mismatch",
+        "\{err}",
+        expected=expected,
+        found=found,
+      )
+    @schema.RuntimeError::UnknownTransition(entity~, transition~) =>
+      render_demo_error_payload_json(
+        "unknown-transition",
+        "\{err}",
+        entity=entity,
+        transition=transition,
+      )
+    @schema.RuntimeError::MissingView(entity~, state~) =>
+      render_demo_error_payload_json(
+        "missing-view",
+        "\{err}",
+        entity=entity,
+        found=state,
+      )
+    @schema.RuntimeError::InvalidRecord(entity~, issues~) =>
+      render_demo_error_payload_json(
+        "invalid-record",
+        "\{err}",
+        entity=entity,
+        issues~,
+      )
+    @schema.RuntimeError::TransitionRejected(entity~, transition~, issues~) =>
+      render_demo_error_payload_json(
+        "transition-rejected",
+        "\{err}",
+        entity=entity,
+        transition=transition,
+        issues~,
+      )
+    _ => render_demo_error_payload_json("error", "\{err}")
+  }
+}
+
+///|
 fn demo_input_kind_name(kind : @schema.TransitionInputKind) -> String {
   match kind {
     @schema.TransitionInputKind::EntityField => "entity-field"

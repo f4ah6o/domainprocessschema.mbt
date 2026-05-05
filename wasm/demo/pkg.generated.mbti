@@ -26,6 +26,8 @@ pub fn session_preview_html(DemoSession, locale? : String) -> Result[String, Err
 
 pub fn session_result_error(Result[DemoSession, Error]) -> String
 
+pub fn session_result_error_json(Result[DemoSession, Error]) -> String
+
 pub fn session_result_is_ok(Result[DemoSession, Error]) -> Bool
 
 pub fn session_result_unwrap(Result[DemoSession, Error]) -> DemoSession

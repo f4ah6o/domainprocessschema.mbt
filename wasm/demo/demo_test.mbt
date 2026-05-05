@@ -150,6 +150,20 @@ test "apply_session_transition rerenders submitted session state" {
 }
 
 ///|
+test "session_result_error_json exposes structured transition errors" {
+  let session = session_result_unwrap(create_demo_session(demo_yaml()))
+  let rejected = apply_session_transition(session, "submit", "{}")
+  inspect(session_result_is_ok(rejected), content="false")
+  let error_json = session_result_error_json(rejected)
+  inspect(error_json.contains("\"kind\":\"transition-rejected\""), content="true")
+  inspect(error_json.contains("\"transition\":\"submit\""), content="true")
+  inspect(
+    error_json.contains("transition input field amount is required"),
+    content="true",
+  )
+}
+
+///|
 fn localized_demo_yaml() -> String {
   (
     #|entities:

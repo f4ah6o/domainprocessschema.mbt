@@ -179,6 +179,14 @@ pub fn session_result_error(res : Result[DemoSession, Error]) -> String {
 }
 
 ///|
+pub fn session_result_error_json(res : Result[DemoSession, Error]) -> String {
+  match res {
+    Ok(_) => render_demo_error_payload_json("ok", "", issues=[])
+    Err(err) => render_demo_error_json(err)
+  }
+}
+
+///|
 fn build_demo_preview(
   runtime : @schema.Runtime,
   scenario : String,

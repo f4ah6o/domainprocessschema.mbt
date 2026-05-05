@@ -148,8 +148,8 @@ also exposes a small browser-driven runtime session:
   so the browser side consumes a real JSON bridge from `RuntimeGuiView` instead
   of relying only on HTML strings
 - failed transition attempts are now preserved per action card, including the
-  last submitted payload, so browser-side retry/debugging does not depend only
-  on the global status area
+  last submitted payload, and the host also consumes structured runtime error
+  payloads (kind/entity/transition/issues) instead of only a raw error string
 - the host page still exposes the YAML source as a textarea, so schema edits and
   compile / validation errors can be exercised directly in the browser demo
 - the host page chrome supports a minimal `en` / `ja` switch, and schema-level
