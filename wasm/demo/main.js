@@ -341,7 +341,7 @@ function renderActions(snapshot) {
         .map(
           (input) => `
             <label>
-              <span>${escapeHtml(input.name)}${
+              <span>${escapeHtml(input.label ?? input.name)}${
                 input.required ? " *" : ""
               }</span>
               ${renderActionInputMeta(snapshot, action, input)}
@@ -403,14 +403,18 @@ async function renderSession() {
 }
 
 async function refreshSessionUi() {
-  const html = unwrapStringResult(api.session_preview_html(currentSession));
-  previewNode.srcdoc = html;
+  const localizedHtml = unwrapStringResult(
+    api.session_preview_html(currentSession, currentLocale),
+  );
+  previewNode.srcdoc = localizedHtml;
   currentSnapshot = JSON.parse(
-    unwrapStringResult(api.session_snapshot_json(currentSession)),
+    unwrapStringResult(api.session_snapshot_json(currentSession, currentLocale)),
   );
   renderValidationResult(api.render_validation_manifest(yamlNode.value));
   renderActions(currentSnapshot);
-  statusNode.textContent = t().sessionReady(currentSnapshot.state);
+  statusNode.textContent = t().sessionReady(
+    currentSnapshot.stateLabel ?? currentSnapshot.state,
+  );
 }
 
 async function handleApplyTransition(transitionName, actionCard) {

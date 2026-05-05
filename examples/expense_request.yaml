@@ -1,37 +1,68 @@
 entities:
   User:
-    label: ユーザー
+    label:
+      default: User
+      ja: ユーザー
     fields:
       id:
+        label:
+          default: ID
+          ja: ID
         type: id
         primary: true
       role:
+        label:
+          default: Role
+          ja: ロール
         type: text
         required: true
 
   ExpenseRequest:
-    label: 経費申請
+    label:
+      default: Expense Request
+      ja: 経費申請
     fields:
       id:
+        label:
+          default: ID
+          ja: ID
         type: id
         primary: true
       amount:
+        label:
+          default: Amount
+          ja: 金額
         type: money
         required: true
       reason:
+        label:
+          default: Reason
+          ja: 理由
         type: text
         required: true
       applicant:
+        label:
+          default: Applicant
+          ja: 申請者
         type: ref
         target: User
         required: true
       status:
+        label:
+          default: Status
+          ja: ステータス
         type: state
         initial: draft
       createdAt:
+        label:
+          default: Created at
+          ja: 作成日時
         type: datetime
         system: true
       updatedAt:
+        label:
+          default: Updated at
+          ja: 更新日時
         type: datetime
         system: true
     relations:
@@ -44,13 +75,21 @@ entities:
         expr: amount > 0
     states:
       draft:
-        label: 下書き
+        label:
+          default: Draft
+          ja: 下書き
       submitted:
-        label: 申請中
+        label:
+          default: Submitted
+          ja: 申請中
       approved:
-        label: 承認済
+        label:
+          default: Approved
+          ja: 承認済
       rejected:
-        label: 却下
+        label:
+          default: Rejected
+          ja: 却下
     transitions:
       submit:
         from: draft

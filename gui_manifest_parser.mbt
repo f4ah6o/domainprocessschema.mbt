@@ -94,6 +94,9 @@ fn parse_gui_field(
   let obj = expect_gui_object(json, path)
   GuiManifestField::{
     name: require_gui_string(obj, "name", "\{path}.name"),
+    label: optional_gui_string(obj, "label", "\{path}.label").unwrap_or(
+      require_gui_string(obj, "name", "\{path}.name"),
+    ),
     component: require_gui_string(obj, "component", "\{path}.component"),
     mode: require_gui_string(obj, "mode", "\{path}.mode"),
   }
@@ -127,6 +130,9 @@ fn parse_gui_action_input(
   let obj = expect_gui_object(json, path)
   GuiManifestActionInput::{
     name: require_gui_string(obj, "name", "\{path}.name"),
+    label: optional_gui_string(obj, "label", "\{path}.label").unwrap_or(
+      require_gui_string(obj, "name", "\{path}.name"),
+    ),
     kind: require_gui_string(obj, "kind", "\{path}.kind"),
     component: require_gui_string(obj, "component", "\{path}.component"),
     required: require_gui_bool(obj, "required", "\{path}.required"),

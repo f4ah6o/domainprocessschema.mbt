@@ -62,6 +62,8 @@ pub(all) enum Expr {
 ///|
 pub(all) struct ParsedField {
   name : String
+  label : String
+  labels : Map[String, String]
   type_name : String
   required : Bool
   primary : Bool
@@ -90,6 +92,7 @@ pub(all) struct ParsedConstraint {
 pub(all) struct ParsedState {
   name : String
   label : String
+  labels : Map[String, String]
 } derive(Eq, Show)
 
 ///|
@@ -143,6 +146,7 @@ pub(all) struct ParsedStorage {
 pub(all) struct ParsedEntity {
   name : String
   label : String
+  labels : Map[String, String]
   fields : Array[ParsedField]
   relations : Array[ParsedRelation]
   constraints : Array[ParsedConstraint]
@@ -161,6 +165,8 @@ pub(all) struct ParsedSchema {
 ///|
 pub(all) struct Field {
   name : String
+  label : String
+  labels : Map[String, String]
   column_name : String
   field_type : FieldType
   required : Bool
@@ -190,6 +196,7 @@ pub(all) struct Constraint {
 pub(all) struct State {
   name : String
   label : String
+  labels : Map[String, String]
 } derive(Eq, Show)
 
 ///|
@@ -241,6 +248,7 @@ pub(all) struct StorageKey {
 pub(all) struct Entity {
   name : String
   label : String
+  labels : Map[String, String]
   table_name : String
   fields : Array[Field]
   relations : Array[Relation]
@@ -311,6 +319,7 @@ pub(all) struct RuntimeRuleStatus {
 ///|
 pub(all) struct RuntimeGuiField {
   name : String
+  label : String
   component : String
   mode : String
   value : RuntimeValue?
@@ -319,6 +328,7 @@ pub(all) struct RuntimeGuiField {
 ///|
 pub(all) struct RuntimeGuiActionInput {
   name : String
+  label : String
   kind : TransitionInputKind
   component : String
   required : Bool
@@ -337,7 +347,9 @@ pub(all) struct RuntimeGuiAction {
 ///|
 pub(all) struct RuntimeGuiView {
   entity_name : String
+  entity_label : String
   state : String
+  state_label : String
   view_name : String
   fields : Array[RuntimeGuiField]
   actions : Array[RuntimeGuiAction]
@@ -425,8 +437,8 @@ pub fn generate_validation_manifest(schema : Schema) -> String {
 
 ///|
 /// Convert a validated schema into a machine-readable GUI manifest.
-pub fn generate_gui_manifest(schema : Schema) -> String {
-  render_gui_manifest(schema)
+pub fn generate_gui_manifest(schema : Schema, locale? : String = "") -> String {
+  render_gui_manifest(schema, locale)
 }
 
 ///|
@@ -440,8 +452,11 @@ pub fn render_gui_html_from_manifest(
 
 ///|
 /// Compile YAML directly to a static HTML preview derived from GUI manifest output.
-pub fn compile_gui_html_from_yaml(input : String) -> String raise {
-  let manifest = compile_gui_manifest_from_yaml(input)
+pub fn compile_gui_html_from_yaml(
+  input : String,
+  locale? : String = "",
+) -> String raise {
+  let manifest = compile_gui_manifest_from_yaml(input, locale=locale)
   render_gui_html_from_manifest(manifest)
 }
 
@@ -451,9 +466,10 @@ pub fn render_runtime_gui_html(
   runtime : Runtime,
   record : RuntimeRecord,
   actor? : RuntimeActor = RuntimeActor::anonymous(),
+  locale? : String = "",
 ) -> String raise RuntimeError {
-  let projected = project_gui(runtime, record, actor~)
-  render_runtime_gui_view_html(runtime.schema, projected)
+  let projected = project_gui(runtime, record, actor~, locale=locale)
+  render_runtime_gui_view_html(projected)
 }
 
 ///|
@@ -507,8 +523,9 @@ pub fn project_gui(
   runtime : Runtime,
   record : RuntimeRecord,
   actor? : RuntimeActor = RuntimeActor::anonymous(),
+  locale? : String = "",
 ) -> RuntimeGuiView raise RuntimeError {
-  runtime_project_gui(runtime, record, actor)
+  runtime_project_gui(runtime, record, actor, locale)
 }
 
 ///|
@@ -565,8 +582,9 @@ pub fn compile_validation_manifest_from_yaml(
 /// Compile YAML directly to a GUI manifest JSON document.
 pub fn compile_gui_manifest_from_yaml(
   input : String,
+  locale? : String = "",
 ) -> String raise SchemaError {
   let parsed = parse_schema_yaml(input)
   let schema = validate_schema(parsed)
-  generate_gui_manifest(schema)
+  generate_gui_manifest(schema, locale=locale)
 }

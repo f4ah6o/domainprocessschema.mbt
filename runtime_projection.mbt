@@ -65,6 +65,7 @@ fn runtime_project_gui(
   runtime : Runtime,
   record : RuntimeRecord,
   actor : RuntimeActor,
+  locale : String,
 ) -> RuntimeGuiView raise RuntimeError {
   let entity = runtime_find_entity(runtime, record.entity_name)
   let validation = runtime_validate_record(
@@ -81,6 +82,8 @@ fn runtime_project_gui(
       raise RuntimeError::InvalidRecord(entity=entity.name, issues=[issue])
   }
   let view = runtime_find_view(entity, state_name)
+  let entity_label = resolved_entity_label(entity, locale)
+  let state_label = resolved_state_label(entity, state_name, locale)
   let transition_statuses = runtime_list_transitions(
     runtime,
     validation.record,
@@ -94,6 +97,7 @@ fn runtime_project_gui(
     if mode != "hidden" {
       fields.push(RuntimeGuiField::{
         name: field.name,
+        label: resolve_localized_text(field.label, field.labels, locale),
         component: gui_component(field.field_type),
         mode,
         value: validation.record.values.get(field.name),
@@ -118,6 +122,7 @@ fn runtime_project_gui(
         }
         inputs.push(RuntimeGuiActionInput::{
           name: input.name,
+          label: resolved_transition_input_label(entity, input, locale),
           kind: input.kind,
           component: gui_component(input.field_type),
           required: input.required,
@@ -136,7 +141,9 @@ fn runtime_project_gui(
 
   RuntimeGuiView::{
     entity_name: entity.name,
+    entity_label,
     state: state_name,
+    state_label,
     view_name: view.name,
     fields,
     actions,

@@ -72,7 +72,13 @@ fn validate_entity(
       )
     }
     state_names[parsed_state.name] = true
-    states.push(State::{ name: parsed_state.name, label: parsed_state.label })
+    states.push(
+      State::{
+        name: parsed_state.name,
+        label: parsed_state.label,
+        labels: parsed_state.labels,
+      },
+    )
   }
   if states.length() > 0 && state_field_count != 1 {
     raise SchemaError::ValidationError(
@@ -118,6 +124,7 @@ fn validate_entity(
   Entity::{
     name: entity.name,
     label: entity.label,
+    labels: entity.labels,
     table_name,
     fields,
     relations,
@@ -176,6 +183,8 @@ fn validate_field(
   }
   Field::{
     name: parsed_field.name,
+    label: parsed_field.label,
+    labels: parsed_field.labels,
     column_name: sql_column_name(parsed_field.name, field_type),
     field_type,
     required: parsed_field.required,

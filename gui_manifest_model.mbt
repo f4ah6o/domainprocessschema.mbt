@@ -28,6 +28,7 @@ priv struct GuiManifestView {
 ///|
 priv struct GuiManifestField {
   name : String
+  label : String
   component : String
   mode : String
 }
@@ -44,6 +45,7 @@ priv struct GuiManifestAction {
 ///|
 priv struct GuiManifestActionInput {
   name : String
+  label : String
   kind : String
   component : String
   required : Bool
