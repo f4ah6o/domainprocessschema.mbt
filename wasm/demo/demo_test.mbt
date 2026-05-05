@@ -129,6 +129,10 @@ test "create_demo_session exposes available transitions in snapshot json" {
   let session = session_result_unwrap(session_result)
   let snapshot = result_unwrap(session_snapshot_json(session))
   inspect(snapshot.contains("\"state\":\"draft\""), content="true")
+  inspect(
+    snapshot.contains("\"fields\":[{\"name\":\"amount\",\"label\":\"amount\",\"component\":\"money\",\"mode\":\"editable\",\"value\":1200}"),
+    content="true",
+  )
   inspect(snapshot.contains("\"name\":\"submit\""), content="true")
 }
 
@@ -227,6 +231,10 @@ test "session snapshot json resolves localized labels" {
   let snapshot = result_unwrap(session_snapshot_json(session, locale="ja"))
   inspect(snapshot.contains("\"entityLabel\":\"経費申請\""), content="true")
   inspect(snapshot.contains("\"stateLabel\":\"下書き\""), content="true")
+  inspect(
+    snapshot.contains("\"fields\":[{\"name\":\"amount\",\"label\":\"金額\""),
+    content="true",
+  )
   inspect(snapshot.contains("\"label\":\"金額\""), content="true")
 }
 

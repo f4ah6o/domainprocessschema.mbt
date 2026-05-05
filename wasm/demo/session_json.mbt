@@ -3,6 +3,7 @@ fn render_demo_session_snapshot_json(
   session : DemoSession,
   view : @schema.RuntimeGuiView,
 ) -> String {
+  let fields = view.fields.map(render_demo_field_json).join(",")
   let actions = view.actions.map(render_demo_action_json).join(",")
   let actor_role = demo_actor_role(session.actor)
   let builder = StringBuilder::new()
@@ -13,7 +14,21 @@ fn render_demo_session_snapshot_json(
   builder.write_string("\"stateLabel\":\"\{json_escape(view.state_label)}\",")
   builder.write_string("\"viewName\":\"\{json_escape(view.view_name)}\",")
   builder.write_string("\"actorRole\":\{json_string_or_null(actor_role)},")
+  builder.write_string("\"fields\":[\{fields}],")
   builder.write_string("\"actions\":[\{actions}]")
+  builder.write_string("}")
+  builder.to_string()
+}
+
+///|
+fn render_demo_field_json(field : @schema.RuntimeGuiField) -> String {
+  let builder = StringBuilder::new()
+  builder.write_string("{")
+  builder.write_string("\"name\":\"\{json_escape(field.name)}\",")
+  builder.write_string("\"label\":\"\{json_escape(field.label)}\",")
+  builder.write_string("\"component\":\"\{json_escape(field.component)}\",")
+  builder.write_string("\"mode\":\"\{json_escape(field.mode)}\",")
+  builder.write_string("\"value\":\{demo_runtime_value_json(field.value)}")
   builder.write_string("}")
   builder.to_string()
 }
