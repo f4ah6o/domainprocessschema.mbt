@@ -6,7 +6,7 @@ test "render_gui_html_from_manifest renders static html preview" {
     html,
     content=(
       #|<!DOCTYPE html>
-      #|<html lang="en">
+      #|<html lang="ja">
       #|<head>
       #|  <meta charset="utf-8">
       #|  <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -117,6 +117,7 @@ test "render_gui_html_from_manifest renders static html preview" {
       #|</body>
       #|</html>
 
+
     ),
   )
 }
@@ -134,7 +135,7 @@ test "render_runtime_gui_html renders stateful html preview" {
     html,
     content=(
       #|<!DOCTYPE html>
-      #|<html lang="en">
+      #|<html lang="ja">
       #|<head>
       #|  <meta charset="utf-8">
       #|  <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -186,6 +187,56 @@ test "render_runtime_gui_html renders stateful html preview" {
       #|</body>
       #|</html>
 
+
     ),
+  )
+}
+
+///|
+fn runtime_reference_field_schema() -> String {
+  (
+    #|entities:
+    #|  User:
+    #|    label: ユーザー
+    #|    fields:
+    #|      id:
+    #|        type: id
+    #|        primary: true
+    #|  ExpenseRequest:
+    #|    label: 経費申請
+    #|    fields:
+    #|      id:
+    #|        type: id
+    #|        primary: true
+    #|      applicant:
+    #|        type: ref
+    #|        target: User
+    #|        required: true
+    #|      status:
+    #|        type: state
+    #|        initial: submitted
+    #|    states:
+    #|      submitted:
+    #|        label: 申請中
+    #|    views:
+    #|      submitted:
+    #|        readonly:
+    #|          - applicant
+  )
+}
+
+///|
+test "render_runtime_gui_html keeps runtime values in reference selects" {
+  let runtime = compile_runtime_from_yaml(runtime_reference_field_schema())
+  let record = validate_record(runtime, "ExpenseRequest", {
+    "id": RuntimeValue::Text("exp-1"),
+    "applicant": RuntimeValue::Text("user-1"),
+  }).record
+  let html = render_runtime_gui_html(runtime, record)
+  inspect(
+    html.contains(
+      "<option value=\"user-1\" selected>user-1</option>",
+    ),
+    content="true",
   )
 }
