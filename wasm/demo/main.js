@@ -203,11 +203,8 @@ function applyLocale() {
 async function loadWasm() {
   const { instance } = await WebAssembly.instantiateStreaming(
     fetch(wasmUrl),
-    {},
-    {
-      builtins: ["js-string"],
-      importedStringConstants: "_",
-    },
+    { _: {} },
+    { builtins: ["js-string"], importedStringConstants: ["_"] },
   );
   return instance.exports;
 }
