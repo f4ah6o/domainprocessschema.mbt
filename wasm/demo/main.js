@@ -204,7 +204,7 @@ async function loadWasm() {
   const { instance } = await WebAssembly.instantiateStreaming(
     fetch(wasmUrl),
     { _: {} },
-    { builtins: ["js-string"], importedStringConstants: ["_"] },
+    { builtins: ["js-string"], importedStringConstants: "_" },
   );
   return instance.exports;
 }
