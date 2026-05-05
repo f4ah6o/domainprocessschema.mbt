@@ -5,7 +5,8 @@ fn render_gui_manifest_html(manifest : GuiManifestDoc) -> String {
     sections.push(render_manifest_entity_html(entity))
   }
   let body = sections.join("\n")
-  render_html_document("Generated GUI Preview", body)
+  let title = "Generated GUI Preview"
+  render_html_document(title, body, lang=detect_document_lang(title, body))
 }
 
 ///|
@@ -134,7 +135,8 @@ fn render_runtime_gui_view_html(
   let actions_block = render_div_block("action-list", actions)
   let rules_block = render_list_block("Rules", "rule-list", rules)
   let body = "<section class=\"entity-page runtime-page\">\n\{header}\n<p class=\"view-name\">view: \{html_escape(view.view_name)}</p>\n\{fields_block}\n\{actions_block}\n\{rules_block}\n</section>"
-  render_html_document("\{entity.label} - \{state_label}", body)
+  let title = "\{entity.label} - \{state_label}"
+  render_html_document(title, body, lang=detect_document_lang(title, body))
 }
 
 ///|
@@ -224,7 +226,15 @@ fn render_html_control(
     }
     "select" | "reference-select" => {
       let disabled = if is_readonly { " disabled" } else { "" }
-      "<select name=\"\{escaped_name}\" class=\"control control--select\"\{disabled}><option>\{html_escape(field_label)}</option></select>"
+      let option_value = if value_text == "" { "" } else { html_escape_attr(value_text) }
+      let option_label = if value_text == "" { field_label } else { value_text }
+      let option_attr =
+        if option_value == "" {
+          " selected"
+        } else {
+          " value=\"\{option_value}\" selected"
+        }
+      "<select name=\"\{escaped_name}\" class=\"control control--select\"\{disabled}><option\{option_attr}>\{html_escape(option_label)}</option></select>"
     }
     "state-badge" =>
       "<span class=\"state-badge state-badge--inline\">\{html_escape(value_text)}</span>"
@@ -256,10 +266,14 @@ fn html_input_type(component : String) -> String {
 }
 
 ///|
-fn render_html_document(title : String, body : String) -> String {
+fn render_html_document(
+  title : String,
+  body : String,
+  lang? : String = "en",
+) -> String {
   (
     $|<!DOCTYPE html>
-    $|<html lang="en">
+    $|<html lang="\{html_escape_attr(lang)}">
     $|<head>
     $|  <meta charset="utf-8">
     $|  <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -291,6 +305,26 @@ fn render_html_document(title : String, body : String) -> String {
     $|</body>
     $|</html>
   )
+}
+
+///|
+fn detect_document_lang(title : String, body : String) -> String {
+  if contains_japanese_text(title) || contains_japanese_text(body) {
+    "ja"
+  } else {
+    "en"
+  }
+}
+
+///|
+fn contains_japanese_text(text : String) -> Bool {
+  for char in text {
+    match char {
+      'ぁ'..='ゖ' | 'ァ'..='ヺ' | '一'..='龯' => return true
+      _ => ()
+    }
+  }
+  false
 }
 
 ///|
