@@ -67,6 +67,8 @@ const translations = {
     defaultTag: "default",
     lastErrorLabel: "Last error",
     lastPayloadLabel: "Last payload",
+    errorKindLabel: "kind",
+    issuesLabel: "Issues",
     actorRoles: {
       "": "anonymous",
       manager: "manager",
@@ -107,6 +109,8 @@ const translations = {
     defaultTag: "default",
     lastErrorLabel: "直前の error",
     lastPayloadLabel: "直前の payload",
+    errorKindLabel: "kind",
+    issuesLabel: "Issues",
     actorRoles: {
       "": "anonymous",
       manager: "manager",
@@ -345,10 +349,28 @@ function renderActionFailure(actionName) {
   if (!failure) {
     return "";
   }
+  const kindBlock = failure.kind
+    ? `<div class="action-meta">${escapeHtml(t().errorKindLabel)}: ${escapeHtml(
+        failure.kind,
+      )}</div>`
+    : "";
+  const issuesBlock =
+    failure.issues && failure.issues.length > 0
+      ? `<div class="action-meta">${escapeHtml(t().issuesLabel)}</div>
+         <ul class="action-issues">${failure.issues
+           .map(
+             (issue) => `<li>${issue.path ? `<code>${escapeHtml(issue.path)}</code>: ` : ""}${escapeHtml(
+               issue.message,
+             )}</li>`,
+           )
+           .join("")}</ul>`
+      : "";
   const payloadText = JSON.stringify(failure.payload, null, 2);
   return `<div class="action-error">
     <strong>${escapeHtml(t().lastErrorLabel)}</strong>
+    ${kindBlock}
     <div>${escapeHtml(failure.message)}</div>
+    ${issuesBlock}
     <div class="action-meta">${escapeHtml(t().lastPayloadLabel)}</div>
     <pre class="action-error-payload">${escapeHtml(payloadText)}</pre>
   </div>`;
@@ -496,7 +518,22 @@ async function handleApplyTransition(transitionName, actionCard) {
       transitionName,
       payloadText,
     );
-    currentSession = unwrapSessionResult(result);
+    if (!api.session_result_is_ok(result)) {
+      const failure = JSON.parse(api.session_result_error_json(result));
+      actionFailures.set(transitionName, {
+        kind: failure.kind ?? "error",
+        message: failure.message ?? api.session_result_error(result),
+        issues: Array.isArray(failure.issues) ? failure.issues : [],
+        payload: JSON.parse(payloadText),
+      });
+      if (currentSnapshot) {
+        renderCurrentView(currentSnapshot);
+        renderActions(currentSnapshot);
+      }
+      statusNode.textContent = failure.message ?? api.session_result_error(result);
+      return;
+    }
+    currentSession = api.session_result_unwrap(result);
     actionFailures.clear();
     await refreshSessionUi();
     statusNode.textContent = t().transitionApplied(transitionName);
