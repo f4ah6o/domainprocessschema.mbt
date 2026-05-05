@@ -190,6 +190,7 @@ The locale resolution order is:
 Build and test it with:
 
 ```bash
+pnpm install
 just wasm-demo-test
 just wasm-demo-build
 python3 -m http.server
@@ -198,6 +199,44 @@ python3 -m http.server
 
 The runtime uses the validated `Schema` and `Expr` AST directly instead of
 parsing the generated JSON manifests back into memory.
+
+### Cloudflare Worker deploy
+
+The WASM demo can also be deployed to Cloudflare Workers. The deploy flow keeps
+the source demo under `wasm/demo/` unchanged, then assembles a Worker-ready
+asset bundle under `_build/cloudflare/wasm-demo/` with:
+
+- `index.html`
+- `main.js` rebased to `./demo.wasm` and `./examples/expense_request.yaml`
+- the built `demo.wasm`
+- `examples/expense_request.yaml`
+
+Set up the `opz` item once:
+
+```bash
+just demo-op-create
+just demo-op-env
+pnpm install
+```
+
+The generated `wasm/demo/.env.opz` should contain at least:
+
+```bash
+CLOUDFLARE_API_TOKEN=...
+CLOUDFLARE_ACCOUNT_ID=...
+```
+
+Then use:
+
+```bash
+just demo-build
+just demo-dev
+just demo-deploy-preview
+just demo-deploy
+```
+
+`demo-deploy-preview` deploys the `preview` Worker environment, and
+`demo-deploy` deploys the production Worker.
 
 ## Transition-local inputs
 
