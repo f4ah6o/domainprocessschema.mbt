@@ -16,6 +16,12 @@ pub(all) enum DiagnosticSeverity {
 } derive(Eq, Show)
 
 ///|
+/// Structured error/warning/info diagnostic used across the compiler, validator,
+/// and runtime.  Exported as the public error shape for CLI / WASM / editor
+/// consumers.
+///
+/// TODO: `derive(Show)` is deprecated — switch to `derive(Debug)` throughout
+/// the file when the project upgrades its minimum `moon` toolchain version.
 pub(all) struct Diagnostic {
   code : String
   severity : DiagnosticSeverity
