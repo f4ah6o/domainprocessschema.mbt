@@ -1,0 +1,347 @@
+{
+  "schemaVersion": "domainprocessschema.v1",
+  "manifestKind": "normalized-schema",
+  "generator": {
+      "name": "domainprocessschema.mbt",
+      "version": "0.1.0"
+    },
+  "payload": {
+    "entities": [
+      {
+        "name": "User",
+        "label": "User",
+        "labels": {
+            "default": "User",
+            "ja": "ユーザー"
+          },
+        "fields": [
+            {
+              "name": "id",
+              "type": "id",
+              "label": "ID",
+              "labels": {
+                  "default": "ID",
+                  "ja": "ID"
+                },
+              "required": false,
+              "readOnly": false,
+              "system": false,
+              "primary": true,
+              "column": "id"
+            },
+            {
+              "name": "role",
+              "type": "text",
+              "label": "Role",
+              "labels": {
+                  "default": "Role",
+                  "ja": "ロール"
+                },
+              "required": true,
+              "readOnly": false,
+              "system": false,
+              "primary": false,
+              "column": "role"
+            }
+          ],
+        "states": [],
+        "transitions": [],
+        "views": [],
+        "constraints": [],
+        "rules": [],
+        "relations": [],
+        "storage": {
+          "table": "users",
+          "softDelete": false,
+          "indexes": [],
+          "unique": []
+        }
+      },
+      {
+        "name": "ExpenseRequest",
+        "label": "Expense Request",
+        "labels": {
+            "default": "Expense Request",
+            "ja": "経費申請"
+          },
+        "fields": [
+            {
+              "name": "id",
+              "type": "id",
+              "label": "ID",
+              "labels": {
+                  "default": "ID",
+                  "ja": "ID"
+                },
+              "required": false,
+              "readOnly": false,
+              "system": false,
+              "primary": true,
+              "column": "id"
+            },
+            {
+              "name": "amount",
+              "type": "money",
+              "label": "Amount",
+              "labels": {
+                  "default": "Amount",
+                  "ja": "金額"
+                },
+              "required": true,
+              "readOnly": false,
+              "system": false,
+              "primary": false,
+              "column": "amount"
+            },
+            {
+              "name": "reason",
+              "type": "text",
+              "label": "Reason",
+              "labels": {
+                  "default": "Reason",
+                  "ja": "理由"
+                },
+              "required": true,
+              "readOnly": false,
+              "system": false,
+              "primary": false,
+              "column": "reason"
+            },
+            {
+              "name": "applicant",
+              "type": "ref",
+              "label": "Applicant",
+              "labels": {
+                  "default": "Applicant",
+                  "ja": "申請者"
+                },
+              "required": true,
+              "readOnly": false,
+              "system": false,
+              "primary": false,
+              "column": "applicant_id"
+            },
+            {
+              "name": "status",
+              "type": "state",
+              "label": "Status",
+              "labels": {
+                  "default": "Status",
+                  "ja": "ステータス"
+                },
+              "required": false,
+              "readOnly": false,
+              "system": false,
+              "primary": false,
+              "column": "status"
+            },
+            {
+              "name": "createdAt",
+              "type": "datetime",
+              "label": "Created at",
+              "labels": {
+                  "default": "Created at",
+                  "ja": "作成日時"
+                },
+              "required": false,
+              "readOnly": false,
+              "system": true,
+              "primary": false,
+              "column": "created_at"
+            },
+            {
+              "name": "updatedAt",
+              "type": "datetime",
+              "label": "Updated at",
+              "labels": {
+                  "default": "Updated at",
+                  "ja": "更新日時"
+                },
+              "required": false,
+              "readOnly": false,
+              "system": true,
+              "primary": false,
+              "column": "updated_at"
+            }
+          ],
+        "states": [
+            {
+              "name": "draft",
+              "label": "Draft",
+              "labels": {
+                  "default": "Draft",
+                  "ja": "下書き"
+                }
+            },
+            {
+              "name": "submitted",
+              "label": "Submitted",
+              "labels": {
+                  "default": "Submitted",
+                  "ja": "申請中"
+                }
+            },
+            {
+              "name": "approved",
+              "label": "Approved",
+              "labels": {
+                  "default": "Approved",
+                  "ja": "承認済"
+                }
+            },
+            {
+              "name": "rejected",
+              "label": "Rejected",
+              "labels": {
+                  "default": "Rejected",
+                  "ja": "却下"
+                }
+            }
+          ],
+        "transitions": [
+            {
+              "name": "submit",
+              "from": "draft",
+              "to": "submitted",
+              "inputs": [
+                  {
+                    "name": "amount",
+                    "kind": "entity-field",
+                    "type": "money",
+                    "required": true,
+                    "readOnly": false,
+                    "default": null,
+                    "target": null
+                  },
+                  {
+                    "name": "reason",
+                    "kind": "entity-field",
+                    "type": "text",
+                    "required": true,
+                    "readOnly": false,
+                    "default": null,
+                    "target": null
+                  },
+                  {
+                    "name": "applicant",
+                    "kind": "entity-field",
+                    "type": "ref",
+                    "required": true,
+                    "readOnly": false,
+                    "default": null,
+                    "target": "User"
+                  }
+                ],
+              "guard": "amount > 0",
+              "role": null
+            },
+            {
+              "name": "approve",
+              "from": "submitted",
+              "to": "approved",
+              "inputs": [],
+              "guard": null,
+              "role": "manager"
+            },
+            {
+              "name": "reject",
+              "from": "submitted",
+              "to": "rejected",
+              "inputs": [
+                  {
+                    "name": "rejectReason",
+                    "kind": "local",
+                    "type": "text",
+                    "required": true,
+                    "readOnly": false,
+                    "default": null,
+                    "target": null
+                  }
+                ],
+              "guard": null,
+              "role": "manager"
+            }
+          ],
+        "views": [
+            {
+              "name": "draft",
+              "editableFields": [
+                  "amount",
+                  "reason"
+                ],
+              "readonlyFields": []
+            },
+            {
+              "name": "submitted",
+              "editableFields": [],
+              "readonlyFields": [
+                  "amount",
+                  "reason"
+                ]
+            },
+            {
+              "name": "approved",
+              "editableFields": [],
+              "readonlyFields": [
+                  "amount",
+                  "reason"
+                ]
+            },
+            {
+              "name": "rejected",
+              "editableFields": [],
+              "readonlyFields": [
+                  "amount",
+                  "reason"
+                ]
+            }
+          ],
+        "constraints": [
+            {
+              "name": "amountPositive",
+              "expr": "amount > 0"
+            }
+          ],
+        "rules": [
+            {
+              "name": "canApprove",
+              "when": "state == \"submitted\" && user.role == \"manager\""
+            }
+          ],
+        "relations": [
+            {
+              "name": "applicant",
+              "field": "applicant",
+              "target": "User",
+              "kind": "N:1"
+            }
+          ],
+        "storage": {
+          "table": "expense_requests",
+          "softDelete": true,
+          "indexes": [
+              {
+                "fields": [
+                    "status"
+                  ]
+              },
+              {
+                "fields": [
+                    "applicant",
+                    "createdAt"
+                  ]
+              }
+            ],
+          "unique": [
+              {
+                "fields": [
+                    "applicant",
+                    "createdAt"
+                  ]
+              }
+            ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,142 @@
+entities:
+  User:
+    label:
+      default: User
+      ja: ユーザー
+    fields:
+      id:
+        label:
+          default: ID
+          ja: ID
+        type: id
+        primary: true
+      role:
+        label:
+          default: Role
+          ja: ロール
+        type: text
+        required: true
+
+  ExpenseRequest:
+    label:
+      default: Expense Request
+      ja: 経費申請
+    fields:
+      id:
+        label:
+          default: ID
+          ja: ID
+        type: id
+        primary: true
+      amount:
+        label:
+          default: Amount
+          ja: 金額
+        type: money
+        required: true
+      reason:
+        label:
+          default: Reason
+          ja: 理由
+        type: text
+        required: true
+      applicant:
+        label:
+          default: Applicant
+          ja: 申請者
+        type: ref
+        target: User
+        required: true
+      status:
+        label:
+          default: Status
+          ja: ステータス
+        type: state
+        initial: draft
+      createdAt:
+        label:
+          default: Created at
+          ja: 作成日時
+        type: datetime
+        system: true
+      updatedAt:
+        label:
+          default: Updated at
+          ja: 更新日時
+        type: datetime
+        system: true
+    relations:
+      applicant:
+        kind: many-to-one
+        target: User
+        field: applicant
+    constraints:
+      amountPositive:
+        expr: amount > 0
+    states:
+      draft:
+        label:
+          default: Draft
+          ja: 下書き
+      submitted:
+        label:
+          default: Submitted
+          ja: 申請中
+      approved:
+        label:
+          default: Approved
+          ja: 承認済
+      rejected:
+        label:
+          default: Rejected
+          ja: 却下
+    transitions:
+      submit:
+        from: draft
+        to: submitted
+        input:
+          - amount
+          - reason
+          - applicant
+        guard: amount > 0
+      approve:
+        from: submitted
+        to: approved
+        role: manager
+      reject:
+        from: submitted
+        to: rejected
+        role: manager
+        input:
+          - rejectReason
+        inputs:
+          rejectReason:
+            type: text
+    rules:
+      canApprove:
+        when: state == "submitted" && user.role == "manager"
+    views:
+      draft:
+        editable:
+          - amount
+          - reason
+      submitted:
+        readonly:
+          - amount
+          - reason
+      approved:
+        readonly:
+          - amount
+          - reason
+      rejected:
+        readonly:
+          - amount
+          - reason
+    storage:
+      table: expense_requests
+      indexes:
+        - fields: [status]
+        - fields: [applicant, createdAt]
+      unique:
+        - fields: [applicant, createdAt]
+      softDelete: true

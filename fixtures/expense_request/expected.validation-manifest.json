@@ -1,0 +1,179 @@
+{
+  "schemaVersion": "domainprocessschema.v1",
+  "manifestKind": "validation-manifest",
+  "generator": {
+      "name": "domainprocessschema.mbt",
+      "version": "0.1.0"
+    },
+  "payload": {
+    "entities": [
+      {
+        "name": "User",
+        "fields": [
+            {
+              "name": "id",
+              "type": "id",
+              "required": false,
+              "primary": true,
+              "readOnly": false,
+              "system": false,
+              "default": null
+            },
+            {
+              "name": "role",
+              "type": "text",
+              "required": true,
+              "primary": false,
+              "readOnly": false,
+              "system": false,
+              "default": null
+            }
+          ],
+        "constraints": [],
+        "transitions": [],
+        "rules": []
+      },
+      {
+        "name": "ExpenseRequest",
+        "fields": [
+            {
+              "name": "id",
+              "type": "id",
+              "required": false,
+              "primary": true,
+              "readOnly": false,
+              "system": false,
+              "default": null
+            },
+            {
+              "name": "amount",
+              "type": "money",
+              "required": true,
+              "primary": false,
+              "readOnly": false,
+              "system": false,
+              "default": null
+            },
+            {
+              "name": "reason",
+              "type": "text",
+              "required": true,
+              "primary": false,
+              "readOnly": false,
+              "system": false,
+              "default": null
+            },
+            {
+              "name": "applicant",
+              "type": "ref",
+              "required": true,
+              "primary": false,
+              "readOnly": false,
+              "system": false,
+              "default": null
+            },
+            {
+              "name": "status",
+              "type": "state",
+              "required": false,
+              "primary": false,
+              "readOnly": false,
+              "system": false,
+              "default": null
+            },
+            {
+              "name": "createdAt",
+              "type": "datetime",
+              "required": false,
+              "primary": false,
+              "readOnly": false,
+              "system": true,
+              "default": null
+            },
+            {
+              "name": "updatedAt",
+              "type": "datetime",
+              "required": false,
+              "primary": false,
+              "readOnly": false,
+              "system": true,
+              "default": null
+            }
+          ],
+        "constraints": [
+            {
+              "name": "amountPositive",
+              "expr": "amount > 0"
+            }
+          ],
+        "transitions": [
+            {
+              "name": "submit",
+              "from": "draft",
+              "to": "submitted",
+              "inputs": [
+                  {
+                    "name": "amount",
+                    "kind": "entity-field",
+                    "type": "money",
+                    "required": true,
+                    "readOnly": false,
+                    "default": null,
+                    "target": null
+                  },
+                  {
+                    "name": "reason",
+                    "kind": "entity-field",
+                    "type": "text",
+                    "required": true,
+                    "readOnly": false,
+                    "default": null,
+                    "target": null
+                  },
+                  {
+                    "name": "applicant",
+                    "kind": "entity-field",
+                    "type": "ref",
+                    "required": true,
+                    "readOnly": false,
+                    "default": null,
+                    "target": "User"
+                  }
+                ],
+              "guard": "amount > 0"
+            },
+            {
+              "name": "approve",
+              "from": "submitted",
+              "to": "approved",
+              "inputs": [],
+              "guard": null
+            },
+            {
+              "name": "reject",
+              "from": "submitted",
+              "to": "rejected",
+              "inputs": [
+                  {
+                    "name": "rejectReason",
+                    "kind": "local",
+                    "type": "text",
+                    "required": true,
+                    "readOnly": false,
+                    "default": null,
+                    "target": null
+                  }
+                ],
+              "guard": null
+            }
+          ],
+        "rules": [
+            {
+              "name": "canApprove",
+              "when": "state == \"submitted\" && user.role == \"manager\""
+            }
+          ]
+      }
+    ]
+  }
+}

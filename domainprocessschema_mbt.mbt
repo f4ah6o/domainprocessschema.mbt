@@ -9,6 +9,10 @@
 /// - parse a constrained YAML schema
 /// - normalize and validate the model
 /// - generate SQL DDL
+///
+/// TODO: `Show` derivation is deprecated in favor of `Debug` — switch all
+/// `derive(Eq, Show)` to `derive(Eq, Debug)` throughout this file once the
+/// minimum moon toolchain version supports it.
 pub(all) enum DiagnosticSeverity {
   Error
   Warning
@@ -16,6 +20,9 @@ pub(all) enum DiagnosticSeverity {
 } derive(Eq, Show)
 
 ///|
+/// Structured error/warning/info diagnostic used across the compiler, validator,
+/// and runtime.  Exported as the public error shape for CLI / WASM / editor
+/// consumers.
 pub(all) struct Diagnostic {
   code : String
   severity : DiagnosticSeverity
