@@ -9,9 +9,26 @@
 /// - parse a constrained YAML schema
 /// - normalize and validate the model
 /// - generate SQL DDL
+pub(all) enum DiagnosticSeverity {
+  Error
+  Warning
+  Info
+} derive(Eq, Show)
+
+///|
+pub(all) struct Diagnostic {
+  code : String
+  severity : DiagnosticSeverity
+  target : String
+  message : String
+  hint : String?
+  context : Map[String, String]
+} derive(Eq, Show)
+
+///|
 pub(all) suberror SchemaError {
-  ParseError(line~ : Int, String)
-  ValidationError(path~ : String, String)
+  ParseError(issues~ : Array[Diagnostic])
+  ValidationError(issues~ : Array[Diagnostic])
 } derive(Eq, Show)
 
 ///|
@@ -276,12 +293,6 @@ pub(all) enum RuntimeValue {
 } derive(Eq, Show)
 
 ///|
-pub(all) struct RuntimeIssue {
-  path : String
-  message : String
-} derive(Eq, Show)
-
-///|
 pub(all) struct RuntimeRecord {
   entity_name : String
   values : Map[String, RuntimeValue]
@@ -295,7 +306,7 @@ pub(all) struct RuntimeActor {
 ///|
 pub(all) struct RuntimeValidation {
   record : RuntimeRecord
-  issues : Array[RuntimeIssue]
+  issues : Array[Diagnostic]
 } derive(Eq, Show)
 
 ///|
@@ -306,14 +317,14 @@ pub(all) struct RuntimeTransitionStatus {
   role : String?
   inputs : Array[TransitionInput]
   available : Bool
-  issues : Array[RuntimeIssue]
+  issues : Array[Diagnostic]
 } derive(Eq, Show)
 
 ///|
 pub(all) struct RuntimeRuleStatus {
   name : String
   active : Bool
-  issues : Array[RuntimeIssue]
+  issues : Array[Diagnostic]
 } derive(Eq, Show)
 
 ///|
@@ -340,7 +351,7 @@ pub(all) struct RuntimeGuiAction {
   name : String
   to : String
   available : Bool
-  issues : Array[RuntimeIssue]
+  issues : Array[Diagnostic]
   inputs : Array[RuntimeGuiActionInput]
 } derive(Eq, Show)
 
@@ -367,11 +378,11 @@ pub(all) suberror RuntimeError {
   EntityMismatch(expected~ : String, found~ : String)
   UnknownTransition(entity~ : String, transition~ : String)
   MissingView(entity~ : String, state~ : String)
-  InvalidRecord(entity~ : String, issues~ : Array[RuntimeIssue])
+  InvalidRecord(entity~ : String, issues~ : Array[Diagnostic])
   TransitionRejected(
     entity~ : String,
     transition~ : String,
-    issues~ : Array[RuntimeIssue]
+    issues~ : Array[Diagnostic]
   )
 } derive(Eq, Show)
 
@@ -456,7 +467,7 @@ pub fn compile_gui_html_from_yaml(
   input : String,
   locale? : String = "",
 ) -> String raise {
-  let manifest = compile_gui_manifest_from_yaml(input, locale=locale)
+  let manifest = compile_gui_manifest_from_yaml(input, locale~)
   render_gui_html_from_manifest(manifest)
 }
 
@@ -468,7 +479,7 @@ pub fn render_runtime_gui_html(
   actor? : RuntimeActor = RuntimeActor::anonymous(),
   locale? : String = "",
 ) -> String raise RuntimeError {
-  let projected = project_gui(runtime, record, actor~, locale=locale)
+  let projected = project_gui(runtime, record, actor~, locale~)
   render_runtime_gui_view_html(projected)
 }
 
@@ -586,5 +597,5 @@ pub fn compile_gui_manifest_from_yaml(
 ) -> String raise SchemaError {
   let parsed = parse_schema_yaml(input)
   let schema = validate_schema(parsed)
-  generate_gui_manifest(schema, locale=locale)
+  generate_gui_manifest(schema, locale~)
 }

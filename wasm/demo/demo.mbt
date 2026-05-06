@@ -16,7 +16,7 @@ pub fn render_manifest_preview(
   yaml : String,
   locale? : String = "",
 ) -> Result[String, Error] {
-  try @schema.compile_gui_html_from_yaml(yaml, locale=locale) catch {
+  try @schema.compile_gui_html_from_yaml(yaml, locale~) catch {
     err => Err(err)
   } noraise {
     html => Ok(html)
@@ -38,7 +38,7 @@ pub fn render_runtime_preview(
             runtime,
             preview.record,
             actor=preview.actor,
-            locale=locale,
+            locale~,
           ),
         )
       Err(err) => Err(err)
@@ -85,7 +85,7 @@ pub fn session_preview_html(
       session.runtime,
       session.record,
       actor=session.actor,
-      locale=locale,
+      locale~,
     )
   catch {
     err => Err(err)
@@ -104,7 +104,7 @@ pub fn session_snapshot_json(
       session.runtime,
       session.record,
       actor=session.actor,
-      locale=locale,
+      locale~,
     )
     Ok(render_demo_session_snapshot_json(session, view))
   } catch {

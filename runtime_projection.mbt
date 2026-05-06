@@ -52,7 +52,7 @@ fn runtime_gui_input_value(
   record : RuntimeRecord,
   input : TransitionInput,
   path : String,
-) -> Result[RuntimeValue?, RuntimeIssue] {
+) -> Result[RuntimeValue?, Diagnostic] {
   match input.kind {
     TransitionInputKind::EntityField => Ok(record.values.get(input.name))
     TransitionInputKind::Local =>

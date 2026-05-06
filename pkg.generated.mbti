@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "f4ah6o/domainprocessschema_mbt"
 
+import {
+  "moonbitlang/core/debug",
+}
+
 // Values
 pub fn apply_transition(Runtime, RuntimeRecord, String, input? : Map[String, RuntimeValue], actor? : RuntimeActor) -> RuntimeRecord raise RuntimeError
 
@@ -40,6 +44,8 @@ pub fn parse_schema_yaml(String) -> ParsedSchema raise SchemaError
 
 pub fn project_gui(Runtime, RuntimeRecord, actor? : RuntimeActor, locale? : String) -> RuntimeGuiView raise RuntimeError
 
+pub fn render_error_report_json(Array[Diagnostic]) -> String
+
 pub fn render_gui_html_from_manifest(String) -> String raise HtmlRenderError
 
 pub fn render_runtime_gui_html(Runtime, RuntimeRecord, actor? : RuntimeActor, locale? : String) -> String raise RuntimeError
@@ -61,13 +67,13 @@ pub(all) suberror RuntimeError {
   EntityMismatch(expected~ : String, found~ : String)
   UnknownTransition(entity~ : String, transition~ : String)
   MissingView(entity~ : String, state~ : String)
-  InvalidRecord(entity~ : String, issues~ : Array[RuntimeIssue])
-  TransitionRejected(entity~ : String, transition~ : String, issues~ : Array[RuntimeIssue])
+  InvalidRecord(entity~ : String, issues~ : Array[Diagnostic])
+  TransitionRejected(entity~ : String, transition~ : String, issues~ : Array[Diagnostic])
 } derive(Eq, Show)
 
 pub(all) suberror SchemaError {
-  ParseError(line~ : Int, String)
-  ValidationError(path~ : String, String)
+  ParseError(issues~ : Array[Diagnostic])
+  ValidationError(issues~ : Array[Diagnostic])
 } derive(Eq, Show)
 
 // Types and methods
@@ -85,6 +91,21 @@ pub(all) enum BinaryOp {
 pub(all) struct Constraint {
   name : String
   expr : Expr
+} derive(Eq, Show)
+
+pub(all) struct Diagnostic {
+  code : String
+  severity : DiagnosticSeverity
+  target : String
+  message : String
+  hint : String?
+  context : Map[String, String]
+} derive(Eq, Show)
+
+pub(all) enum DiagnosticSeverity {
+  Error
+  Warning
+  Info
 } derive(Eq, Show)
 
 pub(all) struct Entity {
@@ -267,7 +288,7 @@ pub(all) struct RuntimeGuiAction {
   name : String
   to : String
   available : Bool
-  issues : Array[RuntimeIssue]
+  issues : Array[Diagnostic]
   inputs : Array[RuntimeGuiActionInput]
 } derive(Eq, Show)
 
@@ -299,11 +320,6 @@ pub(all) struct RuntimeGuiView {
   rules : Array[RuntimeRuleStatus]
 } derive(Eq, Show)
 
-pub(all) struct RuntimeIssue {
-  path : String
-  message : String
-} derive(Eq, Show)
-
 pub(all) struct RuntimeRecord {
   entity_name : String
   values : Map[String, RuntimeValue]
@@ -312,7 +328,7 @@ pub(all) struct RuntimeRecord {
 pub(all) struct RuntimeRuleStatus {
   name : String
   active : Bool
-  issues : Array[RuntimeIssue]
+  issues : Array[Diagnostic]
 } derive(Eq, Show)
 
 pub(all) struct RuntimeTransitionStatus {
@@ -322,13 +338,13 @@ pub(all) struct RuntimeTransitionStatus {
   role : String?
   inputs : Array[TransitionInput]
   available : Bool
-  issues : Array[RuntimeIssue]
+  issues : Array[Diagnostic]
 } derive(Eq, Show)
 pub fn RuntimeTransitionStatus::is_available(Self) -> Bool
 
 pub(all) struct RuntimeValidation {
   record : RuntimeRecord
-  issues : Array[RuntimeIssue]
+  issues : Array[Diagnostic]
 } derive(Eq, Show)
 pub fn RuntimeValidation::is_ok(Self) -> Bool
 
@@ -383,9 +399,9 @@ pub(all) struct View {
   readonly_fields : Array[String]
 } derive(Eq, Show)
 
-type YamlLine derive(Eq, Show)
+type YamlLine derive(Eq, @debug.Debug)
 
-type YamlValue derive(Eq, Show)
+type YamlValue derive(Eq, @debug.Debug)
 
 // Type aliases
 

@@ -17,10 +17,7 @@ fn parse_schema_root(root : YamlValue) -> ParsedSchema raise SchemaError {
       entity_path,
     )
     let (entity_label, entity_labels) = optional_localized_label_value(
-      entity_map,
-      "label",
-      entity_path,
-      entity_name,
+      entity_map, "label", entity_path, entity_name,
     )
     let fields = parse_fields(entity_map, entity_path)
     let relations = parse_relations(entity_map, entity_path)
@@ -68,10 +65,7 @@ fn parse_fields(
     )
     let type_name = required_string_value(field_map, "type", "\{path}.type")
     let (label, labels) = optional_localized_label_value(
-      field_map,
-      "label",
-      path,
-      field_name,
+      field_map, "label", path, field_name,
     )
     fields.push(ParsedField::{
       name: field_name,
@@ -165,10 +159,7 @@ fn parse_states(
         let state_map = expect_yaml_map(state_value, path)
         ensure_allowed_keys(state_map, ["label"], path)
         let (label, labels) = optional_localized_label_value(
-          state_map,
-          "label",
-          path,
-          state_name,
+          state_map, "label", path, state_name,
         )
         states.push(ParsedState::{ name: state_name, label, labels })
       }
@@ -235,12 +226,11 @@ fn parse_transition_local_inputs(
           path,
         )
         let default_value = optional_string_value(input_map, "default", path)
-        let required =
-          if input_map.contains("required") {
-            optional_bool_value(input_map, "required", path, false)
-          } else {
-            default_value is None
-          }
+        let required = if input_map.contains("required") {
+          optional_bool_value(input_map, "required", path, false)
+        } else {
+          default_value is None
+        }
         inputs.push(ParsedTransitionInput::{
           name: input_name,
           type_name: required_string_value(input_map, "type", "\{path}.type"),
@@ -376,7 +366,7 @@ fn ensure_allowed_keys(
 ) -> Unit raise SchemaError {
   for key, _ in map {
     if !string_array_contains(allowed, key) {
-      raise SchemaError::ValidationError(path~, "unknown key \{key}")
+      raise schema_validation_error(path~, "unknown key \{key}")
     }
   }
 }
@@ -399,8 +389,7 @@ fn require_key(
 ) -> YamlValue raise SchemaError {
   match map.get(key) {
     Some(value) => value
-    None =>
-      raise SchemaError::ValidationError(path~, "missing required key \{key}")
+    None => raise schema_validation_error(path~, "missing required key \{key}")
   }
 }
 
@@ -411,7 +400,7 @@ fn expect_yaml_map(
 ) -> Map[String, YamlValue] raise SchemaError {
   match value {
     YamlValue::YamlMap(map) => map
-    _ => raise SchemaError::ValidationError(path~, "expected a mapping")
+    _ => raise schema_validation_error(path~, "expected a mapping")
   }
 }
 
@@ -422,7 +411,7 @@ fn expect_yaml_list(
 ) -> Array[YamlValue] raise SchemaError {
   match value {
     YamlValue::YamlList(items) => items
-    _ => raise SchemaError::ValidationError(path~, "expected a list")
+    _ => raise schema_validation_error(path~, "expected a list")
   }
 }
 
@@ -433,7 +422,7 @@ fn expect_yaml_scalar(
 ) -> String raise SchemaError {
   match value {
     YamlValue::YamlScalar(text) => text
-    _ => raise SchemaError::ValidationError(path~, "expected a scalar value")
+    _ => raise schema_validation_error(path~, "expected a scalar value")
   }
 }
 
@@ -485,7 +474,7 @@ fn localized_label_value(
       for locale_key, locale_value in entries {
         let normalized_key = normalize_localized_label_key(locale_key, path)
         if labels.contains(normalized_key) {
-          raise SchemaError::ValidationError(
+          raise schema_validation_error(
             path~,
             "duplicate localized label key \{normalized_key}",
           )
@@ -498,7 +487,7 @@ fn localized_label_value(
       (default_localized_text(labels, fallback), labels)
     }
     _ =>
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path~,
         "expected a scalar or mapping for localized label",
       )
@@ -512,7 +501,10 @@ fn normalize_localized_label_key(
 ) -> String raise SchemaError {
   let normalized_key = normalize_label_locale(locale_key)
   if normalized_key == "" {
-    raise SchemaError::ValidationError(path~, "localized label keys must not be empty")
+    raise schema_validation_error(
+      path~,
+      "localized label keys must not be empty",
+    )
   }
   normalized_key
 }
@@ -551,7 +543,7 @@ fn yaml_bool(value : YamlValue, path : String) -> Bool raise SchemaError {
   match normalize_token(text) {
     "true" => true
     "false" => false
-    _ => raise SchemaError::ValidationError(path~, "expected `true` or `false`")
+    _ => raise schema_validation_error(path~, "expected `true` or `false`")
   }
 }
 

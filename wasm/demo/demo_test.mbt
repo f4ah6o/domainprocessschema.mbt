@@ -131,10 +131,15 @@ test "create_demo_session exposes available transitions in snapshot json" {
   let snapshot = result_unwrap(session_snapshot_json(session))
   inspect(snapshot.contains("\"state\":\"draft\""), content="true")
   inspect(
-    snapshot.contains("\"fields\":[{\"name\":\"amount\",\"label\":\"amount\",\"component\":\"money\",\"mode\":\"editable\",\"value\":1200}"),
+    snapshot.contains(
+      "\"fields\":[{\"name\":\"amount\",\"label\":\"amount\",\"component\":\"money\",\"mode\":\"editable\",\"value\":1200}",
+    ),
     content="true",
   )
-  inspect(snapshot.contains("\"component\":\"reference-select\""), content="true")
+  inspect(
+    snapshot.contains("\"component\":\"reference-select\""),
+    content="true",
+  )
   inspect(snapshot.contains("\"name\":\"submit\""), content="true")
 }
 
@@ -157,7 +162,10 @@ test "session_result_error_json exposes structured transition errors" {
   let rejected = apply_session_transition(session, "submit", "{}")
   inspect(session_result_is_ok(rejected), content="false")
   let error_json = session_result_error_json(rejected)
-  inspect(error_json.contains("\"kind\":\"transition-rejected\""), content="true")
+  inspect(
+    error_json.contains("\"kind\":\"transition-rejected\""),
+    content="true",
+  )
   inspect(error_json.contains("\"transition\":\"submit\""), content="true")
   inspect(
     error_json.contains("transition input field amount is required"),
@@ -252,7 +260,9 @@ fn localized_demo_yaml() -> String {
 
 ///|
 test "session snapshot json resolves localized labels" {
-  let session = session_result_unwrap(create_demo_session(localized_demo_yaml()))
+  let session = session_result_unwrap(
+    create_demo_session(localized_demo_yaml()),
+  )
   let snapshot = result_unwrap(session_snapshot_json(session, locale="ja"))
   inspect(snapshot.contains("\"entityLabel\":\"経費申請\""), content="true")
   inspect(snapshot.contains("\"stateLabel\":\"下書き\""), content="true")
@@ -265,15 +275,24 @@ test "session snapshot json resolves localized labels" {
 
 ///|
 test "session_reference_catalog_json localizes target labels" {
-  let session = session_result_unwrap(create_demo_session(localized_demo_yaml()))
-  let catalog = result_unwrap(session_reference_catalog_json(session, locale="ja"))
+  let session = session_result_unwrap(
+    create_demo_session(localized_demo_yaml()),
+  )
+  let catalog = result_unwrap(
+    session_reference_catalog_json(session, locale="ja"),
+  )
   inspect(catalog.contains("\"label\": \"ユーザー\""), content="true")
 }
 
 ///|
 test "session preview html resolves english labels from default locale map" {
-  let session = session_result_unwrap(create_demo_session(localized_demo_yaml()))
+  let session = session_result_unwrap(
+    create_demo_session(localized_demo_yaml()),
+  )
   let html = result_unwrap(session_preview_html(session, locale="en"))
-  inspect(html.contains("<title>Expense Request - Draft</title>"), content="true")
+  inspect(
+    html.contains("<title>Expense Request - Draft</title>"),
+    content="true",
+  )
   inspect(html.contains("Amount"), content="true")
 }

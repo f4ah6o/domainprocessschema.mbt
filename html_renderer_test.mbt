@@ -116,8 +116,6 @@ test "render_gui_html_from_manifest renders static html preview" {
       #|</section>
       #|</body>
       #|</html>
-
-
     ),
   )
 }
@@ -186,8 +184,6 @@ test "render_runtime_gui_html renders stateful html preview" {
       #|</section>
       #|</body>
       #|</html>
-
-
     ),
   )
 }
@@ -229,14 +225,12 @@ fn runtime_reference_field_schema() -> String {
 test "render_runtime_gui_html keeps runtime values in reference selects" {
   let runtime = compile_runtime_from_yaml(runtime_reference_field_schema())
   let record = validate_record(runtime, "ExpenseRequest", {
-    "id": RuntimeValue::Text("exp-1"),
-    "applicant": RuntimeValue::Text("user-1"),
-  }).record
+      "id": RuntimeValue::Text("exp-1"),
+      "applicant": RuntimeValue::Text("user-1"),
+    }).record
   let html = render_runtime_gui_html(runtime, record)
   inspect(
-    html.contains(
-      "<option value=\"user-1\" selected>user-1</option>",
-    ),
+    html.contains("<option value=\"user-1\" selected>user-1</option>"),
     content="true",
   )
 }

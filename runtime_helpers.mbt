@@ -61,8 +61,14 @@ fn runtime_find_state_field(entity : Entity) -> Field? {
 }
 
 ///|
-fn runtime_issue(path : String, message : String) -> RuntimeIssue {
-  RuntimeIssue::{ path, message }
+fn runtime_issue(
+  target : String,
+  message : String,
+  code? : String = "RUNTIME_ERROR",
+  hint? : String = "",
+  context? : Map[String, String] = {},
+) -> Diagnostic {
+  diagnostic(code, target, message, hint~, context~)
 }
 
 ///|
@@ -77,8 +83,8 @@ fn copy_runtime_values(
 }
 
 ///|
-fn copy_runtime_issues(issues : Array[RuntimeIssue]) -> Array[RuntimeIssue] {
-  let copied : Array[RuntimeIssue] = []
+fn copy_runtime_issues(issues : Array[Diagnostic]) -> Array[Diagnostic] {
+  let copied : Array[Diagnostic] = []
   for issue in issues {
     copied.push(issue)
   }
@@ -90,7 +96,7 @@ fn runtime_current_state(
   entity : Entity,
   values : Map[String, RuntimeValue],
   path : String,
-) -> Result[String, RuntimeIssue] {
+) -> Result[String, Diagnostic] {
   match runtime_find_state_field(entity) {
     Some(state_field) =>
       match values.get(state_field.name) {
@@ -100,12 +106,26 @@ fn runtime_current_state(
             runtime_issue(
               path,
               "state field \{state_field.name} must be stored as text",
+              code="INVALID_RUNTIME_INPUT",
             ),
           )
         None =>
-          Err(runtime_issue(path, "state field \{state_field.name} is missing"))
+          Err(
+            runtime_issue(
+              path,
+              "state field \{state_field.name} is missing",
+              code="UNKNOWN_STATE",
+            ),
+          )
       }
-    None => Err(runtime_issue(path, "entity \{entity.name} has no state field"))
+    None =>
+      Err(
+        runtime_issue(
+          path,
+          "entity \{entity.name} has no state field",
+          code="UNKNOWN_STATE",
+        ),
+      )
   }
 }
 
@@ -136,7 +156,7 @@ fn parse_runtime_integer(text : String) -> Int {
 fn runtime_default_value(
   field : Field,
   path : String,
-) -> Result[RuntimeValue?, RuntimeIssue] {
+) -> Result[RuntimeValue?, Diagnostic] {
   if field.field_type == FieldType::State {
     match field.initial {
       Some(initial) => Ok(Some(RuntimeValue::Text(initial)))
@@ -155,7 +175,7 @@ fn runtime_default_value(
 fn runtime_transition_input_default_value(
   input : TransitionInput,
   path : String,
-) -> Result[RuntimeValue?, RuntimeIssue] {
+) -> Result[RuntimeValue?, Diagnostic] {
   match input.default_value {
     Some(raw) =>
       runtime_parse_transition_input_value(input, RuntimeValue::Text(raw), path)
@@ -168,7 +188,7 @@ fn runtime_parse_field_value(
   field : Field,
   value : RuntimeValue,
   path : String,
-) -> Result[RuntimeValue?, RuntimeIssue] {
+) -> Result[RuntimeValue?, Diagnostic] {
   match value {
     RuntimeValue::Null => Ok(None)
     RuntimeValue::Text(text) =>
@@ -192,6 +212,7 @@ fn runtime_parse_field_value(
               runtime_issue(
                 path,
                 "expected boolean for field \{field.name}, got \{text}",
+                code="INVALID_RUNTIME_INPUT",
               ),
             )
           }
@@ -204,6 +225,7 @@ fn runtime_parse_field_value(
               runtime_issue(
                 path,
                 "expected integer for field \{field.name}, got \{text}",
+                code="INVALID_RUNTIME_INPUT",
               ),
             )
           }
@@ -217,6 +239,7 @@ fn runtime_parse_field_value(
             runtime_issue(
               path,
               "expected \{field_type_name(field.field_type)} text value for field \{field.name}",
+              code="INVALID_RUNTIME_INPUT",
             ),
           )
       }
@@ -228,6 +251,7 @@ fn runtime_parse_field_value(
           runtime_issue(
             path,
             "expected \{field_type_name(field.field_type)} value for field \{field.name}",
+            code="INVALID_RUNTIME_INPUT",
           ),
         )
       }
@@ -239,7 +263,7 @@ fn runtime_parse_transition_input_value(
   input : TransitionInput,
   value : RuntimeValue,
   path : String,
-) -> Result[RuntimeValue?, RuntimeIssue] {
+) -> Result[RuntimeValue?, Diagnostic] {
   match value {
     RuntimeValue::Null => Ok(None)
     RuntimeValue::Text(text) =>
@@ -262,6 +286,7 @@ fn runtime_parse_transition_input_value(
               runtime_issue(
                 path,
                 "expected boolean for transition input \{input.name}, got \{text}",
+                code="INVALID_TRANSITION_INPUT",
               ),
             )
           }
@@ -274,13 +299,16 @@ fn runtime_parse_transition_input_value(
               runtime_issue(
                 path,
                 "expected integer for transition input \{input.name}, got \{text}",
+                code="INVALID_TRANSITION_INPUT",
               ),
             )
           }
         FieldType::State =>
           Err(
             runtime_issue(
-              path, "transition-local inputs cannot use `state` values",
+              path,
+              "transition-local inputs cannot use `state` values",
+              code="INVALID_TRANSITION_INPUT",
             ),
           )
       }
@@ -293,6 +321,7 @@ fn runtime_parse_transition_input_value(
             runtime_issue(
               path,
               "expected \{field_type_name(input.field_type)} text value for transition input \{input.name}",
+              code="INVALID_TRANSITION_INPUT",
             ),
           )
       }
@@ -304,6 +333,7 @@ fn runtime_parse_transition_input_value(
           runtime_issue(
             path,
             "expected \{field_type_name(input.field_type)} value for transition input \{input.name}",
+            code="INVALID_TRANSITION_INPUT",
           ),
         )
       }
@@ -349,9 +379,16 @@ fn runtime_value_compare(left : RuntimeValue, right : RuntimeValue) -> Int? {
 fn runtime_value_to_bool(
   value : RuntimeValue,
   path : String,
-) -> Result[Bool, RuntimeIssue] {
+) -> Result[Bool, Diagnostic] {
   match value {
     RuntimeValue::Flag(flag) => Ok(flag)
-    _ => Err(runtime_issue(path, "expression must evaluate to boolean"))
+    _ =>
+      Err(
+        runtime_issue(
+          path,
+          "expression must evaluate to boolean",
+          code="INVALID_EXPR",
+        ),
+      )
   }
 }

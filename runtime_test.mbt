@@ -267,7 +267,7 @@ test "validate_record reports required and constraint issues" {
     "applicant": RuntimeValue::Text("user-1"),
   })
   let issue_messages = validation.issues.map(issue => {
-    "\{issue.path}: \{issue.message}"
+    "\{issue.target}: \{issue.message}"
   })
   inspect(
     issue_messages,

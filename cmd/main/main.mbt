@@ -27,8 +27,24 @@ fn main {
       let output = compile_output(mode, input)
       println(output)
     } catch {
+      @schema.SchemaError::ParseError(issues~) => {
+        println(@schema.render_error_report_json(issues))
+        @sys.exit(1)
+      }
+      @schema.SchemaError::ValidationError(issues~) => {
+        println(@schema.render_error_report_json(issues))
+        @sys.exit(1)
+      }
       err => {
-        println("error: \{err}")
+        let issue = @schema.Diagnostic::{
+          code: "INTERNAL_ERROR",
+          severity: @schema.DiagnosticSeverity::Error,
+          target: "cli",
+          message: "\{err}",
+          hint: None,
+          context: {},
+        }
+        println(@schema.render_error_report_json([issue]))
         @sys.exit(1)
       }
     }
@@ -46,10 +62,18 @@ fn compile_output(mode : String, input : String) -> String raise {
     "gui-manifest" => @schema.compile_gui_manifest_from_yaml(input)
     "gui-html" => @schema.compile_gui_html_from_yaml(input)
     _ =>
-      raise @schema.SchemaError::ValidationError(
-        path="cli.mode",
-        "unsupported mode \{mode}; use `sql`, `migration-sql`, `api-manifest`, `validation-manifest`, `gui-manifest`, or `gui-html`",
-      )
+      raise @schema.SchemaError::ValidationError(issues=[
+        @schema.Diagnostic::{
+          code: "UNSUPPORTED_MODE",
+          severity: @schema.DiagnosticSeverity::Error,
+          target: "cli.mode",
+          message: "unsupported mode \{mode}; use `sql`, `migration-sql`, `api-manifest`, `validation-manifest`, `gui-manifest`, or `gui-html`",
+          hint: Some(
+            "Pick one of the documented CLI modes from the usage string.",
+          ),
+          context: { "mode": mode },
+        },
+      ])
   }
 }
 
