@@ -225,14 +225,17 @@ fn render_html_control(
     }
     "select" | "reference-select" => {
       let disabled = if is_readonly { " disabled" } else { "" }
-      let option_value = if value_text == "" { "" } else { html_escape_attr(value_text) }
+      let option_value = if value_text == "" {
+        ""
+      } else {
+        html_escape_attr(value_text)
+      }
       let option_label = if value_text == "" { field_label } else { value_text }
-      let option_attr =
-        if option_value == "" {
-          " selected"
-        } else {
-          " value=\"\{option_value}\" selected"
-        }
+      let option_attr = if option_value == "" {
+        " selected"
+      } else {
+        " value=\"\{option_value}\" selected"
+      }
       "<select name=\"\{escaped_name}\" class=\"control control--select\"\{disabled}><option\{option_attr}>\{html_escape(option_label)}</option></select>"
     }
     "state-badge" =>
@@ -373,6 +376,7 @@ fn find_manifest_state_label(
   state_name
 }
 
+///|
 fn runtime_value_to_html_value(value : RuntimeValue?) -> String {
   match value {
     None | Some(RuntimeValue::Null) => ""

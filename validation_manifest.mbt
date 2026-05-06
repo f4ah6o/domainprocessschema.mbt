@@ -5,7 +5,8 @@ fn render_validation_manifest(schema : Schema) -> String {
     rendered_entities.push(render_validation_entity(entity))
   }
   let entities_block = indent_block(rendered_entities.join(",\n"), 4)
-  "{\n  \"entities\": [\n\{entities_block}\n  ]\n}"
+  let payload = "{\n  \"entities\": [\n\{entities_block}\n  ]\n}"
+  render_manifest_envelope("validation-manifest", payload)
 }
 
 ///|

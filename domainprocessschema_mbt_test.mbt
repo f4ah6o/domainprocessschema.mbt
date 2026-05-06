@@ -143,190 +143,198 @@ test "compile_api_manifest_from_yaml renders routes and actions" {
     manifest,
     content=(
       #|{
-      #|  "entities": [
-      #|    {
-      #|      "name": "User",
-      #|      "label": "ユーザー",
-      #|      "table": "users",
-      #|      "fields": [
-      #|          {
-      #|            "name": "id",
-      #|            "column": "id",
-      #|            "type": "id",
-      #|            "required": false,
-      #|            "primary": true,
-      #|            "readOnly": false,
-      #|            "system": false
-      #|          },
-      #|          {
-      #|            "name": "role",
-      #|            "column": "role",
-      #|            "type": "text",
-      #|            "required": true,
-      #|            "primary": false,
-      #|            "readOnly": false,
-      #|            "system": false
-      #|          }
-      #|        ],
-      #|      "routes": [
-      #|          {
-      #|            "method": "GET",
-      #|            "path": "/users/{id}"
-      #|          },
-      #|          {
-      #|            "method": "POST",
-      #|            "path": "/users"
-      #|          },
-      #|          {
-      #|            "method": "PATCH",
-      #|            "path": "/users/{id}"
-      #|          }
-      #|        ],
-      #|      "actions": []
+      #|  "schemaVersion": "domainprocessschema.v1",
+      #|  "manifestKind": "api-manifest",
+      #|  "generator": {
+      #|      "name": "domainprocessschema.mbt",
+      #|      "version": "0.1.0"
       #|    },
-      #|    {
-      #|      "name": "ExpenseRequest",
-      #|      "label": "経費申請",
-      #|      "table": "expense_requests",
-      #|      "fields": [
-      #|          {
-      #|            "name": "id",
-      #|            "column": "id",
-      #|            "type": "id",
-      #|            "required": false,
-      #|            "primary": true,
-      #|            "readOnly": false,
-      #|            "system": false
-      #|          },
-      #|          {
-      #|            "name": "amount",
-      #|            "column": "amount",
-      #|            "type": "money",
-      #|            "required": true,
-      #|            "primary": false,
-      #|            "readOnly": false,
-      #|            "system": false
-      #|          },
-      #|          {
-      #|            "name": "reason",
-      #|            "column": "reason",
-      #|            "type": "text",
-      #|            "required": true,
-      #|            "primary": false,
-      #|            "readOnly": false,
-      #|            "system": false
-      #|          },
-      #|          {
-      #|            "name": "applicant",
-      #|            "column": "applicant_id",
-      #|            "type": "ref",
-      #|            "required": true,
-      #|            "primary": false,
-      #|            "readOnly": false,
-      #|            "system": false
-      #|          },
-      #|          {
-      #|            "name": "status",
-      #|            "column": "status",
-      #|            "type": "state",
-      #|            "required": false,
-      #|            "primary": false,
-      #|            "readOnly": false,
-      #|            "system": false
-      #|          },
-      #|          {
-      #|            "name": "createdAt",
-      #|            "column": "created_at",
-      #|            "type": "datetime",
-      #|            "required": false,
-      #|            "primary": false,
-      #|            "readOnly": false,
-      #|            "system": true
-      #|          },
-      #|          {
-      #|            "name": "updatedAt",
-      #|            "column": "updated_at",
-      #|            "type": "datetime",
-      #|            "required": false,
-      #|            "primary": false,
-      #|            "readOnly": false,
-      #|            "system": true
-      #|          }
-      #|        ],
-      #|      "routes": [
-      #|          {
-      #|            "method": "GET",
-      #|            "path": "/expense_requests/{id}"
-      #|          },
-      #|          {
-      #|            "method": "POST",
-      #|            "path": "/expense_requests"
-      #|          },
-      #|          {
-      #|            "method": "PATCH",
-      #|            "path": "/expense_requests/{id}"
-      #|          }
-      #|        ],
-      #|      "actions": [
-      #|          {
-      #|            "name": "submit",
-      #|            "from": "draft",
-      #|            "to": "submitted",
-      #|            "path": "/expense_requests/{id}/submit",
-      #|            "inputs": [
-      #|                {
-      #|                  "name": "amount",
-      #|                  "kind": "entity-field",
-      #|                  "type": "money",
-      #|                  "required": true,
-      #|                  "readOnly": false,
-      #|                  "default": null,
-      #|                  "target": null
-      #|                },
-      #|                {
-      #|                  "name": "reason",
-      #|                  "kind": "entity-field",
-      #|                  "type": "text",
-      #|                  "required": true,
-      #|                  "readOnly": false,
-      #|                  "default": null,
-      #|                  "target": null
-      #|                }
-      #|              ],
-      #|            "guard": "amount > 0",
-      #|            "role": null
-      #|          },
-      #|          {
-      #|            "name": "approve",
-      #|            "from": "submitted",
-      #|            "to": "approved",
-      #|            "path": "/expense_requests/{id}/approve",
-      #|            "inputs": [],
-      #|            "guard": null,
-      #|            "role": "manager"
-      #|          },
-      #|          {
-      #|            "name": "reject",
-      #|            "from": "submitted",
-      #|            "to": "rejected",
-      #|            "path": "/expense_requests/{id}/reject",
-      #|            "inputs": [
-      #|                {
-      #|                  "name": "rejectReason",
-      #|                  "kind": "local",
-      #|                  "type": "text",
-      #|                  "required": true,
-      #|                  "readOnly": false,
-      #|                  "default": null,
-      #|                  "target": null
-      #|                }
-      #|              ],
-      #|            "guard": null,
-      #|            "role": "manager"
-      #|          }
-      #|        ]
-      #|    }
-      #|  ]
+      #|  "payload": {
+      #|    "entities": [
+      #|      {
+      #|        "name": "User",
+      #|        "label": "ユーザー",
+      #|        "table": "users",
+      #|        "fields": [
+      #|            {
+      #|              "name": "id",
+      #|              "column": "id",
+      #|              "type": "id",
+      #|              "required": false,
+      #|              "primary": true,
+      #|              "readOnly": false,
+      #|              "system": false
+      #|            },
+      #|            {
+      #|              "name": "role",
+      #|              "column": "role",
+      #|              "type": "text",
+      #|              "required": true,
+      #|              "primary": false,
+      #|              "readOnly": false,
+      #|              "system": false
+      #|            }
+      #|          ],
+      #|        "routes": [
+      #|            {
+      #|              "method": "GET",
+      #|              "path": "/users/{id}"
+      #|            },
+      #|            {
+      #|              "method": "POST",
+      #|              "path": "/users"
+      #|            },
+      #|            {
+      #|              "method": "PATCH",
+      #|              "path": "/users/{id}"
+      #|            }
+      #|          ],
+      #|        "actions": []
+      #|      },
+      #|      {
+      #|        "name": "ExpenseRequest",
+      #|        "label": "経費申請",
+      #|        "table": "expense_requests",
+      #|        "fields": [
+      #|            {
+      #|              "name": "id",
+      #|              "column": "id",
+      #|              "type": "id",
+      #|              "required": false,
+      #|              "primary": true,
+      #|              "readOnly": false,
+      #|              "system": false
+      #|            },
+      #|            {
+      #|              "name": "amount",
+      #|              "column": "amount",
+      #|              "type": "money",
+      #|              "required": true,
+      #|              "primary": false,
+      #|              "readOnly": false,
+      #|              "system": false
+      #|            },
+      #|            {
+      #|              "name": "reason",
+      #|              "column": "reason",
+      #|              "type": "text",
+      #|              "required": true,
+      #|              "primary": false,
+      #|              "readOnly": false,
+      #|              "system": false
+      #|            },
+      #|            {
+      #|              "name": "applicant",
+      #|              "column": "applicant_id",
+      #|              "type": "ref",
+      #|              "required": true,
+      #|              "primary": false,
+      #|              "readOnly": false,
+      #|              "system": false
+      #|            },
+      #|            {
+      #|              "name": "status",
+      #|              "column": "status",
+      #|              "type": "state",
+      #|              "required": false,
+      #|              "primary": false,
+      #|              "readOnly": false,
+      #|              "system": false
+      #|            },
+      #|            {
+      #|              "name": "createdAt",
+      #|              "column": "created_at",
+      #|              "type": "datetime",
+      #|              "required": false,
+      #|              "primary": false,
+      #|              "readOnly": false,
+      #|              "system": true
+      #|            },
+      #|            {
+      #|              "name": "updatedAt",
+      #|              "column": "updated_at",
+      #|              "type": "datetime",
+      #|              "required": false,
+      #|              "primary": false,
+      #|              "readOnly": false,
+      #|              "system": true
+      #|            }
+      #|          ],
+      #|        "routes": [
+      #|            {
+      #|              "method": "GET",
+      #|              "path": "/expense_requests/{id}"
+      #|            },
+      #|            {
+      #|              "method": "POST",
+      #|              "path": "/expense_requests"
+      #|            },
+      #|            {
+      #|              "method": "PATCH",
+      #|              "path": "/expense_requests/{id}"
+      #|            }
+      #|          ],
+      #|        "actions": [
+      #|            {
+      #|              "name": "submit",
+      #|              "from": "draft",
+      #|              "to": "submitted",
+      #|              "path": "/expense_requests/{id}/submit",
+      #|              "inputs": [
+      #|                  {
+      #|                    "name": "amount",
+      #|                    "kind": "entity-field",
+      #|                    "type": "money",
+      #|                    "required": true,
+      #|                    "readOnly": false,
+      #|                    "default": null,
+      #|                    "target": null
+      #|                  },
+      #|                  {
+      #|                    "name": "reason",
+      #|                    "kind": "entity-field",
+      #|                    "type": "text",
+      #|                    "required": true,
+      #|                    "readOnly": false,
+      #|                    "default": null,
+      #|                    "target": null
+      #|                  }
+      #|                ],
+      #|              "guard": "amount > 0",
+      #|              "role": null
+      #|            },
+      #|            {
+      #|              "name": "approve",
+      #|              "from": "submitted",
+      #|              "to": "approved",
+      #|              "path": "/expense_requests/{id}/approve",
+      #|              "inputs": [],
+      #|              "guard": null,
+      #|              "role": "manager"
+      #|            },
+      #|            {
+      #|              "name": "reject",
+      #|              "from": "submitted",
+      #|              "to": "rejected",
+      #|              "path": "/expense_requests/{id}/reject",
+      #|              "inputs": [
+      #|                  {
+      #|                    "name": "rejectReason",
+      #|                    "kind": "local",
+      #|                    "type": "text",
+      #|                    "required": true,
+      #|                    "readOnly": false,
+      #|                    "default": null,
+      #|                    "target": null
+      #|                  }
+      #|                ],
+      #|              "guard": null,
+      #|              "role": "manager"
+      #|            }
+      #|          ]
+      #|      }
+      #|    ]
+      #|  }
       #|}
     ),
   )
@@ -339,166 +347,174 @@ test "compile_validation_manifest_from_yaml renders validation metadata" {
     manifest,
     content=(
       #|{
-      #|  "entities": [
-      #|    {
-      #|      "name": "User",
-      #|      "fields": [
-      #|          {
-      #|            "name": "id",
-      #|            "type": "id",
-      #|            "required": false,
-      #|            "primary": true,
-      #|            "readOnly": false,
-      #|            "system": false,
-      #|            "default": null
-      #|          },
-      #|          {
-      #|            "name": "role",
-      #|            "type": "text",
-      #|            "required": true,
-      #|            "primary": false,
-      #|            "readOnly": false,
-      #|            "system": false,
-      #|            "default": null
-      #|          }
-      #|        ],
-      #|      "constraints": [],
-      #|      "transitions": [],
-      #|      "rules": []
+      #|  "schemaVersion": "domainprocessschema.v1",
+      #|  "manifestKind": "validation-manifest",
+      #|  "generator": {
+      #|      "name": "domainprocessschema.mbt",
+      #|      "version": "0.1.0"
       #|    },
-      #|    {
-      #|      "name": "ExpenseRequest",
-      #|      "fields": [
-      #|          {
-      #|            "name": "id",
-      #|            "type": "id",
-      #|            "required": false,
-      #|            "primary": true,
-      #|            "readOnly": false,
-      #|            "system": false,
-      #|            "default": null
-      #|          },
-      #|          {
-      #|            "name": "amount",
-      #|            "type": "money",
-      #|            "required": true,
-      #|            "primary": false,
-      #|            "readOnly": false,
-      #|            "system": false,
-      #|            "default": null
-      #|          },
-      #|          {
-      #|            "name": "reason",
-      #|            "type": "text",
-      #|            "required": true,
-      #|            "primary": false,
-      #|            "readOnly": false,
-      #|            "system": false,
-      #|            "default": null
-      #|          },
-      #|          {
-      #|            "name": "applicant",
-      #|            "type": "ref",
-      #|            "required": true,
-      #|            "primary": false,
-      #|            "readOnly": false,
-      #|            "system": false,
-      #|            "default": null
-      #|          },
-      #|          {
-      #|            "name": "status",
-      #|            "type": "state",
-      #|            "required": false,
-      #|            "primary": false,
-      #|            "readOnly": false,
-      #|            "system": false,
-      #|            "default": null
-      #|          },
-      #|          {
-      #|            "name": "createdAt",
-      #|            "type": "datetime",
-      #|            "required": false,
-      #|            "primary": false,
-      #|            "readOnly": false,
-      #|            "system": true,
-      #|            "default": null
-      #|          },
-      #|          {
-      #|            "name": "updatedAt",
-      #|            "type": "datetime",
-      #|            "required": false,
-      #|            "primary": false,
-      #|            "readOnly": false,
-      #|            "system": true,
-      #|            "default": null
-      #|          }
-      #|        ],
-      #|      "constraints": [
-      #|          {
-      #|            "name": "amountPositive",
-      #|            "expr": "amount > 0"
-      #|          }
-      #|        ],
-      #|      "transitions": [
-      #|          {
-      #|            "name": "submit",
-      #|            "from": "draft",
-      #|            "to": "submitted",
-      #|            "inputs": [
-      #|                {
-      #|                  "name": "amount",
-      #|                  "kind": "entity-field",
-      #|                  "type": "money",
-      #|                  "required": true,
-      #|                  "readOnly": false,
-      #|                  "default": null,
-      #|                  "target": null
-      #|                },
-      #|                {
-      #|                  "name": "reason",
-      #|                  "kind": "entity-field",
-      #|                  "type": "text",
-      #|                  "required": true,
-      #|                  "readOnly": false,
-      #|                  "default": null,
-      #|                  "target": null
-      #|                }
-      #|              ],
-      #|            "guard": "amount > 0"
-      #|          },
-      #|          {
-      #|            "name": "approve",
-      #|            "from": "submitted",
-      #|            "to": "approved",
-      #|            "inputs": [],
-      #|            "guard": null
-      #|          },
-      #|          {
-      #|            "name": "reject",
-      #|            "from": "submitted",
-      #|            "to": "rejected",
-      #|            "inputs": [
-      #|                {
-      #|                  "name": "rejectReason",
-      #|                  "kind": "local",
-      #|                  "type": "text",
-      #|                  "required": true,
-      #|                  "readOnly": false,
-      #|                  "default": null,
-      #|                  "target": null
-      #|                }
-      #|              ],
-      #|            "guard": null
-      #|          }
-      #|        ],
-      #|      "rules": [
-      #|          {
-      #|            "name": "canApprove",
-      #|            "when": "state == \"submitted\" && user.role == \"manager\""
-      #|          }
-      #|        ]
-      #|    }
-      #|  ]
+      #|  "payload": {
+      #|    "entities": [
+      #|      {
+      #|        "name": "User",
+      #|        "fields": [
+      #|            {
+      #|              "name": "id",
+      #|              "type": "id",
+      #|              "required": false,
+      #|              "primary": true,
+      #|              "readOnly": false,
+      #|              "system": false,
+      #|              "default": null
+      #|            },
+      #|            {
+      #|              "name": "role",
+      #|              "type": "text",
+      #|              "required": true,
+      #|              "primary": false,
+      #|              "readOnly": false,
+      #|              "system": false,
+      #|              "default": null
+      #|            }
+      #|          ],
+      #|        "constraints": [],
+      #|        "transitions": [],
+      #|        "rules": []
+      #|      },
+      #|      {
+      #|        "name": "ExpenseRequest",
+      #|        "fields": [
+      #|            {
+      #|              "name": "id",
+      #|              "type": "id",
+      #|              "required": false,
+      #|              "primary": true,
+      #|              "readOnly": false,
+      #|              "system": false,
+      #|              "default": null
+      #|            },
+      #|            {
+      #|              "name": "amount",
+      #|              "type": "money",
+      #|              "required": true,
+      #|              "primary": false,
+      #|              "readOnly": false,
+      #|              "system": false,
+      #|              "default": null
+      #|            },
+      #|            {
+      #|              "name": "reason",
+      #|              "type": "text",
+      #|              "required": true,
+      #|              "primary": false,
+      #|              "readOnly": false,
+      #|              "system": false,
+      #|              "default": null
+      #|            },
+      #|            {
+      #|              "name": "applicant",
+      #|              "type": "ref",
+      #|              "required": true,
+      #|              "primary": false,
+      #|              "readOnly": false,
+      #|              "system": false,
+      #|              "default": null
+      #|            },
+      #|            {
+      #|              "name": "status",
+      #|              "type": "state",
+      #|              "required": false,
+      #|              "primary": false,
+      #|              "readOnly": false,
+      #|              "system": false,
+      #|              "default": null
+      #|            },
+      #|            {
+      #|              "name": "createdAt",
+      #|              "type": "datetime",
+      #|              "required": false,
+      #|              "primary": false,
+      #|              "readOnly": false,
+      #|              "system": true,
+      #|              "default": null
+      #|            },
+      #|            {
+      #|              "name": "updatedAt",
+      #|              "type": "datetime",
+      #|              "required": false,
+      #|              "primary": false,
+      #|              "readOnly": false,
+      #|              "system": true,
+      #|              "default": null
+      #|            }
+      #|          ],
+      #|        "constraints": [
+      #|            {
+      #|              "name": "amountPositive",
+      #|              "expr": "amount > 0"
+      #|            }
+      #|          ],
+      #|        "transitions": [
+      #|            {
+      #|              "name": "submit",
+      #|              "from": "draft",
+      #|              "to": "submitted",
+      #|              "inputs": [
+      #|                  {
+      #|                    "name": "amount",
+      #|                    "kind": "entity-field",
+      #|                    "type": "money",
+      #|                    "required": true,
+      #|                    "readOnly": false,
+      #|                    "default": null,
+      #|                    "target": null
+      #|                  },
+      #|                  {
+      #|                    "name": "reason",
+      #|                    "kind": "entity-field",
+      #|                    "type": "text",
+      #|                    "required": true,
+      #|                    "readOnly": false,
+      #|                    "default": null,
+      #|                    "target": null
+      #|                  }
+      #|                ],
+      #|              "guard": "amount > 0"
+      #|            },
+      #|            {
+      #|              "name": "approve",
+      #|              "from": "submitted",
+      #|              "to": "approved",
+      #|              "inputs": [],
+      #|              "guard": null
+      #|            },
+      #|            {
+      #|              "name": "reject",
+      #|              "from": "submitted",
+      #|              "to": "rejected",
+      #|              "inputs": [
+      #|                  {
+      #|                    "name": "rejectReason",
+      #|                    "kind": "local",
+      #|                    "type": "text",
+      #|                    "required": true,
+      #|                    "readOnly": false,
+      #|                    "default": null,
+      #|                    "target": null
+      #|                  }
+      #|                ],
+      #|              "guard": null
+      #|            }
+      #|          ],
+      #|        "rules": [
+      #|            {
+      #|              "name": "canApprove",
+      #|              "when": "state == \"submitted\" && user.role == \"manager\""
+      #|            }
+      #|          ]
+      #|      }
+      #|    ]
+      #|  }
       #|}
     ),
   )
@@ -511,285 +527,292 @@ test "compile_gui_manifest_from_yaml renders views and actions" {
     manifest,
     content=(
       #|{
-      #|  "entities": [
-      #|    {
-      #|      "name": "User",
-      #|      "label": "ユーザー",
-      #|      "states": [],
-      #|      "views": [],
-      #|      "rules": []
+      #|  "schemaVersion": "domainprocessschema.v1",
+      #|  "manifestKind": "gui-manifest",
+      #|  "generator": {
+      #|      "name": "domainprocessschema.mbt",
+      #|      "version": "0.1.0"
       #|    },
-      #|    {
-      #|      "name": "ExpenseRequest",
-      #|      "label": "経費申請",
-      #|      "states": [
-      #|          {
-      #|            "name": "draft",
-      #|            "label": "下書き"
-      #|          },
-      #|          {
-      #|            "name": "submitted",
-      #|            "label": "申請中"
-      #|          },
-      #|          {
-      #|            "name": "approved",
-      #|            "label": "承認済"
-      #|          },
-      #|          {
-      #|            "name": "rejected",
-      #|            "label": "却下"
-      #|          }
-      #|        ],
-      #|      "views": [
-      #|          {
-      #|            "name": "draft",
-      #|            "fields": [
-      #|                {
-      #|                  "name": "id",
-      #|                  "label": "id",
-      #|                  "component": "text",
-      #|                  "mode": "hidden"
-      #|                },
-      #|                {
-      #|                  "name": "amount",
-      #|                  "label": "amount",
-      #|                  "component": "money",
-      #|                  "mode": "editable"
-      #|                },
-      #|                {
-      #|                  "name": "reason",
-      #|                  "label": "reason",
-      #|                  "component": "textarea",
-      #|                  "mode": "editable"
-      #|                },
-      #|                {
-      #|                  "name": "applicant",
-      #|                  "label": "applicant",
-      #|                  "component": "reference-select",
-      #|                  "mode": "hidden"
-      #|                },
-      #|                {
-      #|                  "name": "status",
-      #|                  "label": "status",
-      #|                  "component": "state-badge",
-      #|                  "mode": "hidden"
-      #|                },
-      #|                {
-      #|                  "name": "createdAt",
-      #|                  "label": "createdAt",
-      #|                  "component": "datetime-picker",
-      #|                  "mode": "readonly"
-      #|                },
-      #|                {
-      #|                  "name": "updatedAt",
-      #|                  "label": "updatedAt",
-      #|                  "component": "datetime-picker",
-      #|                  "mode": "readonly"
-      #|                }
-      #|              ],
-      #|            "actions": [
-      #|                {
-      #|                  "name": "submit",
-      #|                  "to": "submitted",
-      #|                  "inputs": [
-      #|                      {
-      #|                        "name": "amount",
-      #|                        "label": "amount",
-      #|                        "kind": "entity-field",
-      #|                        "component": "money",
-      #|                        "required": true
-      #|                      },
-      #|                      {
-      #|                        "name": "reason",
-      #|                        "label": "reason",
-      #|                        "kind": "entity-field",
-      #|                        "component": "textarea",
-      #|                        "required": true
-      #|                      }
-      #|                    ],
-      #|                  "enabledWhen": "amount > 0",
-      #|                  "role": null
-      #|                }
-      #|              ]
-      #|          },
-      #|          {
-      #|            "name": "submitted",
-      #|            "fields": [
-      #|                {
-      #|                  "name": "id",
-      #|                  "label": "id",
-      #|                  "component": "text",
-      #|                  "mode": "hidden"
-      #|                },
-      #|                {
-      #|                  "name": "amount",
-      #|                  "label": "amount",
-      #|                  "component": "money",
-      #|                  "mode": "readonly"
-      #|                },
-      #|                {
-      #|                  "name": "reason",
-      #|                  "label": "reason",
-      #|                  "component": "textarea",
-      #|                  "mode": "readonly"
-      #|                },
-      #|                {
-      #|                  "name": "applicant",
-      #|                  "label": "applicant",
-      #|                  "component": "reference-select",
-      #|                  "mode": "hidden"
-      #|                },
-      #|                {
-      #|                  "name": "status",
-      #|                  "label": "status",
-      #|                  "component": "state-badge",
-      #|                  "mode": "hidden"
-      #|                },
-      #|                {
-      #|                  "name": "createdAt",
-      #|                  "label": "createdAt",
-      #|                  "component": "datetime-picker",
-      #|                  "mode": "readonly"
-      #|                },
-      #|                {
-      #|                  "name": "updatedAt",
-      #|                  "label": "updatedAt",
-      #|                  "component": "datetime-picker",
-      #|                  "mode": "readonly"
-      #|                }
-      #|              ],
-      #|            "actions": [
-      #|                {
-      #|                  "name": "approve",
-      #|                  "to": "approved",
-      #|                  "inputs": [],
-      #|                  "enabledWhen": null,
-      #|                  "role": "manager"
-      #|                },
-      #|                {
-      #|                  "name": "reject",
-      #|                  "to": "rejected",
-      #|                  "inputs": [
-      #|                      {
-      #|                        "name": "rejectReason",
-      #|                        "label": "rejectReason",
-      #|                        "kind": "local",
-      #|                        "component": "textarea",
-      #|                        "required": true
-      #|                      }
-      #|                    ],
-      #|                  "enabledWhen": null,
-      #|                  "role": "manager"
-      #|                }
-      #|              ]
-      #|          },
-      #|          {
-      #|            "name": "approved",
-      #|            "fields": [
-      #|                {
-      #|                  "name": "id",
-      #|                  "label": "id",
-      #|                  "component": "text",
-      #|                  "mode": "hidden"
-      #|                },
-      #|                {
-      #|                  "name": "amount",
-      #|                  "label": "amount",
-      #|                  "component": "money",
-      #|                  "mode": "readonly"
-      #|                },
-      #|                {
-      #|                  "name": "reason",
-      #|                  "label": "reason",
-      #|                  "component": "textarea",
-      #|                  "mode": "readonly"
-      #|                },
-      #|                {
-      #|                  "name": "applicant",
-      #|                  "label": "applicant",
-      #|                  "component": "reference-select",
-      #|                  "mode": "hidden"
-      #|                },
-      #|                {
-      #|                  "name": "status",
-      #|                  "label": "status",
-      #|                  "component": "state-badge",
-      #|                  "mode": "hidden"
-      #|                },
-      #|                {
-      #|                  "name": "createdAt",
-      #|                  "label": "createdAt",
-      #|                  "component": "datetime-picker",
-      #|                  "mode": "readonly"
-      #|                },
-      #|                {
-      #|                  "name": "updatedAt",
-      #|                  "label": "updatedAt",
-      #|                  "component": "datetime-picker",
-      #|                  "mode": "readonly"
-      #|                }
-      #|              ],
-      #|            "actions": []
-      #|          },
-      #|          {
-      #|            "name": "rejected",
-      #|            "fields": [
-      #|                {
-      #|                  "name": "id",
-      #|                  "label": "id",
-      #|                  "component": "text",
-      #|                  "mode": "hidden"
-      #|                },
-      #|                {
-      #|                  "name": "amount",
-      #|                  "label": "amount",
-      #|                  "component": "money",
-      #|                  "mode": "readonly"
-      #|                },
-      #|                {
-      #|                  "name": "reason",
-      #|                  "label": "reason",
-      #|                  "component": "textarea",
-      #|                  "mode": "readonly"
-      #|                },
-      #|                {
-      #|                  "name": "applicant",
-      #|                  "label": "applicant",
-      #|                  "component": "reference-select",
-      #|                  "mode": "hidden"
-      #|                },
-      #|                {
-      #|                  "name": "status",
-      #|                  "label": "status",
-      #|                  "component": "state-badge",
-      #|                  "mode": "hidden"
-      #|                },
-      #|                {
-      #|                  "name": "createdAt",
-      #|                  "label": "createdAt",
-      #|                  "component": "datetime-picker",
-      #|                  "mode": "readonly"
-      #|                },
-      #|                {
-      #|                  "name": "updatedAt",
-      #|                  "label": "updatedAt",
-      #|                  "component": "datetime-picker",
-      #|                  "mode": "readonly"
-      #|                }
-      #|              ],
-      #|            "actions": []
-      #|          }
-      #|        ],
-      #|      "rules": [
-      #|          {
-      #|            "name": "canApprove",
-      #|            "when": "state == \"submitted\" && user.role == \"manager\""
-      #|          }
-      #|        ]
-      #|    }
-      #|  ]
+      #|  "payload": {
+      #|    "entities": [
+      #|      {
+      #|        "name": "User",
+      #|        "label": "ユーザー",
+      #|        "states": [],
+      #|        "views": [],
+      #|        "rules": []
+      #|      },
+      #|      {
+      #|        "name": "ExpenseRequest",
+      #|        "label": "経費申請",
+      #|        "states": [
+      #|            {
+      #|              "name": "draft",
+      #|              "label": "下書き"
+      #|            },
+      #|            {
+      #|              "name": "submitted",
+      #|              "label": "申請中"
+      #|            },
+      #|            {
+      #|              "name": "approved",
+      #|              "label": "承認済"
+      #|            },
+      #|            {
+      #|              "name": "rejected",
+      #|              "label": "却下"
+      #|            }
+      #|          ],
+      #|        "views": [
+      #|            {
+      #|              "name": "draft",
+      #|              "fields": [
+      #|                  {
+      #|                    "name": "id",
+      #|                    "label": "id",
+      #|                    "component": "text",
+      #|                    "mode": "hidden"
+      #|                  },
+      #|                  {
+      #|                    "name": "amount",
+      #|                    "label": "amount",
+      #|                    "component": "money",
+      #|                    "mode": "editable"
+      #|                  },
+      #|                  {
+      #|                    "name": "reason",
+      #|                    "label": "reason",
+      #|                    "component": "textarea",
+      #|                    "mode": "editable"
+      #|                  },
+      #|                  {
+      #|                    "name": "applicant",
+      #|                    "label": "applicant",
+      #|                    "component": "reference-select",
+      #|                    "mode": "hidden"
+      #|                  },
+      #|                  {
+      #|                    "name": "status",
+      #|                    "label": "status",
+      #|                    "component": "state-badge",
+      #|                    "mode": "hidden"
+      #|                  },
+      #|                  {
+      #|                    "name": "createdAt",
+      #|                    "label": "createdAt",
+      #|                    "component": "datetime-picker",
+      #|                    "mode": "readonly"
+      #|                  },
+      #|                  {
+      #|                    "name": "updatedAt",
+      #|                    "label": "updatedAt",
+      #|                    "component": "datetime-picker",
+      #|                    "mode": "readonly"
+      #|                  }
+      #|                ],
+      #|              "actions": [
+      #|                  {
+      #|                    "name": "submit",
+      #|                    "to": "submitted",
+      #|                    "inputs": [
+      #|                        {
+      #|                          "name": "amount",
+      #|                          "label": "amount",
+      #|                          "kind": "entity-field",
+      #|                          "component": "money",
+      #|                          "required": true
+      #|                        },
+      #|                        {
+      #|                          "name": "reason",
+      #|                          "label": "reason",
+      #|                          "kind": "entity-field",
+      #|                          "component": "textarea",
+      #|                          "required": true
+      #|                        }
+      #|                      ],
+      #|                    "enabledWhen": "amount > 0",
+      #|                    "role": null
+      #|                  }
+      #|                ]
+      #|            },
+      #|            {
+      #|              "name": "submitted",
+      #|              "fields": [
+      #|                  {
+      #|                    "name": "id",
+      #|                    "label": "id",
+      #|                    "component": "text",
+      #|                    "mode": "hidden"
+      #|                  },
+      #|                  {
+      #|                    "name": "amount",
+      #|                    "label": "amount",
+      #|                    "component": "money",
+      #|                    "mode": "readonly"
+      #|                  },
+      #|                  {
+      #|                    "name": "reason",
+      #|                    "label": "reason",
+      #|                    "component": "textarea",
+      #|                    "mode": "readonly"
+      #|                  },
+      #|                  {
+      #|                    "name": "applicant",
+      #|                    "label": "applicant",
+      #|                    "component": "reference-select",
+      #|                    "mode": "hidden"
+      #|                  },
+      #|                  {
+      #|                    "name": "status",
+      #|                    "label": "status",
+      #|                    "component": "state-badge",
+      #|                    "mode": "hidden"
+      #|                  },
+      #|                  {
+      #|                    "name": "createdAt",
+      #|                    "label": "createdAt",
+      #|                    "component": "datetime-picker",
+      #|                    "mode": "readonly"
+      #|                  },
+      #|                  {
+      #|                    "name": "updatedAt",
+      #|                    "label": "updatedAt",
+      #|                    "component": "datetime-picker",
+      #|                    "mode": "readonly"
+      #|                  }
+      #|                ],
+      #|              "actions": [
+      #|                  {
+      #|                    "name": "approve",
+      #|                    "to": "approved",
+      #|                    "inputs": [],
+      #|                    "enabledWhen": null,
+      #|                    "role": "manager"
+      #|                  },
+      #|                  {
+      #|                    "name": "reject",
+      #|                    "to": "rejected",
+      #|                    "inputs": [
+      #|                        {
+      #|                          "name": "rejectReason",
+      #|                          "label": "rejectReason",
+      #|                          "kind": "local",
+      #|                          "component": "textarea",
+      #|                          "required": true
+      #|                        }
+      #|                      ],
+      #|                    "enabledWhen": null,
+      #|                    "role": "manager"
+      #|                  }
+      #|                ]
+      #|            },
+      #|            {
+      #|              "name": "approved",
+      #|              "fields": [
+      #|                  {
+      #|                    "name": "id",
+      #|                    "label": "id",
+      #|                    "component": "text",
+      #|                    "mode": "hidden"
+      #|                  },
+      #|                  {
+      #|                    "name": "amount",
+      #|                    "label": "amount",
+      #|                    "component": "money",
+      #|                    "mode": "readonly"
+      #|                  },
+      #|                  {
+      #|                    "name": "reason",
+      #|                    "label": "reason",
+      #|                    "component": "textarea",
+      #|                    "mode": "readonly"
+      #|                  },
+      #|                  {
+      #|                    "name": "applicant",
+      #|                    "label": "applicant",
+      #|                    "component": "reference-select",
+      #|                    "mode": "hidden"
+      #|                  },
+      #|                  {
+      #|                    "name": "status",
+      #|                    "label": "status",
+      #|                    "component": "state-badge",
+      #|                    "mode": "hidden"
+      #|                  },
+      #|                  {
+      #|                    "name": "createdAt",
+      #|                    "label": "createdAt",
+      #|                    "component": "datetime-picker",
+      #|                    "mode": "readonly"
+      #|                  },
+      #|                  {
+      #|                    "name": "updatedAt",
+      #|                    "label": "updatedAt",
+      #|                    "component": "datetime-picker",
+      #|                    "mode": "readonly"
+      #|                  }
+      #|                ],
+      #|              "actions": []
+      #|            },
+      #|            {
+      #|              "name": "rejected",
+      #|              "fields": [
+      #|                  {
+      #|                    "name": "id",
+      #|                    "label": "id",
+      #|                    "component": "text",
+      #|                    "mode": "hidden"
+      #|                  },
+      #|                  {
+      #|                    "name": "amount",
+      #|                    "label": "amount",
+      #|                    "component": "money",
+      #|                    "mode": "readonly"
+      #|                  },
+      #|                  {
+      #|                    "name": "reason",
+      #|                    "label": "reason",
+      #|                    "component": "textarea",
+      #|                    "mode": "readonly"
+      #|                  },
+      #|                  {
+      #|                    "name": "applicant",
+      #|                    "label": "applicant",
+      #|                    "component": "reference-select",
+      #|                    "mode": "hidden"
+      #|                  },
+      #|                  {
+      #|                    "name": "status",
+      #|                    "label": "status",
+      #|                    "component": "state-badge",
+      #|                    "mode": "hidden"
+      #|                  },
+      #|                  {
+      #|                    "name": "createdAt",
+      #|                    "label": "createdAt",
+      #|                    "component": "datetime-picker",
+      #|                    "mode": "readonly"
+      #|                  },
+      #|                  {
+      #|                    "name": "updatedAt",
+      #|                    "label": "updatedAt",
+      #|                    "component": "datetime-picker",
+      #|                    "mode": "readonly"
+      #|                  }
+      #|                ],
+      #|              "actions": []
+      #|            }
+      #|          ],
+      #|        "rules": [
+      #|            {
+      #|              "name": "canApprove",
+      #|              "when": "state == \"submitted\" && user.role == \"manager\""
+      #|            }
+      #|          ]
+      #|      }
+      #|    ]
+      #|  }
       #|}
-
     ),
   )
 }
@@ -835,7 +858,10 @@ fn localized_label_schema() -> String {
 
 ///|
 test "compile_gui_manifest_from_yaml resolves localized labels" {
-  let manifest = compile_gui_manifest_from_yaml(localized_label_schema(), locale="ja")
+  let manifest = compile_gui_manifest_from_yaml(
+    localized_label_schema(),
+    locale="ja",
+  )
   inspect(manifest.contains("\"label\": \"経費申請\""), content="true")
   inspect(manifest.contains("\"label\": \"金額\""), content="true")
   inspect(manifest.contains("\"label\": \"下書き\""), content="true")
@@ -844,15 +870,14 @@ test "compile_gui_manifest_from_yaml resolves localized labels" {
 ///|
 test "render_runtime_gui_html resolves default locale fallback labels" {
   let runtime = compile_runtime_from_yaml(localized_label_schema())
-  let record = validate_record(
-    runtime,
-    "ExpenseRequest",
-    {
+  let record = validate_record(runtime, "ExpenseRequest", {
       "amount": RuntimeValue::Integer(1200),
-    },
-  ).record
+    }).record
   let html = render_runtime_gui_html(runtime, record, locale="en")
-  inspect(html.contains("<title>Expense Request - Draft</title>"), content="true")
+  inspect(
+    html.contains("<title>Expense Request - Draft</title>"),
+    content="true",
+  )
   inspect(html.contains("Amount"), content="true")
 }
 
@@ -950,7 +975,9 @@ test "validate_schema rejects unknown transition states" {
   let result : Result[String, SchemaError] = try? compile_sql_from_yaml(invalid)
   inspect(
     result,
-    content="Err(ValidationError(path=\"schema.entities.ExpenseRequest.transitions.submit\", \"unknown target state submitted\"))",
+    content=(
+      #|Err(ValidationError(issues=[{code: "UNKNOWN_STATE", severity: Error, target: "schema.entities.ExpenseRequest.transitions.submit", message: "unknown target state submitted", hint: None, context: {}}]))
+    ),
   )
 }
 
@@ -978,7 +1005,7 @@ test "validate_schema rejects unknown identifiers in expressions" {
   inspect(
     result,
     content=(
-      #|Err(ValidationError(path="schema.entities.ExpenseRequest.constraints.bad.expr", "unknown identifier path missing"))
+      #|Err(ValidationError(issues=[{code: "INVALID_EXPR", severity: Error, target: "schema.entities.ExpenseRequest.constraints.bad.expr", message: "unknown identifier path missing", hint: Some("Use a declared field name, `state`, or `user.<attr>` where that context is allowed."), context: {}}]))
     ),
   )
 }
@@ -994,6 +1021,8 @@ test "parse_schema_yaml rejects malformed yaml" {
   )
   inspect(
     result,
-    content="Err(ParseError(line=2, \"expected a `key: value` mapping entry\"))",
+    content=(
+      #|Err(ParseError(issues=[{code: "INVALID_YAML_SYNTAX", severity: Error, target: "yaml.line.2", message: "expected a `key: value` mapping entry", hint: None, context: {"line": "2"}}]))
+    ),
   )
 }

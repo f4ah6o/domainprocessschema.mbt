@@ -3,14 +3,14 @@ enum YamlValue {
   YamlScalar(String)
   YamlMap(Map[String, YamlValue])
   YamlList(Array[YamlValue])
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 struct YamlLine {
   line_no : Int
   indent : Int
   content : String
-} derive(Eq, Show)
+} derive(Eq, Debug)
 
 ///|
 fn parse_yaml_document(input : String) -> YamlValue raise SchemaError {
@@ -19,7 +19,7 @@ fn parse_yaml_document(input : String) -> YamlValue raise SchemaError {
     .replace_all(old="\r", new="\n")
   let lines = collect_yaml_lines(normalized)
   if lines.length() == 0 {
-    raise SchemaError::ParseError(
+    raise schema_parse_error(
       line=1,
       "expected a YAML document, but the input was empty",
     )
@@ -27,7 +27,7 @@ fn parse_yaml_document(input : String) -> YamlValue raise SchemaError {
   let (value, next_index) = parse_yaml_node(lines, 0, lines[0].indent)
   if next_index != lines.length() {
     let line = lines[next_index]
-    raise SchemaError::ParseError(
+    raise schema_parse_error(
       line=line.line_no,
       "unexpected trailing content at the top level",
     )
@@ -40,7 +40,7 @@ fn collect_yaml_lines(input : String) -> Array[YamlLine] raise SchemaError {
   let collected : Array[YamlLine] = []
   for i, raw_line in input.split("\n").to_array() {
     if raw_line.contains_char('\t') {
-      raise SchemaError::ParseError(
+      raise schema_parse_error(
         line=i + 1,
         "tabs are not supported; use spaces for indentation",
       )
@@ -66,7 +66,7 @@ fn parse_yaml_node(
   indent : Int,
 ) -> (YamlValue, Int) raise SchemaError {
   guard index < lines.length() else {
-    raise SchemaError::ParseError(
+    raise schema_parse_error(
       line=1,
       "expected a YAML node, but reached the end of the document",
     )
@@ -103,19 +103,19 @@ fn parse_yaml_map_entries(
     if line.indent < indent {
       (YamlValue::YamlMap(entries), index)
     } else if line.indent > indent {
-      raise SchemaError::ParseError(
+      raise schema_parse_error(
         line=line.line_no,
         "unexpected indentation inside a mapping",
       )
     } else if line.content.has_prefix("-") {
-      raise SchemaError::ParseError(
+      raise schema_parse_error(
         line=line.line_no,
         "cannot mix sequence items and mapping entries at the same indentation level",
       )
     } else {
       let (key, inline_value) = parse_mapping_head(line)
       if entries.contains(key) {
-        raise SchemaError::ParseError(line=line.line_no, "duplicate key \{key}")
+        raise schema_parse_error(line=line.line_no, "duplicate key \{key}")
       }
       let (value, next_index) = match inline_value {
         Some(value) => (value, index + 1)
@@ -135,7 +135,7 @@ fn parse_mapping_head(
     Some((raw_key, raw_value)) => {
       let key = raw_key.trim()
       if key.is_empty() {
-        raise SchemaError::ParseError(
+        raise schema_parse_error(
           line=line.line_no,
           "mapping keys must not be empty",
         )
@@ -151,7 +151,7 @@ fn parse_mapping_head(
       }
     }
     None =>
-      raise SchemaError::ParseError(
+      raise schema_parse_error(
         line=line.line_no,
         "expected a `key: value` mapping entry",
       )
@@ -168,14 +168,14 @@ fn parse_nested_child(
   let next_index = index + 1
   if next_index >= lines.length() {
     let line = lines[index]
-    raise SchemaError::ParseError(
+    raise schema_parse_error(
       line=line.line_no,
       "expected a nested \{expectation}, but the document ended early",
     )
   }
   let next_line = lines[next_index]
   if next_line.indent <= indent {
-    raise SchemaError::ParseError(
+    raise schema_parse_error(
       line=next_line.line_no,
       "expected an indented \{expectation}",
     )
@@ -207,7 +207,7 @@ fn parse_yaml_list_items(
     if line.indent < indent {
       (YamlValue::YamlList(items), index)
     } else if line.indent > indent {
-      raise SchemaError::ParseError(
+      raise schema_parse_error(
         line=line.line_no,
         "unexpected indentation inside a sequence",
       )
@@ -233,13 +233,13 @@ fn parse_yaml_list_item(
       if before.is_empty() {
         after.trim_start().to_string()
       } else {
-        raise SchemaError::ParseError(
+        raise schema_parse_error(
           line=line.line_no,
           "sequence items must start with `-`",
         )
       }
     None =>
-      raise SchemaError::ParseError(
+      raise schema_parse_error(
         line=line.line_no,
         "sequence items must start with `-`",
       )
@@ -261,7 +261,7 @@ fn parse_yaml_list_item(
         YamlValue::YamlMap(extra_entries) => {
           for extra_key, extra_value in extra_entries {
             if entries.contains(extra_key) {
-              raise SchemaError::ParseError(
+              raise schema_parse_error(
                 line=lines[next_index].line_no,
                 "duplicate key \{extra_key} inside sequence item",
               )
@@ -271,7 +271,7 @@ fn parse_yaml_list_item(
           (YamlValue::YamlMap(entries), done)
         }
         _ =>
-          raise SchemaError::ParseError(
+          raise schema_parse_error(
             line=lines[next_index].line_no,
             "sequence item mappings can only merge with another mapping block",
           )
@@ -294,13 +294,10 @@ fn parse_inline_mapping_entry(
       let key = raw_key.trim()
       let value_text = raw_value.trim()
       if key.is_empty() {
-        raise SchemaError::ParseError(
-          line=line_no,
-          "mapping keys must not be empty",
-        )
+        raise schema_parse_error(line=line_no, "mapping keys must not be empty")
       }
       if value_text.is_empty() {
-        raise SchemaError::ParseError(
+        raise schema_parse_error(
           line=line_no,
           "inline mapping entries must contain a value",
         )
@@ -311,7 +308,7 @@ fn parse_inline_mapping_entry(
       )
     }
     None =>
-      raise SchemaError::ParseError(
+      raise schema_parse_error(
         line=line_no,
         "expected an inline `key: value` entry",
       )
@@ -325,19 +322,16 @@ fn parse_inline_yaml_value(
 ) -> YamlValue raise SchemaError {
   let trimmed = text.trim()
   if trimmed.is_empty() {
-    raise SchemaError::ParseError(
-      line=line_no,
-      "inline values must not be empty",
-    )
+    raise schema_parse_error(line=line_no, "inline values must not be empty")
   }
   if trimmed.has_prefix("[") && trimmed.has_suffix("]") {
     let prefix = match trimmed.strip_prefix("[") {
       Some(prefix) => prefix
-      None => raise SchemaError::ParseError(line=line_no, "invalid inline list")
+      None => raise schema_parse_error(line=line_no, "invalid inline list")
     }
     let inner = match prefix.strip_suffix("]") {
       Some(inner) => inner
-      None => raise SchemaError::ParseError(line=line_no, "invalid inline list")
+      None => raise schema_parse_error(line=line_no, "invalid inline list")
     }
     let items : Array[YamlValue] = []
     let inner_trimmed = inner.trim()
@@ -347,7 +341,7 @@ fn parse_inline_yaml_value(
       for part in inner.split(",") {
         let item = part.trim()
         if item.is_empty() {
-          raise SchemaError::ParseError(
+          raise schema_parse_error(
             line=line_no,
             "inline lists must not contain empty elements",
           )

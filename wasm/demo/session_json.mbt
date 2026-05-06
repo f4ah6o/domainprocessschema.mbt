@@ -70,7 +70,9 @@ fn render_demo_reference_target_json(
   locale : String,
 ) -> String {
   let label = demo_entity_label(runtime, target, locale)
-  let options = demo_reference_options_for_target(runtime, target, locale).join(",")
+  let options = demo_reference_options_for_target(runtime, target, locale).join(
+    ",",
+  )
   "{ \"name\": \"\{json_escape(target)}\", \"label\": \"\{json_escape(label)}\", \"options\": [\{options}] }"
 }
 
@@ -167,10 +169,17 @@ fn render_demo_action_input_json(
 }
 
 ///|
-fn render_demo_runtime_issue_json(issue : @schema.RuntimeIssue) -> String {
+fn render_demo_runtime_issue_json(issue : @schema.Diagnostic) -> String {
+  let severity = match issue.severity {
+    @schema.DiagnosticSeverity::Error => "error"
+    @schema.DiagnosticSeverity::Warning => "warning"
+    @schema.DiagnosticSeverity::Info => "info"
+  }
   let builder = StringBuilder::new()
   builder.write_string("{")
-  builder.write_string("\"path\":\"\{json_escape(issue.path)}\",")
+  builder.write_string("\"code\":\"\{json_escape(issue.code)}\",")
+  builder.write_string("\"severity\":\"\{json_escape(severity)}\",")
+  builder.write_string("\"target\":\"\{json_escape(issue.target)}\",")
   builder.write_string("\"message\":\"\{json_escape(issue.message)}\"")
   builder.write_string("}")
   builder.to_string()
@@ -180,7 +189,7 @@ fn render_demo_runtime_issue_json(issue : @schema.RuntimeIssue) -> String {
 fn render_demo_error_payload_json(
   kind : String,
   message : String,
-  issues? : Array[@schema.RuntimeIssue] = [],
+  issues? : Array[@schema.Diagnostic] = [],
   entity? : String = "",
   transition? : String = "",
   expected? : String = "",
@@ -212,41 +221,41 @@ fn render_demo_error_payload_json(
 fn render_demo_error_json(err : Error) -> String {
   match err {
     @schema.RuntimeError::UnknownEntity(entity~) =>
-      render_demo_error_payload_json("unknown-entity", "\{err}", entity=entity)
+      render_demo_error_payload_json("unknown-entity", "\{err}", entity~)
     @schema.RuntimeError::EntityMismatch(expected~, found~) =>
       render_demo_error_payload_json(
         "entity-mismatch",
         "\{err}",
-        expected=expected,
-        found=found,
+        expected~,
+        found~,
       )
     @schema.RuntimeError::UnknownTransition(entity~, transition~) =>
       render_demo_error_payload_json(
         "unknown-transition",
         "\{err}",
-        entity=entity,
-        transition=transition,
+        entity~,
+        transition~,
       )
     @schema.RuntimeError::MissingView(entity~, state~) =>
       render_demo_error_payload_json(
         "missing-view",
         "\{err}",
-        entity=entity,
+        entity~,
         found=state,
       )
     @schema.RuntimeError::InvalidRecord(entity~, issues~) =>
       render_demo_error_payload_json(
         "invalid-record",
         "\{err}",
-        entity=entity,
+        entity~,
         issues~,
       )
     @schema.RuntimeError::TransitionRejected(entity~, transition~, issues~) =>
       render_demo_error_payload_json(
         "transition-rejected",
         "\{err}",
-        entity=entity,
-        transition=transition,
+        entity~,
+        transition~,
         issues~,
       )
     _ => render_demo_error_payload_json("error", "\{err}")

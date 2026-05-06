@@ -51,7 +51,11 @@ fn resolved_entity_label(entity : Entity, locale : String) -> String {
 }
 
 ///|
-fn resolved_state_label(entity : Entity, state_name : String, locale : String) -> String {
+fn resolved_state_label(
+  entity : Entity,
+  state_name : String,
+  locale : String,
+) -> String {
   for state in entity.states {
     if state.name == state_name {
       return resolve_localized_text(state.label, state.labels, locale)
@@ -61,7 +65,11 @@ fn resolved_state_label(entity : Entity, state_name : String, locale : String) -
 }
 
 ///|
-fn resolved_field_label(entity : Entity, field_name : String, locale : String) -> String {
+fn resolved_field_label(
+  entity : Entity,
+  field_name : String,
+  locale : String,
+) -> String {
   for field in entity.fields {
     if field.name == field_name {
       return resolve_localized_text(field.label, field.labels, locale)
@@ -77,7 +85,8 @@ fn resolved_transition_input_label(
   locale : String,
 ) -> String {
   match input.kind {
-    TransitionInputKind::EntityField => resolved_field_label(entity, input.name, locale)
+    TransitionInputKind::EntityField =>
+      resolved_field_label(entity, input.name, locale)
     TransitionInputKind::Local => input.name
   }
 }

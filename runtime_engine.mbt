@@ -18,7 +18,7 @@ fn runtime_validate_record(
   }
 
   let normalized : Map[String, RuntimeValue] = {}
-  let issues : Array[RuntimeIssue] = []
+  let issues : Array[Diagnostic] = []
 
   match current {
     Some(record) =>
@@ -34,6 +34,7 @@ fn runtime_validate_record(
         runtime_issue(
           "runtime.entities.\{entity.name}.payload.\{key}",
           "unknown field \{key}",
+          code="UNKNOWN_FIELD",
         ),
       )
     }
@@ -47,6 +48,7 @@ fn runtime_validate_record(
         runtime_issue(
           field_path,
           "system field \{field.name} cannot be set from runtime payload",
+          code="INVALID_RUNTIME_INPUT",
         ),
       )
       continue
@@ -79,6 +81,7 @@ fn runtime_validate_record(
               runtime_issue(
                 "runtime.entities.\{entity.name}.fields.\{state_field.name}",
                 "unknown state \{state_name}",
+                code="UNKNOWN_STATE",
               ),
             )
           }
@@ -87,6 +90,7 @@ fn runtime_validate_record(
             runtime_issue(
               "runtime.entities.\{entity.name}.fields.\{state_field.name}",
               "state field must be stored as text",
+              code="INVALID_RUNTIME_INPUT",
             ),
           )
         None => ()
@@ -100,6 +104,7 @@ fn runtime_validate_record(
         runtime_issue(
           "runtime.entities.\{entity.name}.fields.\{field.name}",
           "required field \{field.name} is missing",
+          code="REQUIRED_FIELD_MISSING",
         ),
       )
     }
@@ -121,6 +126,7 @@ fn runtime_validate_record(
           runtime_issue(
             constraint_path,
             "constraint \{constraint.name} evaluated to false",
+            code="CONSTRAINT_FAILED",
           ),
         )
       Err(issue) => issues.push(issue)
@@ -149,8 +155,8 @@ fn runtime_transition_issues(
   transition : Transition,
   values : Map[String, RuntimeValue],
   actor : RuntimeActor,
-) -> Array[RuntimeIssue] {
-  let issues : Array[RuntimeIssue] = []
+) -> Array[Diagnostic] {
+  let issues : Array[Diagnostic] = []
   let transition_path = "runtime.entities.\{entity.name}.transitions.\{transition.name}"
 
   match runtime_find_state_field(entity) {
@@ -162,6 +168,7 @@ fn runtime_transition_issues(
               runtime_issue(
                 transition_path,
                 "transition \{transition.name} requires state \{transition.from}, got \{current_state}",
+                code="STATE_MISMATCH",
               ),
             )
           }
@@ -170,6 +177,7 @@ fn runtime_transition_issues(
             runtime_issue(
               transition_path,
               "state field \{state_field.name} must be a text runtime value",
+              code="INVALID_RUNTIME_INPUT",
             ),
           )
         None =>
@@ -177,6 +185,7 @@ fn runtime_transition_issues(
             runtime_issue(
               transition_path,
               "state field \{state_field.name} is missing",
+              code="UNKNOWN_STATE",
             ),
           )
       }
@@ -185,6 +194,7 @@ fn runtime_transition_issues(
         runtime_issue(
           transition_path,
           "entity \{entity.name} does not define a state field",
+          code="UNKNOWN_STATE",
         ),
       )
   }
@@ -198,13 +208,16 @@ fn runtime_transition_issues(
               runtime_issue(
                 transition_path,
                 "transition \{transition.name} requires role \{required_role}",
+                code="ROLE_DENIED",
               ),
             )
           }
         Some(_) =>
           issues.push(
             runtime_issue(
-              transition_path, "actor role must be provided as text",
+              transition_path,
+              "actor role must be provided as text",
+              code="ROLE_DENIED",
             ),
           )
         None =>
@@ -212,6 +225,7 @@ fn runtime_transition_issues(
             runtime_issue(
               transition_path,
               "transition \{transition.name} requires actor role \{required_role}",
+              code="ROLE_DENIED",
             ),
           )
       }
@@ -228,6 +242,7 @@ fn runtime_transition_issues(
             runtime_issue(
               transition_path,
               "guard for transition \{transition.name} evaluated to false",
+              code="GUARD_REJECTED",
             ),
           )
         Err(issue) => issues.push(issue)
@@ -283,10 +298,10 @@ fn runtime_validate_transition_inputs(
   transition : Transition,
   input : Map[String, RuntimeValue],
   path_prefix : String,
-) -> (Map[String, RuntimeValue], Array[RuntimeIssue]) {
+) -> (Map[String, RuntimeValue], Array[Diagnostic]) {
   let entity_payload : Map[String, RuntimeValue] = {}
   let local_values : Map[String, RuntimeValue] = {}
-  let issues : Array[RuntimeIssue] = []
+  let issues : Array[Diagnostic] = []
   let known_names : Map[String, Bool] = {}
 
   for transition_input in transition.inputs {
@@ -301,6 +316,7 @@ fn runtime_validate_transition_inputs(
                 runtime_issue(
                   input_path,
                   "transition input field \{transition_input.name} is required",
+                  code="INVALID_TRANSITION_INPUT",
                 ),
               )
             }
@@ -321,6 +337,7 @@ fn runtime_validate_transition_inputs(
                     runtime_issue(
                       input_path,
                       "transition input \{transition_input.name} is required",
+                      code="INVALID_TRANSITION_INPUT",
                     ),
                   )
                 }
@@ -339,6 +356,7 @@ fn runtime_validate_transition_inputs(
                     runtime_issue(
                       input_path,
                       "transition input \{transition_input.name} is required",
+                      code="INVALID_TRANSITION_INPUT",
                     ),
                   )
                 }
@@ -354,6 +372,7 @@ fn runtime_validate_transition_inputs(
         runtime_issue(
           "\{path_prefix}.\{key}",
           "unknown transition input \{key}",
+          code="INVALID_TRANSITION_INPUT",
         ),
       )
     }
@@ -416,6 +435,7 @@ fn runtime_apply_transition(
           runtime_issue(
             "runtime.entities.\{entity.name}.transitions.\{transition.name}",
             "entity \{entity.name} does not define a state field",
+            code="UNKNOWN_STATE",
           ),
         ],
       )

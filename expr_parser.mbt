@@ -22,13 +22,18 @@ enum ExprToken {
 fn parse_expr_text(input : String, path : String) -> Expr raise SchemaError {
   let tokens = tokenize_expr(input, path)
   if tokens.length() == 0 {
-    raise SchemaError::ValidationError(path~, "expression must not be empty")
+    raise schema_validation_error(
+      path~,
+      "expression must not be empty",
+      code="INVALID_EXPR",
+    )
   }
   let (expr, next_index) = parse_or_expr(tokens, 0, path)
   if next_index != tokens.length() {
-    raise SchemaError::ValidationError(
+    raise schema_validation_error(
       path~,
       "unexpected trailing tokens in expression",
+      code="INVALID_EXPR",
     )
   }
   expr
@@ -99,9 +104,10 @@ fn tokenize_expr_chars(
             tokens.push(ExprToken::EqEq)
             tokenize_expr_chars(chars, index + 2, tokens, path)
           } else {
-            raise SchemaError::ValidationError(
+            raise schema_validation_error(
               path~,
               "single `=` is not valid in expressions; use `==`",
+              code="INVALID_EXPR",
             )
           }
         '&' =>
@@ -109,9 +115,10 @@ fn tokenize_expr_chars(
             tokens.push(ExprToken::AndAnd)
             tokenize_expr_chars(chars, index + 2, tokens, path)
           } else {
-            raise SchemaError::ValidationError(
+            raise schema_validation_error(
               path~,
               "single `&` is not valid in expressions; use `&&`",
+              code="INVALID_EXPR",
             )
           }
         '|' =>
@@ -119,9 +126,10 @@ fn tokenize_expr_chars(
             tokens.push(ExprToken::OrOr)
             tokenize_expr_chars(chars, index + 2, tokens, path)
           } else {
-            raise SchemaError::ValidationError(
+            raise schema_validation_error(
               path~,
               "single `|` is not valid in expressions; use `||`",
+              code="INVALID_EXPR",
             )
           }
         '>' =>
@@ -146,9 +154,10 @@ fn tokenize_expr_chars(
           tokenize_expr_chars(chars, next_index, tokens, path)
         }
         _ =>
-          raise SchemaError::ValidationError(
+          raise schema_validation_error(
             path~,
             "unsupported character in expression",
+            code="INVALID_EXPR",
           )
       }
     }
@@ -223,7 +232,11 @@ fn read_string_token_chars(
   path : String,
 ) -> (String, Int) raise SchemaError {
   if index >= chars.length() {
-    raise SchemaError::ValidationError(path~, "unterminated string literal")
+    raise schema_validation_error(
+      path~,
+      "unterminated string literal",
+      code="INVALID_EXPR",
+    )
   } else {
     let char = chars[index]
     if char == '"' {
@@ -359,7 +372,11 @@ fn parse_primary_expr(
   path : String,
 ) -> (Expr, Int) raise SchemaError {
   if index >= tokens.length() {
-    raise SchemaError::ValidationError(path~, "unexpected end of expression")
+    raise schema_validation_error(
+      path~,
+      "unexpected end of expression",
+      code="INVALID_EXPR",
+    )
   } else {
     match tokens[index] {
       ExprToken::Ident(name) => parse_path_expr(tokens, index + 1, [name], path)
@@ -370,14 +387,19 @@ fn parse_primary_expr(
         let (inner, next_index) = parse_or_expr(tokens, index + 1, path)
         if next_index >= tokens.length() ||
           tokens[next_index] != ExprToken::RParen {
-          raise SchemaError::ValidationError(path~, "missing closing `)`")
+          raise schema_validation_error(
+            path~,
+            "missing closing `)`",
+            code="INVALID_EXPR",
+          )
         }
         (inner, next_index + 1)
       }
       _ =>
-        raise SchemaError::ValidationError(
+        raise schema_validation_error(
           path~,
           "expected a primary expression",
+          code="INVALID_EXPR",
         )
     }
   }
@@ -397,9 +419,10 @@ fn parse_path_expr(
         parse_path_expr(tokens, index + 2, parts, path)
       }
       _ =>
-        raise SchemaError::ValidationError(
+        raise schema_validation_error(
           path~,
           "expected identifier after `.`",
+          code="INVALID_EXPR",
         )
     }
   } else {
@@ -444,9 +467,11 @@ fn validate_expr_path(
     ()
   } else {
     let rendered = parts.join(".")
-    raise SchemaError::ValidationError(
+    raise schema_validation_error(
       path~,
       "unknown identifier path \{rendered}",
+      code="INVALID_EXPR",
+      hint="Use a declared field name, `state`, or `user.<attr>` where that context is allowed.",
     )
   }
 }

@@ -5,7 +5,7 @@ fn runtime_eval_expr(
   actor : RuntimeActor,
   expr : Expr,
   path : String,
-) -> Result[RuntimeValue, RuntimeIssue] {
+) -> Result[RuntimeValue, Diagnostic] {
   match expr {
     Expr::Path(parts) => runtime_eval_path(entity, values, actor, parts, path)
     Expr::StringLiteral(text) => Ok(RuntimeValue::Text(text))
@@ -14,7 +14,11 @@ fn runtime_eval_expr(
         Ok(RuntimeValue::Integer(parse_runtime_integer(text)))
       } else {
         Err(
-          runtime_issue(path, "only integer literals are currently supported"),
+          runtime_issue(
+            path,
+            "only integer literals are currently supported",
+            code="INVALID_EXPR",
+          ),
         )
       }
     Expr::BoolLiteral(flag) => Ok(RuntimeValue::Flag(flag))
@@ -48,7 +52,7 @@ fn runtime_eval_bool_expr(
   actor : RuntimeActor,
   expr : Expr,
   path : String,
-) -> Result[Bool, RuntimeIssue] {
+) -> Result[Bool, Diagnostic] {
   match runtime_eval_expr(entity, values, actor, expr, path) {
     Ok(value) => runtime_value_to_bool(value, path)
     Err(issue) => Err(issue)
@@ -62,7 +66,7 @@ fn runtime_eval_path(
   actor : RuntimeActor,
   parts : Array[String],
   path : String,
-) -> Result[RuntimeValue, RuntimeIssue] {
+) -> Result[RuntimeValue, Diagnostic] {
   if parts.length() == 1 {
     if parts[0] == "state" {
       match runtime_find_state_field(entity) {
@@ -74,6 +78,7 @@ fn runtime_eval_path(
                 runtime_issue(
                   path,
                   "state value is missing for entity \{entity.name}",
+                  code="UNKNOWN_STATE",
                 ),
               )
           }
@@ -82,6 +87,7 @@ fn runtime_eval_path(
             runtime_issue(
               path,
               "entity \{entity.name} does not define a state field",
+              code="UNKNOWN_STATE",
             ),
           )
       }
@@ -90,7 +96,11 @@ fn runtime_eval_path(
         Some(value) => Ok(value)
         None =>
           Err(
-            runtime_issue(path, "missing runtime value for field \{parts[0]}"),
+            runtime_issue(
+              path,
+              "missing runtime value for field \{parts[0]}",
+              code="UNKNOWN_FIELD",
+            ),
           )
       }
     }
@@ -98,11 +108,24 @@ fn runtime_eval_path(
     let actor_key = parts[1:].join(".")
     match actor.attributes.get(actor_key) {
       Some(value) => Ok(value)
-      None => Err(runtime_issue(path, "missing actor attribute \{actor_key}"))
+      None =>
+        Err(
+          runtime_issue(
+            path,
+            "missing actor attribute \{actor_key}",
+            code="INVALID_EXPR",
+          ),
+        )
     }
   } else {
     let rendered_path = parts.join(".")
-    Err(runtime_issue(path, "unsupported runtime path \{rendered_path}"))
+    Err(
+      runtime_issue(
+        path,
+        "unsupported runtime path \{rendered_path}",
+        code="INVALID_EXPR",
+      ),
+    )
   }
 }
 
@@ -112,7 +135,7 @@ fn runtime_eval_binary(
   left : RuntimeValue,
   right : RuntimeValue,
   path : String,
-) -> Result[RuntimeValue, RuntimeIssue] {
+) -> Result[RuntimeValue, Diagnostic] {
   match op {
     BinaryOp::Or =>
       match
@@ -133,12 +156,26 @@ fn runtime_eval_binary(
     BinaryOp::Eq =>
       match runtime_value_equals(left, right) {
         Some(equal) => Ok(RuntimeValue::Flag(equal))
-        None => Err(runtime_issue(path, "cannot compare values with `==`"))
+        None =>
+          Err(
+            runtime_issue(
+              path,
+              "cannot compare values with `==`",
+              code="INVALID_EXPR",
+            ),
+          )
       }
     BinaryOp::NotEq =>
       match runtime_value_equals(left, right) {
         Some(equal) => Ok(RuntimeValue::Flag(!equal))
-        None => Err(runtime_issue(path, "cannot compare values with `!=`"))
+        None =>
+          Err(
+            runtime_issue(
+              path,
+              "cannot compare values with `!=`",
+              code="INVALID_EXPR",
+            ),
+          )
       }
     BinaryOp::Gt | BinaryOp::Gte | BinaryOp::Lt | BinaryOp::Lte =>
       match runtime_value_compare(left, right) {
@@ -155,7 +192,9 @@ fn runtime_eval_binary(
         None =>
           Err(
             runtime_issue(
-              path, "ordering comparisons require matching text or integer values",
+              path,
+              "ordering comparisons require matching text or integer values",
+              code="INVALID_EXPR",
             ),
           )
       }

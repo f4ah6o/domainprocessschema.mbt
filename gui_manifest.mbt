@@ -5,7 +5,8 @@ fn render_gui_manifest(schema : Schema, locale : String) -> String {
     rendered_entities.push(render_gui_entity(entity, locale))
   }
   let entities_block = indent_block(rendered_entities.join(",\n"), 4)
-  "{\n  \"entities\": [\n\{entities_block}\n  ]\n}"
+  let payload = "{\n  \"entities\": [\n\{entities_block}\n  ]\n}"
+  render_manifest_envelope("gui-manifest", payload)
 }
 
 ///|
@@ -69,7 +70,11 @@ fn render_gui_view(entity : Entity, view : View, locale : String) -> String {
 }
 
 ///|
-fn render_gui_field_control(field : Field, view : View, locale : String) -> String {
+fn render_gui_field_control(
+  field : Field,
+  view : View,
+  locale : String,
+) -> String {
   let mode = gui_field_mode(field, view)
   let body_lines = [
     "\"name\": \{json_quote(field.name)}",

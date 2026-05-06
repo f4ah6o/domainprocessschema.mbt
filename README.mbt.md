@@ -20,6 +20,11 @@ static HTML renderer, and one in-memory runtime surface:
 The GitHub repository name contains `.mbt`, but the MoonBit module name is
 `f4ah6o/domainprocessschema_mbt` because MoonBit module names cannot contain `.`.
 
+See also:
+
+- `docs/schema-contract-v1.md`
+- `issues/2026-05-06T195600-spec-stabilize-versioned-contract-roadmap.md`
+
 ## Status
 
 Phase 1 supports:
@@ -45,6 +50,21 @@ The validator now checks:
 - API/action manifest generation for entities and transitions
 - validation manifest generation for field/constraint/rule metadata
 - GUI manifest generation for views, controls, and actions
+- structured diagnostics for parser / validator / runtime failures
+
+The generated JSON manifests now share a versioned envelope:
+
+```json
+{
+  "schemaVersion": "domainprocessschema.v1",
+  "manifestKind": "gui-manifest",
+  "generator": {
+    "name": "domainprocessschema.mbt",
+    "version": "0.1.0"
+  },
+  "payload": {}
+}
+```
 
 The runtime now supports:
 
@@ -97,6 +117,24 @@ moon run cmd/main -- api-manifest examples/expense_request.yaml
 moon run cmd/main -- validation-manifest examples/expense_request.yaml
 moon run cmd/main -- gui-manifest examples/expense_request.yaml
 moon run cmd/main -- gui-html examples/expense_request.yaml
+```
+
+When a compile step fails, the CLI now prints a structured JSON diagnostic report:
+
+```json
+{
+  "ok": false,
+  "issues": [
+    {
+      "code": "UNKNOWN_STATE",
+      "severity": "error",
+      "target": "schema.entities.ExpenseRequest.transitions.submit",
+      "message": "unknown target state submitted",
+      "hint": null,
+      "context": {}
+    }
+  ]
+}
 ```
 
 ## Runtime API

@@ -13,10 +13,53 @@ fn parse_gui_manifest_json(
 ///|
 fn parse_gui_manifest_root(json : Json) -> GuiManifestDoc raise HtmlRenderError {
   let root = expect_gui_object(json, "gui")
-  let entities_json = require_gui_array(root, "entities", "gui.entities")
+  let payload_root = match root.get("payload") {
+    Some(payload_json) => {
+      match optional_gui_string(root, "schemaVersion", "gui.schemaVersion") {
+        Some(version) =>
+          if version != schema_contract_version() {
+            raise HtmlRenderError::InvalidGuiManifest(
+              path="gui.schemaVersion",
+              "unsupported schema version \{version}",
+            )
+          }
+        None => ()
+      }
+      match optional_gui_string(root, "manifestKind", "gui.manifestKind") {
+        Some(kind) =>
+          if kind != "gui-manifest" {
+            raise HtmlRenderError::InvalidGuiManifest(
+              path="gui.manifestKind",
+              "expected manifestKind gui-manifest, got \{kind}",
+            )
+          }
+        None => ()
+      }
+      expect_gui_object(payload_json, "gui.payload")
+    }
+    None => root
+  }
+  let entities_json = require_gui_array(
+    payload_root,
+    "entities",
+    if root.get("payload") is Some(_) {
+      "gui.payload.entities"
+    } else {
+      "gui.entities"
+    },
+  )
   let entities : Array[GuiManifestEntity] = []
   for i, entity_json in entities_json {
-    entities.push(parse_gui_entity(entity_json, "gui.entities[\{i}]"))
+    entities.push(
+      parse_gui_entity(
+        entity_json,
+        if root.get("payload") is Some(_) {
+          "gui.payload.entities[\{i}]"
+        } else {
+          "gui.entities[\{i}]"
+        },
+      ),
+    )
   }
   GuiManifestDoc::{ entities, }
 }

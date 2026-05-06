@@ -204,8 +204,9 @@ function renderValidationResult(result) {
 // details without re-walking raw JSON every time.
 function buildValidationLookup(manifestText) {
   const manifest = JSON.parse(manifestText);
+  const payload = manifest.payload ?? manifest;
   const entities = new Map();
-  for (const entity of manifest.entities ?? []) {
+  for (const entity of payload.entities ?? []) {
     const fieldLookup = new Map(
       (entity.fields ?? []).map((field) => [field.name, field]),
     );

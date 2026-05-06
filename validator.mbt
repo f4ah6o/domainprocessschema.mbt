@@ -1,7 +1,7 @@
 ///|
 fn validate_parsed_schema(parsed : ParsedSchema) -> Schema raise SchemaError {
   if parsed.entities.length() == 0 {
-    raise SchemaError::ValidationError(
+    raise schema_validation_error(
       path="schema.entities",
       "at least one entity is required",
     )
@@ -9,7 +9,7 @@ fn validate_parsed_schema(parsed : ParsedSchema) -> Schema raise SchemaError {
   let entity_names : Map[String, Bool] = {}
   for entity in parsed.entities {
     if entity_names.contains(entity.name) {
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path="schema.entities.\{entity.name}",
         "duplicate entity name \{entity.name}",
       )
@@ -30,7 +30,7 @@ fn validate_entity(
 ) -> Entity raise SchemaError {
   let path = "schema.entities.\{entity.name}"
   if entity.fields.length() == 0 {
-    raise SchemaError::ValidationError(
+    raise schema_validation_error(
       path="\{path}.fields",
       "an entity must define at least one field",
     )
@@ -42,7 +42,7 @@ fn validate_entity(
   for parsed_field in entity.fields {
     let field = validate_field(parsed_field, entity.name, entity_names)
     if field_names.contains(parsed_field.name) {
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path="\{path}.fields.\{parsed_field.name}",
         "duplicate field name \{parsed_field.name}",
       )
@@ -57,7 +57,7 @@ fn validate_entity(
     fields.push(field)
   }
   if primary_count != 1 {
-    raise SchemaError::ValidationError(
+    raise schema_validation_error(
       path="\{path}.fields",
       "phase 1 requires exactly one primary field per entity",
     )
@@ -66,28 +66,26 @@ fn validate_entity(
   let states : Array[State] = []
   for parsed_state in entity.states {
     if state_names.contains(parsed_state.name) {
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path="\{path}.states.\{parsed_state.name}",
         "duplicate state name \{parsed_state.name}",
       )
     }
     state_names[parsed_state.name] = true
-    states.push(
-      State::{
-        name: parsed_state.name,
-        label: parsed_state.label,
-        labels: parsed_state.labels,
-      },
-    )
+    states.push(State::{
+      name: parsed_state.name,
+      label: parsed_state.label,
+      labels: parsed_state.labels,
+    })
   }
   if states.length() > 0 && state_field_count != 1 {
-    raise SchemaError::ValidationError(
+    raise schema_validation_error(
       path="\{path}.fields",
       "entities with states must define exactly one `state` field",
     )
   }
   if states.length() == 0 && state_field_count > 0 {
-    raise SchemaError::ValidationError(
+    raise schema_validation_error(
       path="\{path}.states",
       "a `state` field requires a non-empty `states` section",
     )
@@ -149,19 +147,20 @@ fn validate_field(
   let field_type = parse_field_type(parsed_field.type_name, "\{path}.type")
   match (field_type, parsed_field.target) {
     (FieldType::Ref, None) =>
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path~,
         "`ref` fields require a `target` entity",
       )
     (FieldType::Ref, Some(target)) =>
       if !entity_names.contains(target) {
-        raise SchemaError::ValidationError(
+        raise schema_validation_error(
           path~,
           "unknown ref target \{target}",
+          code="UNKNOWN_ENTITY",
         )
       }
     (_, Some(_)) =>
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path~,
         "`target` is only valid for `ref` fields",
       )
@@ -169,13 +168,13 @@ fn validate_field(
   }
   match (field_type, parsed_field.initial) {
     (FieldType::State, None) =>
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path~,
         "`state` fields require an `initial` state",
       )
     (FieldType::State, Some(_)) => ()
     (_, Some(_)) =>
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path~,
         "`initial` is only valid for `state` fields",
       )
@@ -207,9 +206,10 @@ fn validate_state_field_initial(
     if field.field_type == FieldType::State {
       let initial = field.initial.unwrap_or("")
       if !state_names.contains(initial) {
-        raise SchemaError::ValidationError(
+        raise schema_validation_error(
           path="\{path}.fields.\{field.name}",
           "initial state \{initial} does not exist in `states`",
+          code="UNKNOWN_STATE",
         )
       }
     }
@@ -227,27 +227,29 @@ fn validate_relations(
   for relation in parsed_relations {
     let relation_path = "\{path}.relations.\{relation.name}"
     if !entity_names.contains(relation.target) {
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path=relation_path,
         "unknown relation target \{relation.target}",
+        code="UNKNOWN_ENTITY",
       )
     }
     let field = match field_names.get(relation.field) {
       Some(field) => field
       None =>
-        raise SchemaError::ValidationError(
+        raise schema_validation_error(
           path=relation_path,
           "relation field \{relation.field} does not exist",
+          code="UNKNOWN_FIELD",
         )
     }
     if field.field_type != FieldType::Ref {
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path=relation_path,
         "relation field \{relation.field} must use `type: ref`",
       )
     }
     if field.target != Some(relation.target) {
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path=relation_path,
         "relation target must match the ref field target",
       )
@@ -272,9 +274,10 @@ fn validate_constraints(
   for constraint in parsed_constraints {
     let expr_path = "\{path}.constraints.\{constraint.name}.expr"
     if constraint.expr.trim().is_empty() {
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path=expr_path,
         "constraint expressions must not be empty",
+        code="INVALID_EXPR",
       )
     }
     let expr = parse_expr_text(constraint.expr, expr_path)
@@ -296,15 +299,17 @@ fn validate_transitions(
   for transition in parsed_transitions {
     let transition_path = "\{path}.transitions.\{transition.name}"
     if !state_names.contains(transition.from) {
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path=transition_path,
         "unknown source state \{transition.from}",
+        code="UNKNOWN_STATE",
       )
     }
     if !state_names.contains(transition.to) {
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path=transition_path,
         "unknown target state \{transition.to}",
+        code="UNKNOWN_STATE",
       )
     }
     let inputs = validate_transition_inputs(
@@ -347,15 +352,17 @@ fn validate_transition_inputs(
   for parsed_input in parsed_inputs {
     let input_path = "\{transition_path}.inputs.\{parsed_input.name}"
     if field_names.contains(parsed_input.name) {
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path=input_path,
         "transition-local input \{parsed_input.name} conflicts with an entity field",
+        code="INVALID_TRANSITION_INPUT",
       )
     }
     if local_inputs.contains(parsed_input.name) {
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path=input_path,
         "duplicate transition-local input \{parsed_input.name}",
+        code="INVALID_TRANSITION_INPUT",
       )
     }
     let field_type = parse_field_type(
@@ -363,26 +370,28 @@ fn validate_transition_inputs(
       "\{input_path}.type",
     )
     if field_type == FieldType::State {
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path=input_path,
         "transition-local inputs cannot use `state` type",
+        code="INVALID_TRANSITION_INPUT",
       )
     }
     match (field_type, parsed_input.target) {
       (FieldType::Ref, None) =>
-        raise SchemaError::ValidationError(
+        raise schema_validation_error(
           path=input_path,
           "`ref` transition-local inputs require a `target` entity",
         )
       (FieldType::Ref, Some(target)) =>
         if !entity_names.contains(target) {
-          raise SchemaError::ValidationError(
+          raise schema_validation_error(
             path=input_path,
             "unknown ref target \{target}",
+            code="UNKNOWN_ENTITY",
           )
         }
       (_, Some(_)) =>
-        raise SchemaError::ValidationError(
+        raise schema_validation_error(
           path=input_path,
           "`target` is only valid for `ref` transition-local inputs",
         )
@@ -403,7 +412,7 @@ fn validate_transition_inputs(
   let seen_names : Map[String, Bool] = {}
   for input_name in input_names {
     if seen_names.contains(input_name) {
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path=transition_path,
         "duplicate transition input \{input_name}",
       )
@@ -412,7 +421,7 @@ fn validate_transition_inputs(
     match field_names.get(input_name) {
       Some(field) => {
         if field.system {
-          raise SchemaError::ValidationError(
+          raise schema_validation_error(
             path=transition_path,
             "system field \{input_name} cannot be used as transition input",
           )
@@ -431,9 +440,10 @@ fn validate_transition_inputs(
         match local_inputs.get(input_name) {
           Some(input) => inputs.push(input)
           None =>
-            raise SchemaError::ValidationError(
+            raise schema_validation_error(
               path=transition_path,
               "transition input \{input_name} must be an entity field or declared in `inputs`",
+              code="INVALID_TRANSITION_INPUT",
             )
         }
     }
@@ -441,9 +451,10 @@ fn validate_transition_inputs(
 
   for local_name, _ in local_inputs {
     if !seen_names.contains(local_name) {
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path=transition_path,
         "transition-local input \{local_name} must be referenced from `input`",
+        code="INVALID_TRANSITION_INPUT",
       )
     }
   }
@@ -463,24 +474,27 @@ fn validate_state_view_mapping(
   }
   for view in views {
     if state_names.length() == 0 {
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path="\{path}.views",
         "views require a non-empty `states` section",
+        code="VIEW_STATE_MISMATCH",
       )
     }
     if !state_names.contains(view.name) {
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path="\{path}.views.\{view.name}",
         "view \{view.name} must match a declared state",
+        code="VIEW_STATE_MISMATCH",
       )
     }
     view_names[view.name] = true
   }
   for state in states {
     if !view_names.contains(state.name) {
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path="\{path}.views",
         "state \{state.name} has no matching view",
+        code="VIEW_STATE_MISMATCH",
       )
     }
   }
@@ -496,7 +510,7 @@ fn validate_rules(
   for rule in parsed_rules {
     let expr_path = "\{path}.rules.\{rule.name}.when"
     if rule.when_expr.trim().is_empty() {
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path=expr_path,
         "rule expressions must not be empty",
       )
@@ -519,7 +533,7 @@ fn validate_views(
     let view_path = "\{path}.views.\{view.name}"
     for field_name in view.editable_fields {
       if !field_names.contains(field_name) {
-        raise SchemaError::ValidationError(
+        raise schema_validation_error(
           path=view_path,
           "editable field \{field_name} does not exist",
         )
@@ -527,7 +541,7 @@ fn validate_views(
     }
     for field_name in view.readonly_fields {
       if !field_names.contains(field_name) {
-        raise SchemaError::ValidationError(
+        raise schema_validation_error(
           path=view_path,
           "readonly field \{field_name} does not exist",
         )
@@ -551,16 +565,18 @@ fn validate_storage_keys(
   let keys : Array[StorageKey] = []
   for parsed_key in parsed_keys {
     if parsed_key.fields.length() == 0 {
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path~,
         "storage field groups must not be empty",
+        code="STORAGE_CONFLICT",
       )
     }
     for field_name in parsed_key.fields {
       if !field_names.contains(field_name) {
-        raise SchemaError::ValidationError(
+        raise schema_validation_error(
           path~,
           "storage field \{field_name} does not exist",
+          code="UNKNOWN_FIELD",
         )
       }
     }
@@ -578,9 +594,10 @@ fn validate_table_name(
   match configured {
     Some(table_name) => {
       if table_name.trim().is_empty() {
-        raise SchemaError::ValidationError(
+        raise schema_validation_error(
           path="\{path}.storage.table",
           "storage.table must not be empty",
+          code="STORAGE_CONFLICT",
         )
       }
       table_name
@@ -608,7 +625,7 @@ fn parse_field_type(
     "state" => FieldType::State
     "file" => FieldType::File
     _ =>
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path~,
         "unsupported field type \{type_name}",
       )
@@ -626,7 +643,7 @@ fn parse_relation_kind(
     "many_to_one" => RelationKind::ManyToOne
     "many_to_many" => RelationKind::ManyToMany
     _ =>
-      raise SchemaError::ValidationError(
+      raise schema_validation_error(
         path~,
         "unsupported relation kind \{kind_name}",
       )
