@@ -1,0 +1,294 @@
+{
+  "schemaVersion": "domainprocessschema.v1",
+  "manifestKind": "gui-manifest",
+  "generator": {
+      "name": "domainprocessschema.mbt",
+      "version": "0.1.0"
+    },
+  "payload": {
+    "entities": [
+      {
+        "name": "User",
+        "label": "User",
+        "states": [],
+        "views": [],
+        "rules": []
+      },
+      {
+        "name": "ExpenseRequest",
+        "label": "Expense Request",
+        "states": [
+            {
+              "name": "draft",
+              "label": "Draft"
+            },
+            {
+              "name": "submitted",
+              "label": "Submitted"
+            },
+            {
+              "name": "approved",
+              "label": "Approved"
+            },
+            {
+              "name": "rejected",
+              "label": "Rejected"
+            }
+          ],
+        "views": [
+            {
+              "name": "draft",
+              "fields": [
+                  {
+                    "name": "id",
+                    "label": "ID",
+                    "component": "text",
+                    "mode": "hidden"
+                  },
+                  {
+                    "name": "amount",
+                    "label": "Amount",
+                    "component": "money",
+                    "mode": "editable"
+                  },
+                  {
+                    "name": "reason",
+                    "label": "Reason",
+                    "component": "textarea",
+                    "mode": "editable"
+                  },
+                  {
+                    "name": "applicant",
+                    "label": "Applicant",
+                    "component": "reference-select",
+                    "mode": "hidden"
+                  },
+                  {
+                    "name": "status",
+                    "label": "Status",
+                    "component": "state-badge",
+                    "mode": "hidden"
+                  },
+                  {
+                    "name": "createdAt",
+                    "label": "Created at",
+                    "component": "datetime-picker",
+                    "mode": "readonly"
+                  },
+                  {
+                    "name": "updatedAt",
+                    "label": "Updated at",
+                    "component": "datetime-picker",
+                    "mode": "readonly"
+                  }
+                ],
+              "actions": [
+                  {
+                    "name": "submit",
+                    "to": "submitted",
+                    "inputs": [
+                        {
+                          "name": "amount",
+                          "label": "Amount",
+                          "kind": "entity-field",
+                          "component": "money",
+                          "required": true
+                        },
+                        {
+                          "name": "reason",
+                          "label": "Reason",
+                          "kind": "entity-field",
+                          "component": "textarea",
+                          "required": true
+                        },
+                        {
+                          "name": "applicant",
+                          "label": "Applicant",
+                          "kind": "entity-field",
+                          "component": "reference-select",
+                          "required": true
+                        }
+                      ],
+                    "enabledWhen": "amount > 0",
+                    "role": null
+                  }
+                ]
+            },
+            {
+              "name": "submitted",
+              "fields": [
+                  {
+                    "name": "id",
+                    "label": "ID",
+                    "component": "text",
+                    "mode": "hidden"
+                  },
+                  {
+                    "name": "amount",
+                    "label": "Amount",
+                    "component": "money",
+                    "mode": "readonly"
+                  },
+                  {
+                    "name": "reason",
+                    "label": "Reason",
+                    "component": "textarea",
+                    "mode": "readonly"
+                  },
+                  {
+                    "name": "applicant",
+                    "label": "Applicant",
+                    "component": "reference-select",
+                    "mode": "hidden"
+                  },
+                  {
+                    "name": "status",
+                    "label": "Status",
+                    "component": "state-badge",
+                    "mode": "hidden"
+                  },
+                  {
+                    "name": "createdAt",
+                    "label": "Created at",
+                    "component": "datetime-picker",
+                    "mode": "readonly"
+                  },
+                  {
+                    "name": "updatedAt",
+                    "label": "Updated at",
+                    "component": "datetime-picker",
+                    "mode": "readonly"
+                  }
+                ],
+              "actions": [
+                  {
+                    "name": "approve",
+                    "to": "approved",
+                    "inputs": [],
+                    "enabledWhen": null,
+                    "role": "manager"
+                  },
+                  {
+                    "name": "reject",
+                    "to": "rejected",
+                    "inputs": [
+                        {
+                          "name": "rejectReason",
+                          "label": "rejectReason",
+                          "kind": "local",
+                          "component": "textarea",
+                          "required": true
+                        }
+                      ],
+                    "enabledWhen": null,
+                    "role": "manager"
+                  }
+                ]
+            },
+            {
+              "name": "approved",
+              "fields": [
+                  {
+                    "name": "id",
+                    "label": "ID",
+                    "component": "text",
+                    "mode": "hidden"
+                  },
+                  {
+                    "name": "amount",
+                    "label": "Amount",
+                    "component": "money",
+                    "mode": "readonly"
+                  },
+                  {
+                    "name": "reason",
+                    "label": "Reason",
+                    "component": "textarea",
+                    "mode": "readonly"
+                  },
+                  {
+                    "name": "applicant",
+                    "label": "Applicant",
+                    "component": "reference-select",
+                    "mode": "hidden"
+                  },
+                  {
+                    "name": "status",
+                    "label": "Status",
+                    "component": "state-badge",
+                    "mode": "hidden"
+                  },
+                  {
+                    "name": "createdAt",
+                    "label": "Created at",
+                    "component": "datetime-picker",
+                    "mode": "readonly"
+                  },
+                  {
+                    "name": "updatedAt",
+                    "label": "Updated at",
+                    "component": "datetime-picker",
+                    "mode": "readonly"
+                  }
+                ],
+              "actions": []
+            },
+            {
+              "name": "rejected",
+              "fields": [
+                  {
+                    "name": "id",
+                    "label": "ID",
+                    "component": "text",
+                    "mode": "hidden"
+                  },
+                  {
+                    "name": "amount",
+                    "label": "Amount",
+                    "component": "money",
+                    "mode": "readonly"
+                  },
+                  {
+                    "name": "reason",
+                    "label": "Reason",
+                    "component": "textarea",
+                    "mode": "readonly"
+                  },
+                  {
+                    "name": "applicant",
+                    "label": "Applicant",
+                    "component": "reference-select",
+                    "mode": "hidden"
+                  },
+                  {
+                    "name": "status",
+                    "label": "Status",
+                    "component": "state-badge",
+                    "mode": "hidden"
+                  },
+                  {
+                    "name": "createdAt",
+                    "label": "Created at",
+                    "component": "datetime-picker",
+                    "mode": "readonly"
+                  },
+                  {
+                    "name": "updatedAt",
+                    "label": "Updated at",
+                    "component": "datetime-picker",
+                    "mode": "readonly"
+                  }
+                ],
+              "actions": []
+            }
+          ],
+        "rules": [
+            {
+              "name": "canApprove",
+              "when": "state == \"submitted\" && user.role == \"manager\""
+            }
+          ]
+      }
+    ]
+  }
+}

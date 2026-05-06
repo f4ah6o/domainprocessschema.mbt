@@ -1,0 +1,203 @@
+{
+  "schemaVersion": "domainprocessschema.v1",
+  "manifestKind": "api-manifest",
+  "generator": {
+      "name": "domainprocessschema.mbt",
+      "version": "0.1.0"
+    },
+  "payload": {
+    "entities": [
+      {
+        "name": "User",
+        "label": "User",
+        "table": "users",
+        "fields": [
+            {
+              "name": "id",
+              "column": "id",
+              "type": "id",
+              "required": false,
+              "primary": true,
+              "readOnly": false,
+              "system": false
+            },
+            {
+              "name": "role",
+              "column": "role",
+              "type": "text",
+              "required": true,
+              "primary": false,
+              "readOnly": false,
+              "system": false
+            }
+          ],
+        "routes": [
+            {
+              "method": "GET",
+              "path": "/users/{id}"
+            },
+            {
+              "method": "POST",
+              "path": "/users"
+            },
+            {
+              "method": "PATCH",
+              "path": "/users/{id}"
+            }
+          ],
+        "actions": []
+      },
+      {
+        "name": "ExpenseRequest",
+        "label": "Expense Request",
+        "table": "expense_requests",
+        "fields": [
+            {
+              "name": "id",
+              "column": "id",
+              "type": "id",
+              "required": false,
+              "primary": true,
+              "readOnly": false,
+              "system": false
+            },
+            {
+              "name": "amount",
+              "column": "amount",
+              "type": "money",
+              "required": true,
+              "primary": false,
+              "readOnly": false,
+              "system": false
+            },
+            {
+              "name": "reason",
+              "column": "reason",
+              "type": "text",
+              "required": true,
+              "primary": false,
+              "readOnly": false,
+              "system": false
+            },
+            {
+              "name": "applicant",
+              "column": "applicant_id",
+              "type": "ref",
+              "required": true,
+              "primary": false,
+              "readOnly": false,
+              "system": false
+            },
+            {
+              "name": "status",
+              "column": "status",
+              "type": "state",
+              "required": false,
+              "primary": false,
+              "readOnly": false,
+              "system": false
+            },
+            {
+              "name": "createdAt",
+              "column": "created_at",
+              "type": "datetime",
+              "required": false,
+              "primary": false,
+              "readOnly": false,
+              "system": true
+            },
+            {
+              "name": "updatedAt",
+              "column": "updated_at",
+              "type": "datetime",
+              "required": false,
+              "primary": false,
+              "readOnly": false,
+              "system": true
+            }
+          ],
+        "routes": [
+            {
+              "method": "GET",
+              "path": "/expense_requests/{id}"
+            },
+            {
+              "method": "POST",
+              "path": "/expense_requests"
+            },
+            {
+              "method": "PATCH",
+              "path": "/expense_requests/{id}"
+            }
+          ],
+        "actions": [
+            {
+              "name": "submit",
+              "from": "draft",
+              "to": "submitted",
+              "path": "/expense_requests/{id}/submit",
+              "inputs": [
+                  {
+                    "name": "amount",
+                    "kind": "entity-field",
+                    "type": "money",
+                    "required": true,
+                    "readOnly": false,
+                    "default": null,
+                    "target": null
+                  },
+                  {
+                    "name": "reason",
+                    "kind": "entity-field",
+                    "type": "text",
+                    "required": true,
+                    "readOnly": false,
+                    "default": null,
+                    "target": null
+                  },
+                  {
+                    "name": "applicant",
+                    "kind": "entity-field",
+                    "type": "ref",
+                    "required": true,
+                    "readOnly": false,
+                    "default": null,
+                    "target": "User"
+                  }
+                ],
+              "guard": "amount > 0",
+              "role": null
+            },
+            {
+              "name": "approve",
+              "from": "submitted",
+              "to": "approved",
+              "path": "/expense_requests/{id}/approve",
+              "inputs": [],
+              "guard": null,
+              "role": "manager"
+            },
+            {
+              "name": "reject",
+              "from": "submitted",
+              "to": "rejected",
+              "path": "/expense_requests/{id}/reject",
+              "inputs": [
+                  {
+                    "name": "rejectReason",
+                    "kind": "local",
+                    "type": "text",
+                    "required": true,
+                    "readOnly": false,
+                    "default": null,
+                    "target": null
+                  }
+                ],
+              "guard": null,
+              "role": "manager"
+            }
+          ]
+      }
+    ]
+  }
+}
