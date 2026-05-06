@@ -18,6 +18,8 @@ pub fn compile_gui_manifest_from_yaml(String, locale? : String) -> String raise 
 
 pub fn compile_migration_sql_from_yaml(String) -> String raise SchemaError
 
+pub fn compile_normalized_schema_from_yaml(String) -> String raise SchemaError
+
 pub fn compile_runtime_from_yaml(String) -> Runtime raise SchemaError
 
 pub fn compile_sql_from_yaml(String) -> String raise SchemaError
@@ -31,6 +33,8 @@ pub fn generate_api_manifest(Schema) -> String
 pub fn generate_gui_manifest(Schema, locale? : String) -> String
 
 pub fn generate_migration_sql(Schema) -> String
+
+pub fn generate_normalized_schema(Schema) -> String
 
 pub fn generate_sql(Schema) -> String
 
