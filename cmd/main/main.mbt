@@ -5,6 +5,7 @@
 ///
 /// ```text
 /// moon run cmd/main -- examples/expense_request.yaml
+/// moon run cmd/main -- normalized-schema examples/expense_request.yaml
 /// moon run cmd/main -- api-manifest examples/expense_request.yaml
 /// moon run cmd/main -- validation-manifest examples/expense_request.yaml
 /// moon run cmd/main -- gui-manifest examples/expense_request.yaml
@@ -56,6 +57,7 @@ fn compile_output(mode : String, input : String) -> String raise {
   match mode {
     "sql" => @schema.compile_sql_from_yaml(input)
     "migration-sql" => @schema.compile_migration_sql_from_yaml(input)
+    "normalized-schema" => @schema.compile_normalized_schema_from_yaml(input)
     "api-manifest" => @schema.compile_api_manifest_from_yaml(input)
     "validation-manifest" =>
       @schema.compile_validation_manifest_from_yaml(input)
@@ -67,7 +69,7 @@ fn compile_output(mode : String, input : String) -> String raise {
           code: "UNSUPPORTED_MODE",
           severity: @schema.DiagnosticSeverity::Error,
           target: "cli.mode",
-          message: "unsupported mode \{mode}; use `sql`, `migration-sql`, `api-manifest`, `validation-manifest`, `gui-manifest`, or `gui-html`",
+          message: "unsupported mode \{mode}; use `sql`, `migration-sql`, `normalized-schema`, `api-manifest`, `validation-manifest`, `gui-manifest`, or `gui-html`",
           hint: Some(
             "Pick one of the documented CLI modes from the usage string.",
           ),
@@ -80,6 +82,6 @@ fn compile_output(mode : String, input : String) -> String raise {
 ///|
 fn print_usage() -> Unit {
   println(
-    "usage: moon run cmd/main -- [sql|migration-sql|api-manifest|validation-manifest|gui-manifest|gui-html] <schema.yaml>",
+    "usage: moon run cmd/main -- [sql|migration-sql|normalized-schema|api-manifest|validation-manifest|gui-manifest|gui-html] <schema.yaml>",
   )
 }
