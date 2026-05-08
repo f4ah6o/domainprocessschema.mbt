@@ -232,11 +232,11 @@ fn normalized_label_map(
   labels : Map[String, String],
 ) -> Map[String, String] {
   let normalized : Map[String, String] = {}
-  for key, value in labels {
-    normalized[key] = value
-  }
   if fallback != "" {
     normalized["default"] = fallback
+  }
+  for key, value in labels {
+    normalized[key] = value
   }
   normalized
 }
