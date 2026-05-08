@@ -15,11 +15,16 @@ check:
 test:
   moon test
 
+test-js:
+  moon build wasm/demo --target js --release
+  node --test wasm/demo/worker.test.mjs wasm/demo/webmcp.test.mjs
+
 build:
   moon build
 
 wasm-demo-build:
   moon build wasm/demo --target wasm-gc --release
+  moon build wasm/demo --target js --release
 
 wasm-demo-test:
   moon test wasm/demo

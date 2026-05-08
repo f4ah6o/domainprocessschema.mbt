@@ -27,7 +27,10 @@
               "readOnly": false,
               "system": false,
               "primary": true,
-              "column": "id"
+              "column": "id",
+              "default": null,
+              "target": null,
+              "initial": null
             },
             {
               "name": "role",
@@ -41,7 +44,10 @@
               "readOnly": false,
               "system": false,
               "primary": false,
-              "column": "role"
+              "column": "role",
+              "default": null,
+              "target": null,
+              "initial": null
             }
           ],
         "states": [],
@@ -77,7 +83,10 @@
               "readOnly": false,
               "system": false,
               "primary": true,
-              "column": "id"
+              "column": "id",
+              "default": null,
+              "target": null,
+              "initial": null
             },
             {
               "name": "amount",
@@ -91,7 +100,10 @@
               "readOnly": false,
               "system": false,
               "primary": false,
-              "column": "amount"
+              "column": "amount",
+              "default": null,
+              "target": null,
+              "initial": null
             },
             {
               "name": "reason",
@@ -105,7 +117,10 @@
               "readOnly": false,
               "system": false,
               "primary": false,
-              "column": "reason"
+              "column": "reason",
+              "default": null,
+              "target": null,
+              "initial": null
             },
             {
               "name": "applicant",
@@ -119,7 +134,10 @@
               "readOnly": false,
               "system": false,
               "primary": false,
-              "column": "applicant_id"
+              "column": "applicant_id",
+              "default": null,
+              "target": "User",
+              "initial": null
             },
             {
               "name": "status",
@@ -133,7 +151,10 @@
               "readOnly": false,
               "system": false,
               "primary": false,
-              "column": "status"
+              "column": "status",
+              "default": null,
+              "target": null,
+              "initial": "draft"
             },
             {
               "name": "createdAt",
@@ -147,7 +168,10 @@
               "readOnly": false,
               "system": true,
               "primary": false,
-              "column": "created_at"
+              "column": "created_at",
+              "default": null,
+              "target": null,
+              "initial": null
             },
             {
               "name": "updatedAt",
@@ -161,7 +185,10 @@
               "readOnly": false,
               "system": true,
               "primary": false,
-              "column": "updated_at"
+              "column": "updated_at",
+              "default": null,
+              "target": null,
+              "initial": null
             }
           ],
         "states": [
