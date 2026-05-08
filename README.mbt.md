@@ -285,11 +285,17 @@ CLOUDFLARE_ACCOUNT_ID=...
 Then use:
 
 ```bash
+moon build wasm/demo --target js --release
+moon build wasm/demo --target wasm-gc --release
 just demo-build
 just demo-dev
 just demo-deploy-preview
 just demo-deploy
 ```
+
+`worker.mjs` dynamically imports the JS target bridge under
+`_build/js/release/build/wasm/demo/demo.js`, so `wrangler dev` and deploy
+paths require both the JS and wasm-gc builds to exist.
 
 `demo-deploy-preview` deploys the `preview` Worker environment, and
 `demo-deploy` deploys the production Worker.

@@ -32,11 +32,20 @@ const actorRoleEl = document.getElementById("actor-role");
 const compileButton = document.getElementById("compile-button");
 const resetButton = document.getElementById("reset-button");
 const exportButton = document.getElementById("export-button");
+const addButtons = [
+  document.getElementById("add-field"),
+  document.getElementById("add-state"),
+  document.getElementById("add-transition"),
+  document.getElementById("add-view"),
+];
+let commitInFlight = null;
+let activeRequestController = null;
+let activeRequestToken = 0;
+let busyDepth = 0;
 
 actorRoleEl.addEventListener("change", async () => {
   state.actorRole = actorRoleEl.value;
   await refreshRuntimePreview();
-  render();
 });
 
 entitySelectEl.addEventListener("change", () => {
@@ -54,8 +63,7 @@ compileButton.addEventListener("click", async () => {
 });
 
 resetButton.addEventListener("click", async () => {
-  const response = await fetch("../examples/expense_request.yaml");
-  state.source = await response.text();
+  state.source = await loadExampleYaml();
   sourceEl.value = state.source;
   savePersistedSource(state.source);
   state.runtimeRecord = null;
@@ -64,14 +72,18 @@ resetButton.addEventListener("click", async () => {
 
 exportButton.addEventListener("click", async () => {
   const text = state.emittedYaml || state.source;
-  await navigator.clipboard.writeText(text);
-  setStatus("Copied emitted YAML to clipboard.");
+  try {
+    await navigator.clipboard.writeText(text);
+    setStatus("Copied emitted YAML to clipboard.");
+  } catch (error) {
+    setStatus(error instanceof Error ? error.message : "Clipboard write failed.");
+  }
 });
 
-document.getElementById("add-field").addEventListener("click", () => addNode("field"));
-document.getElementById("add-state").addEventListener("click", () => addNode("state"));
-document.getElementById("add-transition").addEventListener("click", () => addNode("transition"));
-document.getElementById("add-view").addEventListener("click", () => addNode("view"));
+addButtons[0].addEventListener("click", async () => addNode("field"));
+addButtons[1].addEventListener("click", async () => addNode("state"));
+addButtons[2].addEventListener("click", async () => addNode("transition"));
+addButtons[3].addEventListener("click", async () => addNode("view"));
 
 const disposeWebMcp = registerModelContextTools(createTools());
 void disposeWebMcp;
@@ -83,8 +95,7 @@ boot().catch((error) => {
 async function boot() {
   state.source = loadPersistedSource();
   if (!state.source) {
-    const response = await fetch("../examples/expense_request.yaml");
-    state.source = await response.text();
+    state.source = await loadExampleYaml();
   }
   sourceEl.value = state.source;
   actorRoleEl.value = state.actorRole;
@@ -92,45 +103,65 @@ async function boot() {
 }
 
 async function compileCurrentSource() {
-  setStatus("Compiling schema…");
-  const result = await postEditorJson("compile", {
-    source: state.source,
-    locale: "en",
-  });
-  state.diagnostics = result.diagnostics ?? [];
-  if (!result.ok) {
-    state.model = null;
-    state.entities = [];
-    state.previewHtml = "";
-    state.runtimeView = null;
-    previewEl.srcdoc = "";
-    render();
-    setStatus("Compile failed.");
-    return;
-  }
+  return runLatestRequest("Compiling schema…", async ({ signal, isCurrent }) => {
+    const result = await postEditorJson(
+      "compile",
+      {
+        source: state.source,
+        locale: "en",
+      },
+      { signal },
+    );
+    if (!isCurrent()) return null;
+    state.diagnostics = result.diagnostics ?? [];
+    if (!result.ok) {
+      state.model = null;
+      state.entities = [];
+      state.previewHtml = "";
+      state.runtimeView = null;
+      previewEl.srcdoc = "";
+      render();
+      setStatus("Compile failed.");
+      return result;
+    }
 
-  state.emittedYaml = result.emittedYaml ?? state.source;
-  state.model = cloneModel(readNormalizedPayload(result));
-  state.entities = result.entities ?? [];
-  const currentEntityKnown = state.model?.entities?.some((entity) => entity.name === state.selectedEntityName);
-  if (!state.selectedEntityName || !currentEntityKnown) {
-    state.selectedEntityName = preferredEntityName(state.model);
-  }
-  ensureSelection(state);
-  syncEntitySelect();
-  await refreshRuntimePreview();
-  render();
-  setStatus("Compile succeeded.");
+    state.emittedYaml = result.emittedYaml ?? state.source;
+    state.model = cloneModel(readNormalizedPayload(result));
+    state.entities = result.entities ?? [];
+    const currentEntityKnown = state.model?.entities?.some((entity) => entity.name === state.selectedEntityName);
+    if (!state.selectedEntityName || !currentEntityKnown) {
+      state.selectedEntityName = preferredEntityName(state.model);
+    }
+    ensureSelection(state);
+    syncEntitySelect();
+    await refreshRuntimePreview({ signal, isCurrent, statusMessage: null });
+    if (!isCurrent()) return null;
+    render();
+    setStatus("Compile succeeded.");
+    return result;
+  });
 }
 
-async function refreshRuntimePreview() {
+async function refreshRuntimePreview(options = {}) {
   if (!state.source) return;
-  const result = await postEditorJson("runtime-preview", {
-    source: state.source,
-    actorRole: state.actorRole,
-    record: state.runtimeRecord,
-    locale: "en",
-  });
+  if (options.signal) {
+    return refreshRuntimePreviewWithContext(options);
+  }
+  return runLatestRequest("Rendering preview…", refreshRuntimePreviewWithContext);
+}
+
+async function refreshRuntimePreviewWithContext({ signal, isCurrent }) {
+  const result = await postEditorJson(
+    "runtime-preview",
+    {
+      source: state.source,
+      actorRole: state.actorRole,
+      record: state.runtimeRecord,
+      locale: "en",
+    },
+    { signal },
+  );
+  if (!isCurrent()) return null;
   if (result.record) {
     state.runtimeRecord = result.record;
   }
@@ -140,6 +171,7 @@ async function refreshRuntimePreview() {
     state.diagnostics = result.diagnostics;
   }
   render();
+  return result;
 }
 
 function render() {
@@ -150,8 +182,12 @@ function render() {
   });
   inspectorEl.innerHTML = finalizeInspectorHtml(
     renderInspector(state, async (field, value) => {
-      applyInspectorPatch(field, value);
-      await commitVisualEdit();
+      try {
+        applyInspectorPatch(field, value);
+        await commitVisualEdit();
+      } catch (error) {
+        setStatus(error instanceof Error ? error.message : String(error));
+      }
     }),
   );
   diagnosticsEl.textContent = renderDiagnostics(state.diagnostics);
@@ -163,7 +199,7 @@ function syncEntitySelect() {
   entitySelectEl.innerHTML = (state.entities ?? [])
     .map(
       (entity) =>
-        `<option value="${entity.name}" ${entity.name === current ? "selected" : ""}>${entity.label ?? entity.name}</option>`,
+        `<option value="${escapeAttr(entity.name)}" ${entity.name === current ? "selected" : ""}>${escapeHtml(entity.label ?? entity.name)}</option>`,
     )
     .join("");
 }
@@ -199,8 +235,11 @@ function applyInspectorPatch(field, value) {
   }
 
   if (field.startsWith("labels.")) {
-    node.labels = node.labels ?? {};
     const labelKey = field.slice("labels.".length);
+    if (isBlockedObjectKey(labelKey)) {
+      throw new Error(`Refusing to update reserved label key: ${labelKey}`);
+    }
+    node.labels = node.labels ?? Object.create(null);
     if (!value) {
       delete node.labels[labelKey];
     } else {
@@ -221,15 +260,23 @@ function nullishField(field) {
 }
 
 async function commitVisualEdit() {
-  if (!state.model) return;
-  state.source = emitSchemaYaml(state.model);
-  state.runtimeRecord = null;
-  sourceEl.value = state.source;
-  savePersistedSource(state.source);
-  await compileCurrentSource();
+  if (commitInFlight) return commitInFlight;
+  if (!state.model) return null;
+  commitInFlight = (async () => {
+    state.source = emitSchemaYaml(state.model);
+    state.runtimeRecord = null;
+    sourceEl.value = state.source;
+    savePersistedSource(state.source);
+    await compileCurrentSource();
+  })();
+  try {
+    return await commitInFlight;
+  } finally {
+    commitInFlight = null;
+  }
 }
 
-function addNode(kind) {
+async function addNode(kind) {
   const entity = findSelectedEntity(state);
   if (!entity || !state.model) return;
 
@@ -251,7 +298,51 @@ function addNode(kind) {
     state.selection = { kind, name: next.name };
   }
 
-  void commitVisualEdit();
+  await commitVisualEdit();
+}
+
+async function loadExampleYaml() {
+  const response = await fetch("../examples/expense_request.yaml", { cache: "no-store" });
+  return await response.text();
+}
+
+async function runLatestRequest(statusMessage, task) {
+  const token = ++activeRequestToken;
+  activeRequestController?.abort();
+  const controller = new AbortController();
+  activeRequestController = controller;
+  setBusy(true);
+  if (statusMessage) {
+    setStatus(statusMessage);
+  }
+  try {
+    return await task({
+      signal: controller.signal,
+      isCurrent: () => activeRequestToken === token && activeRequestController === controller,
+    });
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      return null;
+    }
+    throw error;
+  } finally {
+    if (activeRequestController === controller) {
+      activeRequestController = null;
+    }
+    setBusy(false);
+  }
+}
+
+function setBusy(nextBusy) {
+  busyDepth = Math.max(0, busyDepth + (nextBusy ? 1 : -1));
+  const disabled = busyDepth > 0;
+  for (const element of [actorRoleEl, entitySelectEl, compileButton, resetButton, exportButton, ...addButtons]) {
+    element.disabled = disabled;
+  }
+}
+
+function isBlockedObjectKey(value) {
+  return ["__proto__", "prototype", "constructor"].includes(value);
 }
 
 function createTools() {
@@ -394,4 +485,16 @@ function createTools() {
 
 function setStatus(message) {
   statusEl.textContent = message;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+function escapeAttr(value) {
+  return escapeHtml(value).replaceAll("'", "&#39;");
 }

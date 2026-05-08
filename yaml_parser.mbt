@@ -338,19 +338,125 @@ fn parse_inline_yaml_value(
     if inner_trimmed.is_empty() {
       YamlValue::YamlList(items)
     } else {
-      for part in inner.split(",") {
-        let item = part.trim()
-        if item.is_empty() {
-          raise schema_parse_error(
-            line=line_no,
-            "inline lists must not contain empty elements",
-          )
-        }
-        items.push(YamlValue::YamlScalar(item.to_string()))
+      for part in split_inline_yaml_list(inner.to_string(), line_no) {
+        items.push(parse_inline_yaml_value(part, line_no))
       }
       YamlValue::YamlList(items)
     }
+  } else if trimmed.has_prefix("\"") && trimmed.has_suffix("\"") {
+    YamlValue::YamlScalar(parse_double_quoted_yaml_scalar(trimmed.to_string(), line_no))
   } else {
     YamlValue::YamlScalar(trimmed.to_string())
+  }
+}
+
+///|
+fn split_inline_yaml_list(text : String, line_no : Int) -> Array[String] raise SchemaError {
+  let parts : Array[String] = []
+  let mut builder = StringBuilder::new()
+  let mut in_quotes = false
+  let mut escaping = false
+  for ch in text {
+    if escaping {
+      builder.write_char(ch)
+      escaping = false
+      continue
+    }
+    if ch == '\\' && in_quotes {
+      builder.write_char(ch)
+      escaping = true
+      continue
+    }
+    if ch == '"' {
+      builder.write_char(ch)
+      in_quotes = !in_quotes
+      continue
+    }
+    if ch == ',' && !in_quotes {
+      let item = builder.to_string().trim().to_string()
+      if item.is_empty() {
+        raise schema_parse_error(
+          line=line_no,
+          "inline lists must not contain empty elements",
+        )
+      }
+      parts.push(item)
+      builder = StringBuilder::new()
+      continue
+    }
+    builder.write_char(ch)
+  }
+  if in_quotes || escaping {
+    raise schema_parse_error(line=line_no, "unterminated quoted scalar in inline list")
+  }
+  let tail = builder.to_string().trim().to_string()
+  if tail.is_empty() {
+    raise schema_parse_error(line=line_no, "inline lists must not contain empty elements")
+  }
+  parts.push(tail)
+  parts
+}
+
+///|
+fn parse_double_quoted_yaml_scalar(text : String, line_no : Int) -> String raise SchemaError {
+  let prefix = match text.strip_prefix("\"") {
+    Some(prefix) => prefix
+    None => raise schema_parse_error(line=line_no, "invalid quoted scalar")
+  }
+  let inner = match prefix.strip_suffix("\"") {
+    Some(value) => value
+    None => raise schema_parse_error(line=line_no, "invalid quoted scalar")
+  }
+  let builder = StringBuilder::new()
+  let chars = inner.to_array()
+  let mut index = 0
+  while index < chars.length() {
+    let ch = chars[index]
+    if ch != '\\' {
+      builder.write_char(ch)
+      index = index + 1
+      continue
+    }
+    if index + 1 >= chars.length() {
+      raise schema_parse_error(line=line_no, "unterminated escape sequence")
+    }
+    let escaped = chars[index + 1]
+    match escaped {
+      '"' => builder.write_char('"')
+      '\\' => builder.write_char('\\')
+      'n' => builder.write_char('\n')
+      'r' => builder.write_char('\r')
+      't' => builder.write_char('\t')
+      'b' => builder.write_char('\u{08}')
+      'f' => builder.write_char('\u{0c}')
+      'u' => {
+        if index + 5 >= chars.length() {
+          raise schema_parse_error(line=line_no, "incomplete unicode escape")
+        }
+        let code =
+          (hex_value(chars[index + 2], line_no) * 0x1000) +
+          (hex_value(chars[index + 3], line_no) * 0x100) +
+          (hex_value(chars[index + 4], line_no) * 0x10) +
+          hex_value(chars[index + 5], line_no)
+        builder.write_char(code.unsafe_to_char())
+        index = index + 4
+      }
+      _ => raise schema_parse_error(line=line_no, "unsupported escape sequence \\\{escaped}")
+    }
+    index = index + 2
+  }
+  builder.to_string()
+}
+
+///|
+fn hex_value(ch : Char, line_no : Int) -> Int raise SchemaError {
+  if ch >= '0' && ch <= '9' {
+    ch.to_int() - '0'.to_int()
+  } else if ch >= 'a' && ch <= 'f' {
+    10 + ch.to_int() - 'a'.to_int()
+  } else if ch >= 'A' && ch <= 'F' {
+    10 + ch.to_int() - 'A'.to_int()
+  } else {
+    raise schema_parse_error(line=line_no, "invalid hex escape digit \{ch}")
   }
 }

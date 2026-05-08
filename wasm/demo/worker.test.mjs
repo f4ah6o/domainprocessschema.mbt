@@ -34,7 +34,7 @@ test("compile route returns editor payload", async () => {
   assert.equal(result.status, 200);
   assert.equal(result.json.ok, true);
   assert.equal(result.json.entities.at(-1)?.name, "ExpenseRequest");
-  assert.match(result.json.emittedYaml, /soft_delete: true/);
+  assert.match(result.json.emittedYaml, /softDelete: true/);
   assert.equal(
     result.json.normalizedSchema.payload.entities[1].fields.find((field) => field.name === "status").initial,
     "draft",
