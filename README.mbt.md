@@ -263,6 +263,16 @@ The current editor API surface is:
 - `POST /api/editor/runtime-preview`
 - `POST /api/editor/apply-transition`
 
+`runtime-preview` and `apply-transition` choose the first entity that has
+states or a state-typed field as the default runtime target. If the schema
+does not define a workflow-shaped entity, they fall back to the first declared
+entity.
+
+`runtime-preview` and `apply-transition` choose the first entity that has
+states or a state-typed field as the default runtime target. If the schema
+does not define a workflow-shaped entity, they fall back to the first declared
+entity.
+
 The editor also registers browser-side WebMCP tools through
 `navigator.modelContext` with the `domainprocessschema-*` prefix. The Worker
 remains stateless; the browser owns the source YAML and current record.

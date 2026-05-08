@@ -154,90 +154,90 @@ function uniqueName(items, base) {
 export function emitSchemaYaml(model) {
   const lines = ["entities:"];
   for (const entity of model.entities ?? []) {
-    lines.push(`  ${entity.name}:`);
+    lines.push(`  ${yamlKey(entity.name)}:`);
     pushLocalized(lines, "    ", "label", entity.label, entity.labels);
     if (entity.fields?.length) {
       lines.push("    fields:");
       for (const field of entity.fields) {
-        lines.push(`      ${field.name}:`);
+        lines.push(`      ${yamlKey(field.name)}:`);
         pushLocalized(lines, "        ", "label", field.label ?? field.name, field.labels);
-        lines.push(`        type: ${field.type}`);
+        lines.push(`        type: ${yamlScalar(field.type)}`);
         if (field.required) lines.push("        required: true");
         if (field.primary) lines.push("        primary: true");
         if (field.readOnly) lines.push("        read_only: true");
         if (field.system) lines.push("        system: true");
-        if (field.default != null && field.default !== "") lines.push(`        default: ${field.default}`);
-        if (field.target) lines.push(`        target: ${field.target}`);
-        if (field.initial) lines.push(`        initial: ${field.initial}`);
+        if (field.default != null && field.default !== "") lines.push(`        default: ${yamlScalar(field.default)}`);
+        if (field.target) lines.push(`        target: ${yamlScalar(field.target)}`);
+        if (field.initial) lines.push(`        initial: ${yamlScalar(field.initial)}`);
       }
     }
     if (entity.relations?.length) {
       lines.push("    relations:");
       for (const relation of entity.relations) {
-        lines.push(`      ${relation.name}:`);
-        lines.push(`        kind: ${yamlRelationKind(relation.kind)}`);
-        lines.push(`        target: ${relation.target}`);
-        lines.push(`        field: ${relation.field}`);
+        lines.push(`      ${yamlKey(relation.name)}:`);
+        lines.push(`        kind: ${yamlScalar(yamlRelationKind(relation.kind))}`);
+        lines.push(`        target: ${yamlScalar(relation.target)}`);
+        lines.push(`        field: ${yamlScalar(relation.field)}`);
       }
     }
     if (entity.constraints?.length) {
       lines.push("    constraints:");
       for (const constraint of entity.constraints) {
-        lines.push(`      ${constraint.name}:`);
-        lines.push(`        expr: ${constraint.expr}`);
+        lines.push(`      ${yamlKey(constraint.name)}:`);
+        lines.push(`        expr: ${yamlScalar(constraint.expr)}`);
       }
     }
     if (entity.states?.length) {
       lines.push("    states:");
       for (const state of entity.states) {
-        lines.push(`      ${state.name}:`);
+        lines.push(`      ${yamlKey(state.name)}:`);
         pushLocalized(lines, "        ", "label", state.label ?? state.name, state.labels);
       }
     }
     if (entity.transitions?.length) {
       lines.push("    transitions:");
       for (const transition of entity.transitions) {
-        lines.push(`      ${transition.name}:`);
-        lines.push(`        from: ${transition.from}`);
-        lines.push(`        to: ${transition.to}`);
-        if (transition.role) lines.push(`        role: ${transition.role}`);
+        lines.push(`      ${yamlKey(transition.name)}:`);
+        lines.push(`        from: ${yamlScalar(transition.from)}`);
+        lines.push(`        to: ${yamlScalar(transition.to)}`);
+        if (transition.role) lines.push(`        role: ${yamlScalar(transition.role)}`);
         if (transition.inputs?.length) {
           lines.push("        input:");
-          for (const input of transition.inputs) lines.push(`          - ${input.name}`);
+          for (const input of transition.inputs) lines.push(`          - ${yamlScalar(input.name)}`);
           const locals = transition.inputs.filter((input) => input.kind === "local");
           if (locals.length) {
             lines.push("        inputs:");
             for (const input of locals) {
-              lines.push(`          ${input.name}:`);
-              lines.push(`            type: ${input.type}`);
+              lines.push(`          ${yamlKey(input.name)}:`);
+              lines.push(`            type: ${yamlScalar(input.type)}`);
               if (input.required) lines.push("            required: true");
               if (input.readOnly) lines.push("            read_only: true");
-              if (input.default != null && input.default !== "") lines.push(`            default: ${input.default}`);
-              if (input.target) lines.push(`            target: ${input.target}`);
+              if (input.default != null && input.default !== "") lines.push(`            default: ${yamlScalar(input.default)}`);
+              if (input.target) lines.push(`            target: ${yamlScalar(input.target)}`);
             }
           }
         }
-        if (transition.guard) lines.push(`        guard: ${transition.guard}`);
+        if (transition.guard) lines.push(`        guard: ${yamlScalar(transition.guard)}`);
       }
     }
     if (entity.rules?.length) {
       lines.push("    rules:");
       for (const rule of entity.rules) {
-        lines.push(`      ${rule.name}:`);
-        lines.push(`        when: ${rule.when}`);
+        lines.push(`      ${yamlKey(rule.name)}:`);
+        lines.push(`        when: ${yamlScalar(rule.when)}`);
       }
     }
     if (entity.views?.length) {
       lines.push("    views:");
       for (const view of entity.views) {
-        lines.push(`      ${view.name}:`);
+        lines.push(`      ${yamlKey(view.name)}:`);
         if (view.editableFields?.length) {
           lines.push("        editable:");
-          for (const fieldName of view.editableFields) lines.push(`          - ${fieldName}`);
+          for (const fieldName of view.editableFields) lines.push(`          - ${yamlScalar(fieldName)}`);
         }
         if (view.readonlyFields?.length) {
           lines.push("        readonly:");
-          for (const fieldName of view.readonlyFields) lines.push(`          - ${fieldName}`);
+          for (const fieldName of view.readonlyFields) lines.push(`          - ${yamlScalar(fieldName)}`);
         }
       }
     }
@@ -251,18 +251,18 @@ export function emitSchemaYaml(model) {
     ) {
       lines.push("    storage:");
       if (storage.table && storage.table !== defaultTable) {
-        lines.push(`      table: ${storage.table}`);
+        lines.push(`      table: ${yamlScalar(storage.table)}`);
       }
       if (storage.indexes?.length) {
         lines.push("      indexes:");
         for (const index of storage.indexes) {
-          lines.push(`        - fields: [${(index.fields ?? []).join(", ")}]`);
+          lines.push(`        - fields: ${yamlInlineList(index.fields ?? [])}`);
         }
       }
       if (storage.unique?.length) {
         lines.push("      unique:");
         for (const uniqueKey of storage.unique) {
-          lines.push(`        - fields: [${(uniqueKey.fields ?? []).join(", ")}]`);
+          lines.push(`        - fields: ${yamlInlineList(uniqueKey.fields ?? [])}`);
         }
       }
       if (storage.softDelete) {
@@ -276,16 +276,16 @@ export function emitSchemaYaml(model) {
 function pushLocalized(lines, indent, key, fallback, labels) {
   const labelEntries = Object.entries(labels ?? {}).filter(([, value]) => value != null && value !== "");
   if (labelEntries.length === 0) {
-    lines.push(`${indent}${key}: ${fallback}`);
+    lines.push(`${indent}${key}: ${yamlScalar(fallback)}`);
     return;
   }
   if (labelEntries.length === 1 && labelEntries[0][0] === "default") {
-    lines.push(`${indent}${key}: ${labelEntries[0][1]}`);
+    lines.push(`${indent}${key}: ${yamlScalar(labelEntries[0][1])}`);
     return;
   }
   lines.push(`${indent}${key}:`);
   for (const [lang, value] of labelEntries.sort(([left], [right]) => left.localeCompare(right))) {
-    lines.push(`${indent}  ${lang}: ${value}`);
+    lines.push(`${indent}  ${yamlKey(lang)}: ${yamlScalar(value)}`);
   }
 }
 
@@ -309,4 +309,25 @@ function pluralizeSnake(name) {
     .replaceAll(/([a-z0-9])([A-Z])/g, "$1_$2")
     .replaceAll(/[-\s]+/g, "_")
     .toLowerCase()}s`;
+}
+
+function yamlKey(value) {
+  return yamlScalar(value);
+}
+
+function yamlInlineList(values) {
+  return `[${values.map((value) => yamlScalar(value)).join(", ")}]`;
+}
+
+function yamlScalar(value) {
+  const text = String(value ?? "");
+  return `"${text
+    .replaceAll("\\", "\\\\")
+    .replaceAll('"', '\\"')
+    .replaceAll("\n", "\\n")
+    .replaceAll("\r", "\\r")
+    .replaceAll("\t", "\\t")
+    .replaceAll("\b", "\\b")
+    .replaceAll("\f", "\\f")
+    .replaceAll(/[\u0000-\u001f]/g, (char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`)}"`;
 }

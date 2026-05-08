@@ -311,8 +311,27 @@ fn json_escape(text : String) -> String {
       '\n' => builder.write_string("\\n")
       '\r' => builder.write_string("\\r")
       '\t' => builder.write_string("\\t")
-      _ => builder.write_char(char)
+      '\u{08}' => builder.write_string("\\b")
+      '\u{0c}' => builder.write_string("\\f")
+      _ => {
+        let code = char.to_int()
+        if code >= 0 && code < 0x20 {
+          builder.write_string("\\u")
+          builder.write_string(hex_digit((code / 0x1000) % 0x10))
+          builder.write_string(hex_digit((code / 0x100) % 0x10))
+          builder.write_string(hex_digit((code / 0x10) % 0x10))
+          builder.write_string(hex_digit(code % 0x10))
+        } else {
+          builder.write_char(char)
+        }
+      }
     }
   }
   builder.to_string()
+}
+
+///|
+fn hex_digit(value : Int) -> String {
+  let digits = "0123456789abcdef"
+  digits[value].to_string()
 }

@@ -257,6 +257,9 @@ fn editor_record_payload_from_json(
   record_json : String,
   runtime : @schema.Runtime,
 ) -> (String, Map[String, @schema.RuntimeValue]) raise {
+  if record_json.length() > 1_000_000 {
+    raise @builtin.Failure::Failure("record_json exceeds 1 MB editor limit")
+  }
   if record_json.trim() == "" {
     let entity = editor_find_entity(runtime, fallback_entity_name)
     return (fallback_entity_name, build_editor_seed_payload(entity))
@@ -282,6 +285,9 @@ fn editor_record_payload_from_json(
 }
 
 ///|
+/// Editor preview endpoints choose the first entity that has states or a
+/// state field so the runtime pane defaults to a workflow-shaped schema.
+/// If none exist, the first declared entity is used.
 fn editor_default_entity_name(runtime : @schema.Runtime) -> String raise {
   if runtime.schema.entities.length() == 0 {
     raise @builtin.Failure::Failure("schema does not define any entities")

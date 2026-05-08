@@ -151,8 +151,12 @@ function render() {
   });
   inspectorEl.innerHTML = finalizeInspectorHtml(
     renderInspector(state, async (field, value) => {
-      applyInspectorPatch(field, value);
-      await commitVisualEdit();
+      try {
+        applyInspectorPatch(field, value);
+        await commitVisualEdit();
+      } catch (error) {
+        setStatus(error instanceof Error ? error.message : String(error));
+      }
     }),
   );
   diagnosticsEl.textContent = renderDiagnostics(state.diagnostics);
@@ -164,7 +168,7 @@ function syncEntitySelect() {
   entitySelectEl.innerHTML = (state.entities ?? [])
     .map(
       (entity) =>
-        `<option value="${entity.name}" ${entity.name === current ? "selected" : ""}>${entity.label ?? entity.name}</option>`,
+        `<option value="${escapeAttr(entity.name)}" ${entity.name === current ? "selected" : ""}>${escapeHtml(entity.label ?? entity.name)}</option>`,
     )
     .join("");
 }
@@ -410,4 +414,16 @@ function createTools() {
 
 function setStatus(message) {
   statusEl.textContent = message;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+function escapeAttr(value) {
+  return escapeHtml(value).replaceAll("'", "&#39;");
 }
