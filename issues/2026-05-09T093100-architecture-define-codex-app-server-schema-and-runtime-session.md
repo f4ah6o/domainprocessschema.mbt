@@ -1,202 +1,215 @@
-# Define Codex App Server schema and runtime session contract for domainprocessschema.mbt
+# Codex App Server 向け schema + runtime session 契約を定義する
 
 Created: 2026-05-09
-Model: GPT-5 Codex
+Model: GPT-5 Codex unknown
 
-## Background
+## 背景
 
-`domainprocessschema.mbt` currently exposes a strong but mostly stateless demo
-surface:
+`domainprocessschema.mbt` にはすでに次の editor/demo surface がある。
 
 - `compile`
 - `runtime-preview`
 - `apply-transition`
-- browser-side graph/inspector state
+- browser-side graph / inspector state
 
-The runtime core is intentionally a library and should stay that way, as already
-aligned with the runtime adapter boundary direction in this repo. The current
-editor flow, however, still depends on browser-side source ownership and a
-stateless Worker API.
+一方で、現在の editor は browser 側が source と state を持ち、Worker API は
+基本的に stateless である。  
+runtime core 自体は library として保つ方針がすでにあり、ここへ HTTP や UI
+責務を混ぜずに、外側だけ durable session 化する contract が必要になっている。
 
-As of 2026-05-09, Codex App Server is the preferred rich-client integration
-surface for Codex. The App Server model assumes resumable sessions, server
-notifications, approval requests, and tool-oriented mutation flows. A schema
-editor plus runtime inspector fits that model better than a browser-local demo
-does.
+この issue は shared repo の存在を前提条件にはしない。  
+先にこの repo 側で `schema + runtime session` 契約を定義し、あとから shared
+repo や VS Code extension がその contract を消費できる状態にする。
 
-This repo needs a durable App Server-facing `schema + runtime session` contract
-so a future shared repo and VS Code extension can interact with the runtime as a
-real session rather than as a stateless HTTP demo.
+## 提案
 
-## Proposal
+現在の Worker demo を App Server 向け session モデルとして再定義する。
 
-Promote the current Worker demo into an App Server-oriented session model.
-
-- Treat schema source, selection state, actor context, runtime record state, and
-  diagnostics as durable session state.
-- Keep runtime core as a library and do not move HTTP or UI concerns into core.
-- Redefine compile, preview, graph/inspector edits, and transition application
-  as App Server tools operating against a resumable session.
-- Make schema editor + runtime inspector the primary target UX for the future
-  shared repo and VS Code extension.
-
-The repo-local responsibility is to define the domain session contract and its
-approval boundaries. The future shared repo will own the actual client.
+- schema source、selection、actor、record、diagnostics を durable session
+  state として扱う
+- runtime core は library のまま保ち、HTTP / UI は core に入れない
+- compile / preview / inspector edit / transition apply を App Server tool と
+  して定義する
+- 将来の shared repo や VS Code extension から、同じ session を reopen して
+  継続操作できる形にする
 
 ## Session Snapshot
 
-The domainprocessschema session snapshot should include at least:
+session snapshot は少なくとも次の shape を持つ。
 
-- YAML source
-- normalized compile result
-- selected entity
-- selected state, view, or transition
-- actor role
-- current record payload
-- runtime GUI view projection
-- available transitions with enablement status
-- graph nodes and graph relationships needed by the client
-- locale
-- diagnostics
-- last successful compile or transition result metadata
+```json
+{
+  "source": {
+    "yaml": "entities:\n  ExpenseRequest:\n    ..."
+  },
+  "selection": {
+    "entity": "ExpenseRequest",
+    "state": "submitted",
+    "transition": "approve",
+    "inspectorNode": "views.submitted"
+  },
+  "actor": {
+    "role": "manager"
+  },
+  "record": {
+    "state": "submitted",
+    "payload": { "amount": 1200 }
+  },
+  "compile": {
+    "normalizedSchema": {},
+    "diagnostics": []
+  },
+  "runtime": {
+    "view": {},
+    "availableTransitions": [
+      { "name": "approve", "enabled": true, "reason": null }
+    ]
+  },
+  "graph": {
+    "nodes": [],
+    "edges": []
+  },
+  "locale": "ja",
+  "lastAction": {
+    "kind": "compile",
+    "completedAt": "2026-05-09T00:00:00Z"
+  }
+}
+```
+
+必須の top-level section は次とする。
+
+- `source`
+- `selection`
+- `actor`
+- `record`
+- `compile`
+- `runtime`
+- `graph`
+- `locale`
+- `lastAction`
 
 ## Read-only Tools
 
-The read-only App Server tools should cover at least:
+read-only tool は少なくとも次を含む。
 
-- read active session snapshot
-- compile current source without mutating selection
-- inspect normalized schema output
-- inspect runtime GUI projection
-- list available transitions
-- inspect diagnostics
-- inspect graph structure for the active entity or state
+- `get_session_snapshot() -> SessionSnapshot`
+- `compile_current_source() -> { normalizedSchema: object, diagnostics: Diagnostic[] }`
+- `get_runtime_view() -> { view: object, diagnostics: Diagnostic[] }`
+- `list_available_transitions() -> { transitions: TransitionStatus[] }`
+- `get_graph() -> { nodes: GraphNode[], edges: GraphEdge[] }`
+- `get_diagnostics() -> { diagnostics: Diagnostic[] }`
 
-These operations should not require approval.
+これらは approval 不要とする。
 
 ## Mutating Tools
 
-The mutating App Server tools should cover at least:
+mutating tool は少なくとも次を含む。
 
-- replace source
-- apply inspector edit
-- select entity, state, transition, or view
-- set actor role
-- update draft record payload
-- apply transition
-- change locale
-- reset session to a known example or baseline
+- `replace_source(yaml) -> { diagnostics: Diagnostic[], snapshot: SessionSnapshot }`
+- `apply_inspector_edit(path, value) -> { snapshot: SessionSnapshot }`
+- `select_entity(name) -> { selection: SelectionState, snapshot: SessionSnapshot }`
+- `select_state(name) -> { selection: SelectionState, snapshot: SessionSnapshot }`
+- `select_transition(name) -> { selection: SelectionState, snapshot: SessionSnapshot }`
+- `set_actor_role(role) -> { actor: ActorState, snapshot: SessionSnapshot }`
+- `update_record_payload(payload) -> { record: RecordState, diagnostics: Diagnostic[], snapshot: SessionSnapshot }`
+- `apply_transition(name, input?) -> { approvalRequired: boolean, snapshot?: SessionSnapshot, proposal?: object }`
+- `set_locale(locale) -> { locale: string, snapshot: SessionSnapshot }`
+- `reset_session(example?) -> { approvalRequired: boolean, proposal: object }`
 
-These are session mutations first, not browser widget actions.
+approval-required action も mutating tool の一種であり、approval section で
+その条件を追加定義する。
 
-## Approval-required Actions
+## Approval 境界
 
-Approval policy should follow the shared cross-repo rule:
+approval 方針は次で固定する。
 
-- transition execution is approval-required when it is modeled as a durable
-  state change or may trigger downstream side effects
-- destructive reset actions are approval-required
-- pure compile, preview, search, and inspect actions are not approval-required
+- durable state change として扱う transition 実行は approval-required
+- reset のような destructive action は approval-required
+- compile / preview / inspect / graph read は approval 不要
 
-The contract should make the approval boundary explicit even if the initial
-implementation still runs against an in-memory runtime.
+初期実装が in-memory runtime であっても、この approval 境界は contract 上で
+先に固定する。
 
 ## Import / Export Artifact
 
-The contract should define import/export artifacts for:
+artifact は少なくとも次の envelope を定義する。
 
-- source YAML import/export
+- source YAML export
 - normalized schema export
 - runtime session snapshot export
-- diagnostic report export suitable for review or automation
+- diagnostics export
 
-These artifacts should be usable by the future shared repo without any
-assumption that the source lives only in browser state.
+ここでは binary packaging を固定しない。  
+代わりに、JSON envelope の top-level field 名と論理構造を固定する。
 
 ## Diagnostic Shape
 
-This repo already has active work on structured diagnostics. The App Server
-contract should adopt a stable shape with:
+diagnostic は次の shape を使う。
 
-- code
-- severity
-- target
-- message
-- hint
-- context
+```json
+{
+  "code": "UNKNOWN_STATE",
+  "severity": "error",
+  "target": "schema.entities.ExpenseRequest.transitions.submit",
+  "message": "unknown target state submitted",
+  "hint": "define submitted in states",
+  "context": {}
+}
+```
 
-The session contract should assume compile, validation, and runtime failures are
-all emitted in that structured form.
+compile / validation / runtime failure はすべてこの structured shape に揃える。
 
 ## Selection / Focus State
 
-The contract should expose:
+session resume 用に次を保持する。
 
 - selected entity
 - selected state
 - selected transition
 - selected inspector node
-- active panel or focus mode when needed for restoration
-
-This is necessary for session resume and for a future VS Code client to restore
-the same editing context.
+- active panel or focus mode
 
 ## Preview / Navigation State
 
-The contract should expose runtime preview as session state, not only as
-HTML-in-an-iframe output.
-
-It should support:
+runtime preview は単なる iframe HTML ではなく session state として持つ。
 
 - current preview mode
 - active entity/runtime route
 - locale-dependent preview state
 - active record + transition context
-- preview refresh triggers after compile or transition
+- preview refresh trigger after compile / transition
 
-## Shared Repo Dependency
+## Shared Repo との関係
 
-This issue assumes a new shared repo will be created before implementation
-starts.
+shared repo はこの issue の blocker ではない。  
+この issue の成果は「この repo 内で session contract を定義すること」であり、
+shared repo と VS Code extension はその consumer として後続で実装される。
 
-That shared repo is expected to own:
+## 受け入れ条件
 
-- the reusable Codex App Server client
-- the VS Code extension shell
-- shared approval UX
-- cross-repo session restoration and notification handling
+- [ ] stateless Worker demo を durable `schema + runtime session` contract と
+      して定義している
+- [ ] session snapshot に source / selection / actor / record / compile /
+      runtime / graph / locale / lastAction の section がある
+- [ ] read-only tool と mutating tool が input / output の shape 付きで定義
+      されている
+- [ ] approval-required action が mutating tool の subset として明文化されて
+      いる
+- [ ] diagnostic shape、artifact envelope、preview/navigation state が定義
+      されている
+- [ ] runtime core に HTTP / UI を入れない方針が明記されている
 
-`domainprocessschema.mbt` remains responsible for the domain-specific session
-contract and for keeping runtime core independent from HTTP and UI layers.
+## 非目標
 
-## Acceptance Criteria
+- persistence adapter 実装をこの issue で追加すること
+- runtime core に HTTP server を埋め込むこと
+- shared repo や VS Code extension をこの repo で実装すること
+- browser-local Worker demo を最終アーキテクチャとして固定すること
 
-- [ ] The current stateless demo surface is redefined as a durable
-      `schema + runtime session` contract.
-- [ ] A session snapshot shape is defined that includes source, normalized
-      result, graph/inspector selection, actor, record, runtime view, and
-      diagnostics.
-- [ ] Read-only and mutating tools are listed separately.
-- [ ] Transition execution has an explicit approval boundary.
-- [ ] The issue states that runtime core stays a library and does not absorb
-      HTTP or UI concerns.
-- [ ] The issue is suitable as specification input for a future shared repo and
-      VS Code schema editor/runtime inspector client.
+## 根拠
 
-## Non-goals
-
-- Implementing persistent storage adapters in this issue
-- Embedding an HTTP server into runtime core
-- Implementing the shared repo or VS Code extension here
-- Preserving the current browser-local Worker demo as the primary architecture
-
-## Rationale
-
-`domainprocessschema.mbt` is already close to a compelling agent-facing
-application: it has a schema compiler, structured runtime state, graph-like UI,
-diagnostics, and transition semantics. What it lacks is a durable session model
-that App Server clients can resume and mutate coherently.
-
-Writing that contract now keeps the runtime boundary clean while giving the
-future shared repo a clear interface for schema editing, preview inspection, and
-transition-driven workflow review.
+`domainprocessschema.mbt` は schema compiler、runtime state、graph-like UI、
+diagnostics、transition semantics をすでに持っている。  
+不足しているのは durable session contract だけであり、ここを先に定義すれば
+runtime boundary を汚さずに App Server client 側の実装へつなげられる。
