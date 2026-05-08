@@ -8,15 +8,18 @@ export default {
 
 export async function handleRequest(request, env) {
   const url = new URL(request.url);
-  const editorModule = url.pathname.startsWith("/api/editor/") ? await loadEditorModule() : null;
 
   if (request.method === "POST" && url.pathname === "/api/editor/compile") {
     const body = await readJsonBody(request);
+    if (body instanceof Response) return body;
+    const editorModule = await loadEditorModule();
     return jsonText(editorModule.editor_compile_json(body.source ?? "", body.locale ?? ""));
   }
 
   if (request.method === "POST" && url.pathname === "/api/editor/runtime-preview") {
     const body = await readJsonBody(request);
+    if (body instanceof Response) return body;
+    const editorModule = await loadEditorModule();
     return jsonText(
       editorModule.editor_runtime_preview_json(
         body.source ?? "",
@@ -29,6 +32,8 @@ export async function handleRequest(request, env) {
 
   if (request.method === "POST" && url.pathname === "/api/editor/apply-transition") {
     const body = await readJsonBody(request);
+    if (body instanceof Response) return body;
+    const editorModule = await loadEditorModule();
     return jsonText(
       editorModule.editor_apply_transition_json(
         body.source ?? "",
@@ -48,6 +53,10 @@ export async function handleRequest(request, env) {
     });
   }
 
+  if (!env.ASSETS || typeof env.ASSETS.fetch !== "function") {
+    return errorJson(500, "missing-assets", "ASSETS binding is not configured");
+  }
+
   return env.ASSETS.fetch(request);
 }
 
@@ -59,8 +68,8 @@ async function loadEditorModule() {
 async function readJsonBody(request) {
   try {
     return await request.json();
-  } catch {
-    return {};
+  } catch (error) {
+    return errorJson(400, "invalid-json", error instanceof Error ? error.message : "request body must be valid JSON");
   }
 }
 
@@ -73,6 +82,16 @@ function serializeMaybeJson(value) {
 function jsonText(payload) {
   return new Response(payload, {
     status: 200,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+    },
+  });
+}
+
+function errorJson(status, kind, message) {
+  return new Response(JSON.stringify({ ok: false, error: { kind, message } }), {
+    status,
     headers: {
       "content-type": "application/json; charset=utf-8",
       "cache-control": "no-store",

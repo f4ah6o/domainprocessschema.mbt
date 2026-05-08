@@ -32,6 +32,7 @@ const actorRoleEl = document.getElementById("actor-role");
 const compileButton = document.getElementById("compile-button");
 const resetButton = document.getElementById("reset-button");
 const exportButton = document.getElementById("export-button");
+let commitInFlight = null;
 
 actorRoleEl.addEventListener("change", async () => {
   state.actorRole = actorRoleEl.value;
@@ -68,10 +69,10 @@ exportButton.addEventListener("click", async () => {
   setStatus("Copied emitted YAML to clipboard.");
 });
 
-document.getElementById("add-field").addEventListener("click", () => addNode("field"));
-document.getElementById("add-state").addEventListener("click", () => addNode("state"));
-document.getElementById("add-transition").addEventListener("click", () => addNode("transition"));
-document.getElementById("add-view").addEventListener("click", () => addNode("view"));
+document.getElementById("add-field").addEventListener("click", async () => addNode("field"));
+document.getElementById("add-state").addEventListener("click", async () => addNode("state"));
+document.getElementById("add-transition").addEventListener("click", async () => addNode("transition"));
+document.getElementById("add-view").addEventListener("click", async () => addNode("view"));
 
 const disposeWebMcp = registerModelContextTools(createTools());
 void disposeWebMcp;
@@ -199,8 +200,11 @@ function applyInspectorPatch(field, value) {
   }
 
   if (field.startsWith("labels.")) {
-    node.labels = node.labels ?? {};
     const labelKey = field.slice("labels.".length);
+    if (isBlockedObjectKey(labelKey)) {
+      throw new Error(`Refusing to update reserved label key: ${labelKey}`);
+    }
+    node.labels = node.labels ?? Object.create(null);
     if (!value) {
       delete node.labels[labelKey];
     } else {
@@ -221,15 +225,23 @@ function nullishField(field) {
 }
 
 async function commitVisualEdit() {
+  if (commitInFlight) return commitInFlight;
   if (!state.model) return;
-  state.source = emitSchemaYaml(state.model);
-  state.runtimeRecord = null;
-  sourceEl.value = state.source;
-  savePersistedSource(state.source);
-  await compileCurrentSource();
+  commitInFlight = (async () => {
+    state.source = emitSchemaYaml(state.model);
+    state.runtimeRecord = null;
+    sourceEl.value = state.source;
+    savePersistedSource(state.source);
+    await compileCurrentSource();
+  })();
+  try {
+    await commitInFlight;
+  } finally {
+    commitInFlight = null;
+  }
 }
 
-function addNode(kind) {
+async function addNode(kind) {
   const entity = findSelectedEntity(state);
   if (!entity || !state.model) return;
 
@@ -251,7 +263,11 @@ function addNode(kind) {
     state.selection = { kind, name: next.name };
   }
 
-  void commitVisualEdit();
+  await commitVisualEdit();
+}
+
+function isBlockedObjectKey(value) {
+  return ["__proto__", "prototype", "constructor"].includes(value);
 }
 
 function createTools() {

@@ -34,7 +34,7 @@ test("compile route returns editor payload", async () => {
   assert.equal(result.status, 200);
   assert.equal(result.json.ok, true);
   assert.equal(result.json.entities.at(-1)?.name, "ExpenseRequest");
-  assert.match(result.json.emittedYaml, /soft_delete: true/);
+  assert.match(result.json.emittedYaml, /softDelete: true/);
   assert.equal(
     result.json.normalizedSchema.payload.entities[1].fields.find((field) => field.name === "status").initial,
     "draft",
@@ -77,4 +77,27 @@ test("apply-transition route advances to submitted", async () => {
   assert.equal(result.json.record.values.status, "submitted");
   assert.equal(result.json.view.state, "submitted");
   assert.match(result.json.previewHtml, /Expense Request - Submitted/);
+});
+
+test("invalid JSON returns a 400 editor error", async () => {
+  const response = await handleRequest(
+    new Request("https://example.test/api/editor/compile", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{",
+    }),
+    createEnv(),
+  );
+  assert.equal(response.status, 400);
+  const json = JSON.parse(await response.text());
+  assert.equal(json.ok, false);
+  assert.equal(json.error.kind, "invalid-json");
+});
+
+test("unknown editor route returns 404 without asset fallback", async () => {
+  const response = await handleRequest(
+    new Request("https://example.test/api/editor/unknown", { method: "GET" }),
+    createEnv(),
+  );
+  assert.equal(response.status, 404);
 });
