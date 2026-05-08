@@ -204,25 +204,41 @@ fn render_localized_value(
   fallback : String,
   labels : Map[String, String],
 ) -> Unit {
-  if labels.length() == 0 {
+  let normalized_labels = normalized_label_map(fallback, labels)
+  if normalized_labels.length() == 0 {
     lines.push("\{indent}\{name}: \{yaml_scalar(fallback)}")
     return
   }
 
-  let label_keys = sorted_label_keys(labels)
+  let label_keys = sorted_label_keys(normalized_labels)
   if label_keys.length() == 1 && label_keys[0] == "default" {
-    let default_label = labels.get("default").unwrap_or(fallback)
+    let default_label = normalized_labels.get("default").unwrap_or(fallback)
     lines.push("\{indent}\{name}: \{yaml_scalar(default_label)}")
     return
   }
 
   lines.push("\{indent}\{name}:")
   for key in label_keys {
-    match labels.get(key) {
+    match normalized_labels.get(key) {
       Some(value) => lines.push("\{indent}  \{key}: \{yaml_scalar(value)}")
       None => ()
     }
   }
+}
+
+///|
+fn normalized_label_map(
+  fallback : String,
+  labels : Map[String, String],
+) -> Map[String, String] {
+  let normalized : Map[String, String] = {}
+  for key, value in labels {
+    normalized[key] = value
+  }
+  if fallback != "" {
+    normalized["default"] = fallback
+  }
+  normalized
 }
 
 ///|

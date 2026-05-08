@@ -63,11 +63,18 @@ compileButton.addEventListener("click", async () => {
 });
 
 resetButton.addEventListener("click", async () => {
-  state.source = await loadExampleYaml();
-  sourceEl.value = state.source;
-  savePersistedSource(state.source);
-  state.runtimeRecord = null;
-  await compileCurrentSource();
+  setBusy(true);
+  try {
+    state.source = await loadExampleYaml();
+    sourceEl.value = state.source;
+    savePersistedSource(state.source);
+    state.runtimeRecord = null;
+    await compileCurrentSource();
+  } catch (error) {
+    setStatus(error instanceof Error ? error.message : String(error));
+  } finally {
+    setBusy(false);
+  }
 });
 
 exportButton.addEventListener("click", async () => {
@@ -80,10 +87,10 @@ exportButton.addEventListener("click", async () => {
   }
 });
 
-addButtons[0].addEventListener("click", async () => addNode("field"));
-addButtons[1].addEventListener("click", async () => addNode("state"));
-addButtons[2].addEventListener("click", async () => addNode("transition"));
-addButtons[3].addEventListener("click", async () => addNode("view"));
+addButtons[0].addEventListener("click", async () => handleAddNode("field"));
+addButtons[1].addEventListener("click", async () => handleAddNode("state"));
+addButtons[2].addEventListener("click", async () => handleAddNode("transition"));
+addButtons[3].addEventListener("click", async () => handleAddNode("view"));
 
 const disposeWebMcp = registerModelContextTools(createTools());
 void disposeWebMcp;
@@ -301,6 +308,14 @@ async function addNode(kind) {
   await commitVisualEdit();
 }
 
+async function handleAddNode(kind) {
+  try {
+    await addNode(kind);
+  } catch (error) {
+    setStatus(error instanceof Error ? error.message : String(error));
+  }
+}
+
 async function loadExampleYaml() {
   const response = await fetch("../examples/expense_request.yaml", { cache: "no-store" });
   return await response.text();
@@ -334,6 +349,8 @@ async function runLatestRequest(statusMessage, task) {
 }
 
 function setBusy(nextBusy) {
+  // `busyDepth` allows nested request flows like compile -> preview without
+  // re-enabling controls until the outermost async action completes.
   busyDepth = Math.max(0, busyDepth + (nextBusy ? 1 : -1));
   const disabled = busyDepth > 0;
   for (const element of [actorRoleEl, entitySelectEl, compileButton, resetButton, exportButton, ...addButtons]) {

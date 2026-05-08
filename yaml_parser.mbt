@@ -438,6 +438,9 @@ fn parse_double_quoted_yaml_scalar(text : String, line_no : Int) -> String raise
           (hex_value(chars[index + 3], line_no) * 0x100) +
           (hex_value(chars[index + 4], line_no) * 0x10) +
           hex_value(chars[index + 5], line_no)
+        if code >= 0xD800 && code <= 0xDFFF {
+          raise schema_parse_error(line=line_no, "surrogate unicode escapes are not supported")
+        }
         builder.write_char(code.unsafe_to_char())
         index = index + 4
       }
