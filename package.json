@@ -11,7 +11,7 @@
   "scripts": {
     "build:cloudflare-demo-assets": "node scripts/build-cloudflare-demo.mjs",
     "dev:worker": "wrangler dev --env=\"\"",
-    "deploy:worker": "wrangler deploy --env=\"\"",
+    "deploy:worker": "wrangler deploy --env production",
     "deploy:preview-worker": "wrangler deploy --env preview",
     "test:js": "node --test wasm/demo/worker.test.mjs wasm/demo/webmcp.test.mjs"
   },

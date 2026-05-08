@@ -12,6 +12,15 @@
   "env": {
     "preview": {
       "name": "domainprocessschema-wasm-demo-preview"
+    },
+    "production": {
+      "name": "domainprocessschema-wasm-demo",
+      "routes": [
+        {
+          "pattern": "domainprocessschema.f12o.com",
+          "custom_domain": true
+        }
+      ]
     }
   }
 }
