@@ -6,8 +6,35 @@ import {
 
 options(
   link: {
+    "js": {
+      "exports": [
+        "editor_compile_json",
+        "editor_runtime_preview_json",
+        "editor_apply_transition_json",
+        "render_manifest_preview",
+        "render_runtime_preview",
+        "render_validation_manifest",
+        "create_demo_session",
+        "session_preview_html",
+        "session_snapshot_json",
+        "session_reference_catalog_json",
+        "apply_session_transition",
+        "result_is_ok",
+        "result_unwrap",
+        "result_error",
+        "session_result_is_ok",
+        "session_result_unwrap",
+        "session_result_error",
+        "session_result_error_json",
+      ],
+      "format": "esm",
+      "use-js-builtin-string": true,
+    },
     "wasm-gc": {
       "exports": [
+        "editor_compile_json",
+        "editor_runtime_preview_json",
+        "editor_apply_transition_json",
         "render_manifest_preview",
         "render_runtime_preview",
         "render_validation_manifest",

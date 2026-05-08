@@ -460,6 +460,12 @@ pub fn generate_gui_manifest(schema : Schema, locale? : String = "") -> String {
 }
 
 ///|
+/// Emit canonical subset YAML from a validated schema.
+pub fn emit_schema_yaml(schema : Schema) -> String {
+  render_schema_yaml(schema)
+}
+
+///|
 /// Render static HTML from a GUI manifest JSON document.
 pub fn render_gui_html_from_manifest(
   manifest_json : String,

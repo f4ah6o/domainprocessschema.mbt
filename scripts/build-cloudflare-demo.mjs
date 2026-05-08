@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -7,9 +7,10 @@ const outDir = resolve(rootDir, "_build/cloudflare/wasm-demo");
 const wasmSource = resolve(rootDir, "_build/wasm-gc/release/build/wasm/demo/demo.wasm");
 const indexSource = resolve(rootDir, "wasm/demo/index.html");
 const mainJsSource = resolve(rootDir, "wasm/demo/main.js");
+const editorSourceDir = resolve(rootDir, "wasm/demo/editor");
 const yamlSource = resolve(rootDir, "examples/expense_request.yaml");
 
-for (const file of [wasmSource, indexSource, mainJsSource, yamlSource]) {
+for (const file of [wasmSource, indexSource, mainJsSource, editorSourceDir, yamlSource]) {
   if (!existsSync(file)) {
     throw new Error(`Missing required build input: ${file}`);
   }
@@ -21,6 +22,7 @@ mkdirSync(resolve(outDir, "examples"), { recursive: true });
 copyFileSync(indexSource, resolve(outDir, "index.html"));
 copyFileSync(wasmSource, resolve(outDir, "demo.wasm"));
 copyFileSync(yamlSource, resolve(outDir, "examples/expense_request.yaml"));
+cpSync(editorSourceDir, resolve(outDir, "editor"), { recursive: true });
 
 let mainJs = readFileSync(mainJsSource, "utf8");
 mainJs = replaceExact(

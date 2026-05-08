@@ -15,6 +15,16 @@ pub fn compile_normalized_schema_from_yaml(
 }
 
 ///|
+/// Compile YAML, normalize it, then emit canonical subset YAML.
+pub fn compile_emitted_yaml_from_yaml(
+  input : String,
+) -> String raise SchemaError {
+  let parsed = parse_schema_yaml(input)
+  let schema = validate_schema(parsed)
+  emit_schema_yaml(schema)
+}
+
+///|
 fn render_normalized_schema(schema : Schema) -> String {
   let rendered_entities : Array[String] = []
   for entity in schema.entities {
@@ -93,6 +103,9 @@ fn render_normalized_field(field : Field) -> String {
     "\"system\": \{json_bool(field.system)}",
     "\"primary\": \{json_bool(field.primary)}",
     "\"column\": \{json_quote(field.column_name)}",
+    "\"default\": \{json_optional_string(field.default_value)}",
+    "\"target\": \{json_optional_string(field.target)}",
+    "\"initial\": \{json_optional_string(field.initial)}",
   ]
   let body = indent_block(body_lines.join(",\n"), 2)
   "{\n\{body}\n}"

@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>domainprocessschema.mbt editor</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f3efe5;
+        --panel: rgba(255, 255, 255, 0.88);
+        --ink: #1f1b16;
+        --muted: #6c6258;
+        --line: rgba(49, 40, 33, 0.15);
+        --accent: #8f4f19;
+        --accent-soft: rgba(143, 79, 25, 0.12);
+        --error: #8f1d1d;
+        --font-ui: "Avenir Next", "Hiragino Sans", "Yu Gothic", sans-serif;
+        --font-mono: "SF Mono", "JetBrains Mono", monospace;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: var(--font-ui);
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(201, 150, 88, 0.22), transparent 28%),
+          linear-gradient(160deg, #f5f1e8 0%, #efe7d8 52%, #e8dfd0 100%);
+      }
+      header {
+        padding: 1.5rem 1.75rem 1rem;
+      }
+      header h1 {
+        margin: 0;
+        font-size: clamp(1.8rem, 3vw, 2.7rem);
+      }
+      header p {
+        margin: 0.45rem 0 0;
+        max-width: 78ch;
+        color: var(--muted);
+      }
+      main {
+        padding: 0 1.25rem 1.25rem;
+      }
+      .toolbar,
+      .layout > section {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        box-shadow: 0 20px 40px rgba(31, 27, 22, 0.08);
+        backdrop-filter: blur(12px);
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: end;
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+      .toolbar label,
+      .inspector label {
+        display: grid;
+        gap: 0.3rem;
+        font-size: 0.92rem;
+      }
+      .toolbar textarea,
+      .inspector textarea,
+      .toolbar select,
+      .toolbar input,
+      .inspector select,
+      .inspector input {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 0.55rem 0.7rem;
+        font: inherit;
+        background: rgba(255, 255, 255, 0.88);
+        color: var(--ink);
+      }
+      .toolbar button,
+      .inspector button,
+      .graph button {
+        border: 0;
+        border-radius: 999px;
+        padding: 0.7rem 1rem;
+        font: inherit;
+        cursor: pointer;
+        color: white;
+        background: linear-gradient(135deg, #b5651d, #7d3f13);
+      }
+      .toolbar button.secondary,
+      .inspector button.secondary {
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid var(--line);
+      }
+      .status {
+        margin-left: auto;
+        color: var(--muted);
+      }
+      .layout {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: minmax(18rem, 1.2fr) minmax(16rem, 0.8fr) minmax(18rem, 1fr) minmax(22rem, 1.2fr);
+      }
+      .layout > section {
+        min-height: 72vh;
+        padding: 1rem;
+        overflow: auto;
+      }
+      h2 {
+        margin: 0 0 0.8rem;
+        font-size: 1rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      textarea#source {
+        width: 100%;
+        min-height: 64vh;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 0.9rem;
+        font: 13px/1.55 var(--font-mono);
+        background: rgba(32, 25, 20, 0.95);
+        color: #f8efe5;
+      }
+      .graph-grid {
+        display: grid;
+        gap: 1rem;
+      }
+      .graph-group ul {
+        list-style: none;
+        padding: 0;
+        margin: 0.6rem 0 0;
+        display: grid;
+        gap: 0.45rem;
+      }
+      .graph-group li button {
+        width: 100%;
+        text-align: left;
+        color: var(--ink);
+        background: var(--accent-soft);
+        border: 1px solid transparent;
+      }
+      .graph-group li button.active {
+        border-color: var(--accent);
+      }
+      .inspector-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-bottom: 0.9rem;
+      }
+      .inspector-form,
+      .preview-stack {
+        display: grid;
+        gap: 0.8rem;
+      }
+      .preview-stack iframe {
+        width: 100%;
+        min-height: 26rem;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: white;
+      }
+      .preview-stack pre {
+        margin: 0;
+        border-radius: 14px;
+        padding: 0.9rem;
+        font: 12px/1.5 var(--font-mono);
+        background: rgba(20, 16, 13, 0.96);
+        color: #f8efe5;
+        overflow: auto;
+      }
+      .diag-error {
+        color: #ffbeb2;
+      }
+      .diag-ok {
+        color: #bde6c4;
+      }
+      .entity-meta {
+        margin-top: 0.8rem;
+        padding: 0.8rem;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid var(--line);
+        color: var(--muted);
+      }
+      @media (max-width: 1400px) {
+        .layout {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (max-width: 900px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .status {
+          width: 100%;
+          margin-left: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>domainprocessschema.mbt editor</h1>
+      <p>
+        YAML を canonical source に保ったまま、state graph、inspector、runtime preview を同時に確認できます。
+        Browser-side WebMCP と stateless Worker API の両方をこの画面から使います。
+      </p>
+    </header>
+    <main>
+      <section class="toolbar">
+        <label>
+          Entity
+          <select id="entity-select"></select>
+        </label>
+        <label>
+          Actor role
+          <select id="actor-role">
+            <option value="">anonymous</option>
+            <option value="manager">manager</option>
+          </select>
+        </label>
+        <button id="compile-button" type="button">Compile</button>
+        <button id="reset-button" class="secondary" type="button">Reset example</button>
+        <button id="export-button" class="secondary" type="button">Copy emitted YAML</button>
+        <div id="status" class="status">Loading example…</div>
+      </section>
+
+      <div class="layout">
+        <section>
+          <h2>Source</h2>
+          <textarea id="source" spellcheck="false"></textarea>
+        </section>
+        <section class="graph">
+          <h2>Graph</h2>
+          <div id="graph" class="graph-grid"></div>
+        </section>
+        <section class="inspector">
+          <h2>Inspector</h2>
+          <div class="inspector-actions">
+            <button id="add-field" type="button">Add field</button>
+            <button id="add-state" type="button">Add state</button>
+            <button id="add-transition" type="button">Add transition</button>
+            <button id="add-view" type="button">Add view</button>
+          </div>
+          <div id="inspector"></div>
+        </section>
+        <section>
+          <h2>Preview</h2>
+          <div class="preview-stack">
+            <iframe id="preview" title="domainprocessschema preview"></iframe>
+            <pre id="diagnostics"></pre>
+          </div>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

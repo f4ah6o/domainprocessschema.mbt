@@ -231,6 +231,7 @@ Build and test it with:
 pnpm install
 just wasm-demo-test
 just wasm-demo-build
+just test-js
 python3 -m http.server
 # then open /wasm/demo/index.html
 ```
@@ -245,9 +246,26 @@ the source demo under `wasm/demo/` unchanged, then assembles a Worker-ready
 asset bundle under `_build/cloudflare/wasm-demo/` with:
 
 - `index.html`
+- `editor/index.html`
 - `main.js` rebased to `./demo.wasm` and `./examples/expense_request.yaml`
 - the built `demo.wasm`
 - `examples/expense_request.yaml`
+
+The deployed Worker now serves:
+
+- `/` for the existing runtime demo
+- `/editor/` for the schema editor with local-only `localStorage` persistence
+- `/api/editor/*` for experimental internal browser-editor APIs
+
+The current editor API surface is:
+
+- `POST /api/editor/compile`
+- `POST /api/editor/runtime-preview`
+- `POST /api/editor/apply-transition`
+
+The editor also registers browser-side WebMCP tools through
+`navigator.modelContext` with the `domainprocessschema-*` prefix. The Worker
+remains stateless; the browser owns the source YAML and current record.
 
 Set up the `opz` item once:
 
