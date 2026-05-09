@@ -1173,6 +1173,33 @@ test "validate_schema rejects unknown identifiers in expressions" {
 }
 
 ///|
+test "validate_schema reports invalid expr code for empty rule expression" {
+  let invalid =
+    #|entities:
+    #|  ExpenseRequest:
+    #|    fields:
+    #|      id:
+    #|        type: id
+    #|        primary: true
+    #|      status:
+    #|        type: state
+    #|        initial: draft
+    #|    states:
+    #|      draft:
+    #|        label: 下書き
+    #|    rules:
+    #|      empty:
+    #|        when: ""
+  let result : Result[String, SchemaError] = try? compile_sql_from_yaml(invalid)
+  inspect(
+    result,
+    content=(
+      #|Err(ValidationError(issues=[{code: "INVALID_EXPR", severity: Error, target: "schema.entities.ExpenseRequest.rules.empty.when", message: "rule expressions must not be empty", hint: None, context: {}}]))
+    ),
+  )
+}
+
+///|
 test "parse_schema_yaml rejects malformed yaml" {
   let malformed =
     #|entities:

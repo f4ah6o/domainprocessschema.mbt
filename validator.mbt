@@ -513,6 +513,7 @@ fn validate_rules(
       raise schema_validation_error(
         path=expr_path,
         "rule expressions must not be empty",
+        code="INVALID_EXPR",
       )
     }
     let expr = parse_expr_text(rule.when_expr, expr_path)
