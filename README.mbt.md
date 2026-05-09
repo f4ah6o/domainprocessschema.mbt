@@ -26,7 +26,7 @@ See also:
 - `docs/reference-lookup-contract.md`
 - `docs/audit-event-manifest.md`
 - `docs/runtime-adapter-boundary.md`
-- `issues/2026-05-06T195600-spec-stabilize-versioned-contract-roadmap.md`
+- `docs/versioned-contract-roadmap.md`
 
 ## Status
 
