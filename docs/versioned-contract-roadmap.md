@@ -20,6 +20,7 @@ The initial contract family is split into small, reviewable surfaces:
 6. Runtime adapter ownership: `docs/runtime-adapter-boundary.md`
 7. Transition semantics: `docs/transition-semantics-v1.md`
 8. Expression language behavior: `docs/expression-language-v1.md`
+9. App Server schema/runtime session: `docs/app-server-schema-runtime-session.md`
 
 Each surface has a separate issue so future changes can be reviewed without
 turning the roadmap into a large implementation PR.
@@ -38,15 +39,16 @@ Follow-up stabilization work is represented by these issue files:
 - `issues/closed/2026-05-06T195650-cli-add-normalized-schema-output.md`
 - `issues/closed/2026-05-06T195700-spec-define-transition-semantics.md`
 - `issues/closed/2026-05-06T195710-spec-document-expression-language-v1.md`
+- `issues/closed/2026-05-09T093100-architecture-define-codex-app-server-schema-and-runtime-session.md`
 - `issues/closed/2026-05-06T195720-spec-define-runtime-adapter-boundary.md`
 - `issues/closed/2026-05-06T195730-spec-define-reference-lookup-contract.md`
 - `issues/closed/2026-05-06T195740-spec-add-audit-event-manifest.md`
 
 The closed follow-up issues already define normalized schema output, generated
 artifact golden fixtures, transition semantics, expression-language behavior,
-the runtime adapter boundary, reference lookup contract, and audit event shape.
-Remaining open issues are outside this follow-up contract split or cover App
-Server session architecture.
+the App Server schema/runtime session contract, the runtime adapter boundary,
+reference lookup contract, and audit event shape. Remaining open issues are
+outside this follow-up contract split.
 
 ## Stabilization Order
 
@@ -59,7 +61,10 @@ The order is:
 4. Add normalized schema output and golden fixtures to catch accidental contract
    drift.
 5. Specify transition semantics and expression language behavior.
-6. Keep host integration points outside the runtime core through the runtime
+6. Define the App Server durable session vocabulary on top of the existing
+   Worker/editor prototype without making browser-local state the target
+   architecture.
+7. Keep host integration points outside the runtime core through the runtime
    adapter boundary, reference lookup contract, and audit event manifest.
 
 This order keeps lower-level schema and diagnostic vocabulary stable before

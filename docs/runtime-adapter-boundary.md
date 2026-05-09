@@ -142,6 +142,10 @@ This means:
 - browser demos may keep local state for prototyping, but that local state is not
   the target durable architecture
 
+The App Server session snapshot, tool split, approval boundary, artifact export,
+and preview/navigation vocabulary are defined in
+`docs/app-server-schema-runtime-session.md`.
+
 ## Non-Goals
 
 The v1 adapter boundary does not define:

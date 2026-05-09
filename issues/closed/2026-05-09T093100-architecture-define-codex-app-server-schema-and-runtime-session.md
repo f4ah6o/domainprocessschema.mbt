@@ -188,17 +188,17 @@ shared repo と VS Code extension はその consumer として後続で実装さ
 
 ## 受け入れ条件
 
-- [ ] stateless Worker demo を durable `schema + runtime session` contract と
+- [x] stateless Worker demo を durable `schema + runtime session` contract と
       して定義している
-- [ ] session snapshot に source / selection / actor / record / compile /
+- [x] session snapshot に source / selection / actor / record / compile /
       runtime / graph / locale / lastAction の section がある
-- [ ] read-only tool と mutating tool が input / output の shape 付きで定義
+- [x] read-only tool と mutating tool が input / output の shape 付きで定義
       されている
-- [ ] approval-required action が mutating tool の subset として明文化されて
+- [x] approval-required action が mutating tool の subset として明文化されて
       いる
-- [ ] diagnostic shape、artifact envelope、preview/navigation state が定義
+- [x] diagnostic shape、artifact envelope、preview/navigation state が定義
       されている
-- [ ] runtime core に HTTP / UI を入れない方針が明記されている
+- [x] runtime core に HTTP / UI を入れない方針が明記されている
 
 ## 非目標
 
@@ -213,3 +213,22 @@ shared repo と VS Code extension はその consumer として後続で実装さ
 diagnostics、transition semantics をすでに持っている。  
 不足しているのは durable session contract だけであり、ここを先に定義すれば
 runtime boundary を汚さずに App Server client 側の実装へつなげられる。
+
+## Resolution
+
+Completed: 2026-05-10
+
+- Added `docs/app-server-schema-runtime-session.md` as the durable App Server
+  `schema + runtime` session contract.
+- Fixed the required snapshot sections to `source`, `selection`, `actor`,
+  `record`, `compile`, `runtime`, `graph`, `locale`, and `lastAction`.
+- Split tools into read-only and mutating classes, with approval-required
+  actions defined as a subset of mutating tools.
+- Fixed durable transition application and reset as approval-required, while
+  compile, preview, inspect, graph read, transition listing, and diagnostic read
+  remain approval-free.
+- Referenced `wasm/demo/editor_api.mbt` and `wasm/demo/session_json.mbt` as
+  current prototype evidence, while documenting that the browser Worker demo is
+  not the target durable App Server architecture.
+- Linked the new contract from README, runtime adapter boundary, and the
+  versioned contract roadmap.

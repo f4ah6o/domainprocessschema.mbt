@@ -28,6 +28,7 @@ See also:
 - `docs/runtime-adapter-boundary.md`
 - `docs/transition-semantics-v1.md`
 - `docs/expression-language-v1.md`
+- `docs/app-server-schema-runtime-session.md`
 - `docs/versioned-contract-roadmap.md`
 
 ## Status
@@ -100,6 +101,9 @@ clock / ID generation, transaction management, and audit delivery behind the
 adapter roles described in `docs/runtime-adapter-boundary.md`.
 Transition availability and mutation behavior are fixed in
 `docs/transition-semantics-v1.md`.
+Durable App Server session ownership, snapshot vocabulary, tool classes,
+approval boundaries, artifact exports, and preview/navigation state are defined
+in `docs/app-server-schema-runtime-session.md`.
 
 ## YAML scope
 
@@ -294,6 +298,10 @@ The current editor API surface is:
 The editor also registers browser-side WebMCP tools through
 `navigator.modelContext` with the `domainprocessschema-*` prefix. The Worker
 remains stateless; the browser owns the source YAML and current record.
+`docs/app-server-schema-runtime-session.md` treats this Worker/editor surface as
+the current prototype evidence and moves source, selection, actor, record,
+compile output, runtime view, graph, locale, and last action into a durable host
+session contract. The Worker demo is not the target App Server architecture.
 
 Set up the `opz` item once:
 
