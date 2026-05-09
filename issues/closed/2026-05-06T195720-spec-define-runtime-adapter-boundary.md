@@ -1,6 +1,7 @@
 # Runtime Adapter Boundary を定義する
 
 Created: 2026-05-06
+Completed: 2026-05-09
 Model: GPT-5.4 1.0.41
 
 ## 背景

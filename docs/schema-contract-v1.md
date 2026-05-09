@@ -277,6 +277,7 @@ v1 では次を含まない。
 - BPMN compatibility
 - parallel workflow
 - timer / scheduler semantics
+- concrete adapter trait API
 - schema diff / migration plan JSON
 - fully specified expression-language document
 - async reference lookup API
