@@ -1,0 +1,34 @@
+{
+  "entityName": "ExpenseRequest",
+  "entityLabel": "Expense Request",
+  "state": "submitted",
+  "stateLabel": "Submitted",
+  "viewName": "submitted",
+  "fields": [
+    { "name": "amount", "label": "Amount", "component": "money", "mode": "readonly", "value": 1200 },
+    { "name": "reason", "label": "Reason", "component": "textarea", "mode": "readonly", "value": "hotel" },
+    { "name": "createdAt", "label": "Created at", "component": "datetime-picker", "mode": "readonly", "value": null },
+    { "name": "updatedAt", "label": "Updated at", "component": "datetime-picker", "mode": "readonly", "value": null }
+  ],
+  "actions": [
+    {
+      "name": "approve",
+      "to": "approved",
+      "available": true,
+      "issues": [],
+      "inputs": []
+    },
+    {
+      "name": "reject",
+      "to": "rejected",
+      "available": true,
+      "issues": [],
+      "inputs": [
+        { "name": "rejectReason", "label": "rejectReason", "kind": "local", "component": "textarea", "required": true, "value": null }
+      ]
+    }
+  ],
+  "rules": [
+    { "name": "canApprove", "active": true, "issues": [] }
+  ]
+}
