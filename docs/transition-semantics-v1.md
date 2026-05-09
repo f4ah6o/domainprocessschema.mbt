@@ -121,7 +121,7 @@ The current runtime implementation maps to this contract as follows:
 | Entity field vs transition-local input validation | `runtime_validate_transition_inputs` in `runtime_engine.mbt` |
 | Mutating transition application and final target validation | `runtime_apply_transition` in `runtime_engine.mbt` |
 | Read-only availability projection | `runtime_list_transitions` in `runtime_engine.mbt` |
-| View projection and available action rendering | `runtime_project_gui` in `runtime_view.mbt` |
+| View projection and available action rendering | `runtime_project_gui` in `runtime_projection.mbt` |
 
 Hosts that need durable sessions should use the runtime adapter boundary in
 `docs/runtime-adapter-boundary.md`: load a record, resolve an actor, call the
