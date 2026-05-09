@@ -27,6 +27,7 @@ See also:
 - `docs/audit-event-manifest.md`
 - `docs/runtime-adapter-boundary.md`
 - `docs/transition-semantics-v1.md`
+- `docs/expression-language-v1.md`
 - `docs/versioned-contract-roadmap.md`
 
 ## Status
@@ -121,6 +122,9 @@ for phase 1.
 - `&&`, `||`, `!`
 - `==`, `!=`, `>`, `>=`, `<`, `<=`
 - parentheses
+
+Syntax, reserved paths, missing value behavior, coercion rules, and
+short-circuit policy are fixed in `docs/expression-language-v1.md`.
 
 ## Quick start
 

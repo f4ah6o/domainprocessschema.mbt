@@ -189,7 +189,7 @@ v1 で使える expression は次。
 - `==`, `!=`, `>`, `>=`, `<`, `<=`
 - parentheses
 
-評価詳細は別 issue の `expression-language-v1` で拡張するが、上記の surface 自体は v1 contract に含む。
+評価詳細は `docs/expression-language-v1.md` で固定する。上記の surface 自体も v1 contract に含む。
 
 ## Generated manifest contract
 
