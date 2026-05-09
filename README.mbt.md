@@ -23,6 +23,7 @@ The GitHub repository name contains `.mbt`, but the MoonBit module name is
 See also:
 
 - `docs/schema-contract-v1.md`
+- `docs/reference-lookup-contract.md`
 - `issues/2026-05-06T195600-spec-stabilize-versioned-contract-roadmap.md`
 
 ## Status
@@ -191,6 +192,9 @@ also exposes a small browser-driven runtime session:
 - the demo now also exports a static reference catalog for target entities, so
   `reference-select` action inputs can render as actual `<select>` controls in
   the browser host without introducing async lookup yet
+- API, validation, and GUI manifests now expose reference lookup metadata as
+  `target` / `labelField` / `valueField`; see
+  `docs/reference-lookup-contract.md`
 - the host page still exposes the YAML source as a textarea, so schema edits and
   compile / validation errors can be exercised directly in the browser demo
 - the host page chrome supports a minimal `en` / `ja` switch, and schema-level

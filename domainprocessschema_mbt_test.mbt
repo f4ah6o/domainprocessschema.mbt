@@ -163,7 +163,10 @@ test "compile_api_manifest_from_yaml renders routes and actions" {
       #|              "required": false,
       #|              "primary": true,
       #|              "readOnly": false,
-      #|              "system": false
+      #|              "system": false,
+      #|              "target": null,
+      #|              "labelField": null,
+      #|              "valueField": null
       #|            },
       #|            {
       #|              "name": "role",
@@ -172,7 +175,10 @@ test "compile_api_manifest_from_yaml renders routes and actions" {
       #|              "required": true,
       #|              "primary": false,
       #|              "readOnly": false,
-      #|              "system": false
+      #|              "system": false,
+      #|              "target": null,
+      #|              "labelField": null,
+      #|              "valueField": null
       #|            }
       #|          ],
       #|        "routes": [
@@ -203,7 +209,10 @@ test "compile_api_manifest_from_yaml renders routes and actions" {
       #|              "required": false,
       #|              "primary": true,
       #|              "readOnly": false,
-      #|              "system": false
+      #|              "system": false,
+      #|              "target": null,
+      #|              "labelField": null,
+      #|              "valueField": null
       #|            },
       #|            {
       #|              "name": "amount",
@@ -212,7 +221,10 @@ test "compile_api_manifest_from_yaml renders routes and actions" {
       #|              "required": true,
       #|              "primary": false,
       #|              "readOnly": false,
-      #|              "system": false
+      #|              "system": false,
+      #|              "target": null,
+      #|              "labelField": null,
+      #|              "valueField": null
       #|            },
       #|            {
       #|              "name": "reason",
@@ -221,7 +233,10 @@ test "compile_api_manifest_from_yaml renders routes and actions" {
       #|              "required": true,
       #|              "primary": false,
       #|              "readOnly": false,
-      #|              "system": false
+      #|              "system": false,
+      #|              "target": null,
+      #|              "labelField": null,
+      #|              "valueField": null
       #|            },
       #|            {
       #|              "name": "applicant",
@@ -230,7 +245,10 @@ test "compile_api_manifest_from_yaml renders routes and actions" {
       #|              "required": true,
       #|              "primary": false,
       #|              "readOnly": false,
-      #|              "system": false
+      #|              "system": false,
+      #|              "target": "User",
+      #|              "labelField": "id",
+      #|              "valueField": "id"
       #|            },
       #|            {
       #|              "name": "status",
@@ -239,7 +257,10 @@ test "compile_api_manifest_from_yaml renders routes and actions" {
       #|              "required": false,
       #|              "primary": false,
       #|              "readOnly": false,
-      #|              "system": false
+      #|              "system": false,
+      #|              "target": null,
+      #|              "labelField": null,
+      #|              "valueField": null
       #|            },
       #|            {
       #|              "name": "createdAt",
@@ -248,7 +269,10 @@ test "compile_api_manifest_from_yaml renders routes and actions" {
       #|              "required": false,
       #|              "primary": false,
       #|              "readOnly": false,
-      #|              "system": true
+      #|              "system": true,
+      #|              "target": null,
+      #|              "labelField": null,
+      #|              "valueField": null
       #|            },
       #|            {
       #|              "name": "updatedAt",
@@ -257,7 +281,10 @@ test "compile_api_manifest_from_yaml renders routes and actions" {
       #|              "required": false,
       #|              "primary": false,
       #|              "readOnly": false,
-      #|              "system": true
+      #|              "system": true,
+      #|              "target": null,
+      #|              "labelField": null,
+      #|              "valueField": null
       #|            }
       #|          ],
       #|        "routes": [
@@ -288,7 +315,9 @@ test "compile_api_manifest_from_yaml renders routes and actions" {
       #|                    "required": true,
       #|                    "readOnly": false,
       #|                    "default": null,
-      #|                    "target": null
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "reason",
@@ -297,7 +326,9 @@ test "compile_api_manifest_from_yaml renders routes and actions" {
       #|                    "required": true,
       #|                    "readOnly": false,
       #|                    "default": null,
-      #|                    "target": null
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  }
       #|                ],
       #|              "guard": "amount > 0",
@@ -325,7 +356,9 @@ test "compile_api_manifest_from_yaml renders routes and actions" {
       #|                    "required": true,
       #|                    "readOnly": false,
       #|                    "default": null,
-      #|                    "target": null
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  }
       #|                ],
       #|              "guard": null,
@@ -336,6 +369,7 @@ test "compile_api_manifest_from_yaml renders routes and actions" {
       #|    ]
       #|  }
       #|}
+
     ),
   )
 }
@@ -365,7 +399,10 @@ test "compile_validation_manifest_from_yaml renders validation metadata" {
       #|              "primary": true,
       #|              "readOnly": false,
       #|              "system": false,
-      #|              "default": null
+      #|              "default": null,
+      #|              "target": null,
+      #|              "labelField": null,
+      #|              "valueField": null
       #|            },
       #|            {
       #|              "name": "role",
@@ -374,7 +411,10 @@ test "compile_validation_manifest_from_yaml renders validation metadata" {
       #|              "primary": false,
       #|              "readOnly": false,
       #|              "system": false,
-      #|              "default": null
+      #|              "default": null,
+      #|              "target": null,
+      #|              "labelField": null,
+      #|              "valueField": null
       #|            }
       #|          ],
       #|        "constraints": [],
@@ -391,7 +431,10 @@ test "compile_validation_manifest_from_yaml renders validation metadata" {
       #|              "primary": true,
       #|              "readOnly": false,
       #|              "system": false,
-      #|              "default": null
+      #|              "default": null,
+      #|              "target": null,
+      #|              "labelField": null,
+      #|              "valueField": null
       #|            },
       #|            {
       #|              "name": "amount",
@@ -400,7 +443,10 @@ test "compile_validation_manifest_from_yaml renders validation metadata" {
       #|              "primary": false,
       #|              "readOnly": false,
       #|              "system": false,
-      #|              "default": null
+      #|              "default": null,
+      #|              "target": null,
+      #|              "labelField": null,
+      #|              "valueField": null
       #|            },
       #|            {
       #|              "name": "reason",
@@ -409,7 +455,10 @@ test "compile_validation_manifest_from_yaml renders validation metadata" {
       #|              "primary": false,
       #|              "readOnly": false,
       #|              "system": false,
-      #|              "default": null
+      #|              "default": null,
+      #|              "target": null,
+      #|              "labelField": null,
+      #|              "valueField": null
       #|            },
       #|            {
       #|              "name": "applicant",
@@ -418,7 +467,10 @@ test "compile_validation_manifest_from_yaml renders validation metadata" {
       #|              "primary": false,
       #|              "readOnly": false,
       #|              "system": false,
-      #|              "default": null
+      #|              "default": null,
+      #|              "target": "User",
+      #|              "labelField": "id",
+      #|              "valueField": "id"
       #|            },
       #|            {
       #|              "name": "status",
@@ -427,7 +479,10 @@ test "compile_validation_manifest_from_yaml renders validation metadata" {
       #|              "primary": false,
       #|              "readOnly": false,
       #|              "system": false,
-      #|              "default": null
+      #|              "default": null,
+      #|              "target": null,
+      #|              "labelField": null,
+      #|              "valueField": null
       #|            },
       #|            {
       #|              "name": "createdAt",
@@ -436,7 +491,10 @@ test "compile_validation_manifest_from_yaml renders validation metadata" {
       #|              "primary": false,
       #|              "readOnly": false,
       #|              "system": true,
-      #|              "default": null
+      #|              "default": null,
+      #|              "target": null,
+      #|              "labelField": null,
+      #|              "valueField": null
       #|            },
       #|            {
       #|              "name": "updatedAt",
@@ -445,7 +503,10 @@ test "compile_validation_manifest_from_yaml renders validation metadata" {
       #|              "primary": false,
       #|              "readOnly": false,
       #|              "system": true,
-      #|              "default": null
+      #|              "default": null,
+      #|              "target": null,
+      #|              "labelField": null,
+      #|              "valueField": null
       #|            }
       #|          ],
       #|        "constraints": [
@@ -467,7 +528,9 @@ test "compile_validation_manifest_from_yaml renders validation metadata" {
       #|                    "required": true,
       #|                    "readOnly": false,
       #|                    "default": null,
-      #|                    "target": null
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "reason",
@@ -476,7 +539,9 @@ test "compile_validation_manifest_from_yaml renders validation metadata" {
       #|                    "required": true,
       #|                    "readOnly": false,
       #|                    "default": null,
-      #|                    "target": null
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  }
       #|                ],
       #|              "guard": "amount > 0"
@@ -500,7 +565,9 @@ test "compile_validation_manifest_from_yaml renders validation metadata" {
       #|                    "required": true,
       #|                    "readOnly": false,
       #|                    "default": null,
-      #|                    "target": null
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  }
       #|                ],
       #|              "guard": null
@@ -516,6 +583,7 @@ test "compile_validation_manifest_from_yaml renders validation metadata" {
       #|    ]
       #|  }
       #|}
+
     ),
   )
 }
@@ -571,43 +639,64 @@ test "compile_gui_manifest_from_yaml renders views and actions" {
       #|                    "name": "id",
       #|                    "label": "id",
       #|                    "component": "text",
-      #|                    "mode": "hidden"
+      #|                    "mode": "hidden",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "amount",
       #|                    "label": "amount",
       #|                    "component": "money",
-      #|                    "mode": "editable"
+      #|                    "mode": "editable",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "reason",
       #|                    "label": "reason",
       #|                    "component": "textarea",
-      #|                    "mode": "editable"
+      #|                    "mode": "editable",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "applicant",
       #|                    "label": "applicant",
       #|                    "component": "reference-select",
-      #|                    "mode": "hidden"
+      #|                    "mode": "hidden",
+      #|                    "target": "User",
+      #|                    "labelField": "id",
+      #|                    "valueField": "id"
       #|                  },
       #|                  {
       #|                    "name": "status",
       #|                    "label": "status",
       #|                    "component": "state-badge",
-      #|                    "mode": "hidden"
+      #|                    "mode": "hidden",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "createdAt",
       #|                    "label": "createdAt",
       #|                    "component": "datetime-picker",
-      #|                    "mode": "readonly"
+      #|                    "mode": "readonly",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "updatedAt",
       #|                    "label": "updatedAt",
       #|                    "component": "datetime-picker",
-      #|                    "mode": "readonly"
+      #|                    "mode": "readonly",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  }
       #|                ],
       #|              "actions": [
@@ -620,14 +709,20 @@ test "compile_gui_manifest_from_yaml renders views and actions" {
       #|                          "label": "amount",
       #|                          "kind": "entity-field",
       #|                          "component": "money",
-      #|                          "required": true
+      #|                          "required": true,
+      #|                          "target": null,
+      #|                          "labelField": null,
+      #|                          "valueField": null
       #|                        },
       #|                        {
       #|                          "name": "reason",
       #|                          "label": "reason",
       #|                          "kind": "entity-field",
       #|                          "component": "textarea",
-      #|                          "required": true
+      #|                          "required": true,
+      #|                          "target": null,
+      #|                          "labelField": null,
+      #|                          "valueField": null
       #|                        }
       #|                      ],
       #|                    "enabledWhen": "amount > 0",
@@ -642,43 +737,64 @@ test "compile_gui_manifest_from_yaml renders views and actions" {
       #|                    "name": "id",
       #|                    "label": "id",
       #|                    "component": "text",
-      #|                    "mode": "hidden"
+      #|                    "mode": "hidden",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "amount",
       #|                    "label": "amount",
       #|                    "component": "money",
-      #|                    "mode": "readonly"
+      #|                    "mode": "readonly",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "reason",
       #|                    "label": "reason",
       #|                    "component": "textarea",
-      #|                    "mode": "readonly"
+      #|                    "mode": "readonly",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "applicant",
       #|                    "label": "applicant",
       #|                    "component": "reference-select",
-      #|                    "mode": "hidden"
+      #|                    "mode": "hidden",
+      #|                    "target": "User",
+      #|                    "labelField": "id",
+      #|                    "valueField": "id"
       #|                  },
       #|                  {
       #|                    "name": "status",
       #|                    "label": "status",
       #|                    "component": "state-badge",
-      #|                    "mode": "hidden"
+      #|                    "mode": "hidden",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "createdAt",
       #|                    "label": "createdAt",
       #|                    "component": "datetime-picker",
-      #|                    "mode": "readonly"
+      #|                    "mode": "readonly",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "updatedAt",
       #|                    "label": "updatedAt",
       #|                    "component": "datetime-picker",
-      #|                    "mode": "readonly"
+      #|                    "mode": "readonly",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  }
       #|                ],
       #|              "actions": [
@@ -698,7 +814,10 @@ test "compile_gui_manifest_from_yaml renders views and actions" {
       #|                          "label": "rejectReason",
       #|                          "kind": "local",
       #|                          "component": "textarea",
-      #|                          "required": true
+      #|                          "required": true,
+      #|                          "target": null,
+      #|                          "labelField": null,
+      #|                          "valueField": null
       #|                        }
       #|                      ],
       #|                    "enabledWhen": null,
@@ -713,43 +832,64 @@ test "compile_gui_manifest_from_yaml renders views and actions" {
       #|                    "name": "id",
       #|                    "label": "id",
       #|                    "component": "text",
-      #|                    "mode": "hidden"
+      #|                    "mode": "hidden",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "amount",
       #|                    "label": "amount",
       #|                    "component": "money",
-      #|                    "mode": "readonly"
+      #|                    "mode": "readonly",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "reason",
       #|                    "label": "reason",
       #|                    "component": "textarea",
-      #|                    "mode": "readonly"
+      #|                    "mode": "readonly",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "applicant",
       #|                    "label": "applicant",
       #|                    "component": "reference-select",
-      #|                    "mode": "hidden"
+      #|                    "mode": "hidden",
+      #|                    "target": "User",
+      #|                    "labelField": "id",
+      #|                    "valueField": "id"
       #|                  },
       #|                  {
       #|                    "name": "status",
       #|                    "label": "status",
       #|                    "component": "state-badge",
-      #|                    "mode": "hidden"
+      #|                    "mode": "hidden",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "createdAt",
       #|                    "label": "createdAt",
       #|                    "component": "datetime-picker",
-      #|                    "mode": "readonly"
+      #|                    "mode": "readonly",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "updatedAt",
       #|                    "label": "updatedAt",
       #|                    "component": "datetime-picker",
-      #|                    "mode": "readonly"
+      #|                    "mode": "readonly",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  }
       #|                ],
       #|              "actions": []
@@ -761,43 +901,64 @@ test "compile_gui_manifest_from_yaml renders views and actions" {
       #|                    "name": "id",
       #|                    "label": "id",
       #|                    "component": "text",
-      #|                    "mode": "hidden"
+      #|                    "mode": "hidden",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "amount",
       #|                    "label": "amount",
       #|                    "component": "money",
-      #|                    "mode": "readonly"
+      #|                    "mode": "readonly",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "reason",
       #|                    "label": "reason",
       #|                    "component": "textarea",
-      #|                    "mode": "readonly"
+      #|                    "mode": "readonly",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "applicant",
       #|                    "label": "applicant",
       #|                    "component": "reference-select",
-      #|                    "mode": "hidden"
+      #|                    "mode": "hidden",
+      #|                    "target": "User",
+      #|                    "labelField": "id",
+      #|                    "valueField": "id"
       #|                  },
       #|                  {
       #|                    "name": "status",
       #|                    "label": "status",
       #|                    "component": "state-badge",
-      #|                    "mode": "hidden"
+      #|                    "mode": "hidden",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "createdAt",
       #|                    "label": "createdAt",
       #|                    "component": "datetime-picker",
-      #|                    "mode": "readonly"
+      #|                    "mode": "readonly",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  },
       #|                  {
       #|                    "name": "updatedAt",
       #|                    "label": "updatedAt",
       #|                    "component": "datetime-picker",
-      #|                    "mode": "readonly"
+      #|                    "mode": "readonly",
+      #|                    "target": null,
+      #|                    "labelField": null,
+      #|                    "valueField": null
       #|                  }
       #|                ],
       #|              "actions": []
@@ -813,6 +974,7 @@ test "compile_gui_manifest_from_yaml renders views and actions" {
       #|    ]
       #|  }
       #|}
+
     ),
   )
 }

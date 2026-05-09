@@ -98,6 +98,9 @@ Phase 1 では entity ごとに primary field はちょうど 1 つ必要。
 - `target` (`ref` のみ)
 - `initial` (`state` のみ)
 
+`ref` の lookup metadata は `docs/reference-lookup-contract.md` で固定する。
+v1 manifest は `target` / `labelField` / `valueField` を機械読取可能な形で出力する。
+
 ## Relation contract
 
 `stable`
@@ -257,6 +260,7 @@ v1 では次を含まない。
 - schema diff / migration plan JSON
 - audit event manifest
 - fully specified expression-language document
+- async reference lookup API
 
 ## Internal implementation details
 

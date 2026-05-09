@@ -43,43 +43,64 @@
                     "name": "id",
                     "label": "ID",
                     "component": "text",
-                    "mode": "hidden"
+                    "mode": "hidden",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "amount",
                     "label": "Amount",
                     "component": "money",
-                    "mode": "editable"
+                    "mode": "editable",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "reason",
                     "label": "Reason",
                     "component": "textarea",
-                    "mode": "editable"
+                    "mode": "editable",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "applicant",
                     "label": "Applicant",
                     "component": "reference-select",
-                    "mode": "hidden"
+                    "mode": "hidden",
+                    "target": "User",
+                    "labelField": "id",
+                    "valueField": "id"
                   },
                   {
                     "name": "status",
                     "label": "Status",
                     "component": "state-badge",
-                    "mode": "hidden"
+                    "mode": "hidden",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "createdAt",
                     "label": "Created at",
                     "component": "datetime-picker",
-                    "mode": "readonly"
+                    "mode": "readonly",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "updatedAt",
                     "label": "Updated at",
                     "component": "datetime-picker",
-                    "mode": "readonly"
+                    "mode": "readonly",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   }
                 ],
               "actions": [
@@ -92,21 +113,30 @@
                           "label": "Amount",
                           "kind": "entity-field",
                           "component": "money",
-                          "required": true
+                          "required": true,
+                          "target": null,
+                          "labelField": null,
+                          "valueField": null
                         },
                         {
                           "name": "reason",
                           "label": "Reason",
                           "kind": "entity-field",
                           "component": "textarea",
-                          "required": true
+                          "required": true,
+                          "target": null,
+                          "labelField": null,
+                          "valueField": null
                         },
                         {
                           "name": "applicant",
                           "label": "Applicant",
                           "kind": "entity-field",
                           "component": "reference-select",
-                          "required": true
+                          "required": true,
+                          "target": "User",
+                          "labelField": "id",
+                          "valueField": "id"
                         }
                       ],
                     "enabledWhen": "amount > 0",
@@ -121,43 +151,64 @@
                     "name": "id",
                     "label": "ID",
                     "component": "text",
-                    "mode": "hidden"
+                    "mode": "hidden",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "amount",
                     "label": "Amount",
                     "component": "money",
-                    "mode": "readonly"
+                    "mode": "readonly",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "reason",
                     "label": "Reason",
                     "component": "textarea",
-                    "mode": "readonly"
+                    "mode": "readonly",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "applicant",
                     "label": "Applicant",
                     "component": "reference-select",
-                    "mode": "hidden"
+                    "mode": "hidden",
+                    "target": "User",
+                    "labelField": "id",
+                    "valueField": "id"
                   },
                   {
                     "name": "status",
                     "label": "Status",
                     "component": "state-badge",
-                    "mode": "hidden"
+                    "mode": "hidden",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "createdAt",
                     "label": "Created at",
                     "component": "datetime-picker",
-                    "mode": "readonly"
+                    "mode": "readonly",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "updatedAt",
                     "label": "Updated at",
                     "component": "datetime-picker",
-                    "mode": "readonly"
+                    "mode": "readonly",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   }
                 ],
               "actions": [
@@ -177,7 +228,10 @@
                           "label": "rejectReason",
                           "kind": "local",
                           "component": "textarea",
-                          "required": true
+                          "required": true,
+                          "target": null,
+                          "labelField": null,
+                          "valueField": null
                         }
                       ],
                     "enabledWhen": null,
@@ -192,43 +246,64 @@
                     "name": "id",
                     "label": "ID",
                     "component": "text",
-                    "mode": "hidden"
+                    "mode": "hidden",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "amount",
                     "label": "Amount",
                     "component": "money",
-                    "mode": "readonly"
+                    "mode": "readonly",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "reason",
                     "label": "Reason",
                     "component": "textarea",
-                    "mode": "readonly"
+                    "mode": "readonly",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "applicant",
                     "label": "Applicant",
                     "component": "reference-select",
-                    "mode": "hidden"
+                    "mode": "hidden",
+                    "target": "User",
+                    "labelField": "id",
+                    "valueField": "id"
                   },
                   {
                     "name": "status",
                     "label": "Status",
                     "component": "state-badge",
-                    "mode": "hidden"
+                    "mode": "hidden",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "createdAt",
                     "label": "Created at",
                     "component": "datetime-picker",
-                    "mode": "readonly"
+                    "mode": "readonly",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "updatedAt",
                     "label": "Updated at",
                     "component": "datetime-picker",
-                    "mode": "readonly"
+                    "mode": "readonly",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   }
                 ],
               "actions": []
@@ -240,43 +315,64 @@
                     "name": "id",
                     "label": "ID",
                     "component": "text",
-                    "mode": "hidden"
+                    "mode": "hidden",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "amount",
                     "label": "Amount",
                     "component": "money",
-                    "mode": "readonly"
+                    "mode": "readonly",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "reason",
                     "label": "Reason",
                     "component": "textarea",
-                    "mode": "readonly"
+                    "mode": "readonly",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "applicant",
                     "label": "Applicant",
                     "component": "reference-select",
-                    "mode": "hidden"
+                    "mode": "hidden",
+                    "target": "User",
+                    "labelField": "id",
+                    "valueField": "id"
                   },
                   {
                     "name": "status",
                     "label": "Status",
                     "component": "state-badge",
-                    "mode": "hidden"
+                    "mode": "hidden",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "createdAt",
                     "label": "Created at",
                     "component": "datetime-picker",
-                    "mode": "readonly"
+                    "mode": "readonly",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "updatedAt",
                     "label": "Updated at",
                     "component": "datetime-picker",
-                    "mode": "readonly"
+                    "mode": "readonly",
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   }
                 ],
               "actions": []

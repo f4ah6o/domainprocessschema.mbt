@@ -17,7 +17,10 @@
               "primary": true,
               "readOnly": false,
               "system": false,
-              "default": null
+              "default": null,
+              "target": null,
+              "labelField": null,
+              "valueField": null
             },
             {
               "name": "role",
@@ -26,7 +29,10 @@
               "primary": false,
               "readOnly": false,
               "system": false,
-              "default": null
+              "default": null,
+              "target": null,
+              "labelField": null,
+              "valueField": null
             }
           ],
         "constraints": [],
@@ -43,7 +49,10 @@
               "primary": true,
               "readOnly": false,
               "system": false,
-              "default": null
+              "default": null,
+              "target": null,
+              "labelField": null,
+              "valueField": null
             },
             {
               "name": "amount",
@@ -52,7 +61,10 @@
               "primary": false,
               "readOnly": false,
               "system": false,
-              "default": null
+              "default": null,
+              "target": null,
+              "labelField": null,
+              "valueField": null
             },
             {
               "name": "reason",
@@ -61,7 +73,10 @@
               "primary": false,
               "readOnly": false,
               "system": false,
-              "default": null
+              "default": null,
+              "target": null,
+              "labelField": null,
+              "valueField": null
             },
             {
               "name": "applicant",
@@ -70,7 +85,10 @@
               "primary": false,
               "readOnly": false,
               "system": false,
-              "default": null
+              "default": null,
+              "target": "User",
+              "labelField": "id",
+              "valueField": "id"
             },
             {
               "name": "status",
@@ -79,7 +97,10 @@
               "primary": false,
               "readOnly": false,
               "system": false,
-              "default": null
+              "default": null,
+              "target": null,
+              "labelField": null,
+              "valueField": null
             },
             {
               "name": "createdAt",
@@ -88,7 +109,10 @@
               "primary": false,
               "readOnly": false,
               "system": true,
-              "default": null
+              "default": null,
+              "target": null,
+              "labelField": null,
+              "valueField": null
             },
             {
               "name": "updatedAt",
@@ -97,7 +121,10 @@
               "primary": false,
               "readOnly": false,
               "system": true,
-              "default": null
+              "default": null,
+              "target": null,
+              "labelField": null,
+              "valueField": null
             }
           ],
         "constraints": [
@@ -119,7 +146,9 @@
                     "required": true,
                     "readOnly": false,
                     "default": null,
-                    "target": null
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "reason",
@@ -128,7 +157,9 @@
                     "required": true,
                     "readOnly": false,
                     "default": null,
-                    "target": null
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   },
                   {
                     "name": "applicant",
@@ -137,7 +168,9 @@
                     "required": true,
                     "readOnly": false,
                     "default": null,
-                    "target": "User"
+                    "target": "User",
+                    "labelField": "id",
+                    "valueField": "id"
                   }
                 ],
               "guard": "amount > 0"
@@ -161,7 +194,9 @@
                     "required": true,
                     "readOnly": false,
                     "default": null,
-                    "target": null
+                    "target": null,
+                    "labelField": null,
+                    "valueField": null
                   }
                 ],
               "guard": null
