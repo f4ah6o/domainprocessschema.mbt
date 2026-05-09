@@ -226,6 +226,16 @@ The v1 event shape is defined in `docs/audit-event-manifest.md` and covers
 Rejected transition events embed the same structured diagnostic shape as parser,
 validator, and runtime failures.
 
+## Runtime adapter boundary
+
+`stable`
+
+The runtime core is an in-memory library. Durable persistence, actor resolution,
+reference lookup, clocks, ID generation, transaction boundaries, audit sinks,
+and HTTP/App Server transport live in host adapters.
+
+The boundary is defined in `docs/runtime-adapter-boundary.md`.
+
 ## Diagnostics contract
 
 `stable`
@@ -267,7 +277,7 @@ v1 では次を含まない。
 - BPMN compatibility
 - parallel workflow
 - timer / scheduler semantics
-- persistence adapter contract
+- concrete adapter trait API
 - schema diff / migration plan JSON
 - fully specified expression-language document
 - async reference lookup API
