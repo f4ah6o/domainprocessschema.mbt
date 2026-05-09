@@ -7,6 +7,17 @@
   "readme": "README.mbt.md",
   "repository": "https://github.com/f4ah6o/domainprocessschema.mbt",
   "license": "Apache-2.0",
-  "keywords": ["domain", "schema", "process", "sql"],
-  "description": "MoonBit-first domain and process schema compiler for SQL generation"
+  "keywords": [
+    "domain",
+    "schema",
+    "process",
+    "workflow",
+    "state-machine",
+    "manifest",
+    "validation",
+    "gui",
+    "runtime",
+    "sql"
+  ],
+  "description": "MoonBit-first domain and process schema compiler for validation, manifests, GUI previews, runtime workflows, and SQL generation"
 }
