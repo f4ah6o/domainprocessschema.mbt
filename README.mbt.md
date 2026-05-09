@@ -69,6 +69,10 @@ The generated JSON manifests now share a versioned envelope:
 }
 ```
 
+`normalized-schema` uses the same envelope and exposes the validated `Schema`
+as canonical JSON. Hosts can use it as the shared input for GUI, API, migration,
+diff, and editor workflows without reimplementing the YAML subset parser.
+
 The runtime now supports:
 
 - building an in-memory runtime from validated `Schema`
@@ -121,6 +125,7 @@ for phase 1.
 just check
 just test
 moon run cmd/main -- examples/expense_request.yaml
+moon run cmd/main -- normalized-schema examples/expense_request.yaml
 moon run cmd/main -- migration-sql examples/expense_request.yaml
 moon run cmd/main -- api-manifest examples/expense_request.yaml
 moon run cmd/main -- validation-manifest examples/expense_request.yaml
@@ -150,6 +155,8 @@ When a compile step fails, the CLI now prints a structured JSON diagnostic repor
 
 The public MoonBit API now includes:
 
+- `generate_normalized_schema`
+- `compile_normalized_schema_from_yaml`
 - `build_runtime`
 - `compile_runtime_from_yaml`
 - `validate_record`

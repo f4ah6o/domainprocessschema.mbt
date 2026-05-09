@@ -33,17 +33,17 @@ Initial stabilization work is represented by these issue files:
 Follow-up stabilization work is represented by these issue files:
 
 - `issues/closed/2026-05-06T195640-test-freeze-generated-artifact-goldens.md`
-- `issues/2026-05-06T195650-cli-add-normalized-schema-output.md`
+- `issues/closed/2026-05-06T195650-cli-add-normalized-schema-output.md`
 - `issues/2026-05-06T195700-spec-define-transition-semantics.md`
 - `issues/2026-05-06T195710-spec-document-expression-language-v1.md`
 - `issues/closed/2026-05-06T195720-spec-define-runtime-adapter-boundary.md`
 - `issues/closed/2026-05-06T195730-spec-define-reference-lookup-contract.md`
 - `issues/closed/2026-05-06T195740-spec-add-audit-event-manifest.md`
 
-The closed follow-up issues already define generated artifact golden fixtures,
-the runtime adapter boundary, reference lookup contract, and audit event shape.
-The open follow-up issues remain separate because they require either CLI output
-shape or runtime semantics work.
+The closed follow-up issues already define normalized schema output, generated
+artifact golden fixtures, the runtime adapter boundary, reference lookup
+contract, and audit event shape. The open follow-up issues remain separate
+because they require runtime semantics work.
 
 ## Stabilization Order
 
