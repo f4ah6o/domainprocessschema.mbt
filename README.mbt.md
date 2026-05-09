@@ -24,6 +24,7 @@ See also:
 
 - `docs/schema-contract-v1.md`
 - `docs/reference-lookup-contract.md`
+- `docs/audit-event-manifest.md`
 - `issues/2026-05-06T195600-spec-stabilize-versioned-contract-roadmap.md`
 
 ## Status
@@ -77,6 +78,8 @@ The runtime now supports:
 - rendering static HTML from GUI manifest JSON
 - rendering stateful HTML from runtime GUI projection
 - applying transitions in memory with role / guard enforcement
+- mapping transition outcomes to the host-facing audit event shape documented in
+  `docs/audit-event-manifest.md`
 
 The first runtime slice is intentionally limited to a library/static-preview
 engine:

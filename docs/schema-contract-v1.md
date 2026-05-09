@@ -215,6 +215,17 @@ JSON manifest は次の envelope を共有する。
 - `validation-manifest`
 - `gui-manifest`
 
+## Audit event contract
+
+`stable`
+
+Transition audit events are host-facing records, not generated schema manifests.
+The v1 event shape is defined in `docs/audit-event-manifest.md` and covers
+`transition.applied` and `transition.rejected`.
+
+Rejected transition events embed the same structured diagnostic shape as parser,
+validator, and runtime failures.
+
 ## Diagnostics contract
 
 `stable`
@@ -258,7 +269,6 @@ v1 では次を含まない。
 - timer / scheduler semantics
 - persistence adapter contract
 - schema diff / migration plan JSON
-- audit event manifest
 - fully specified expression-language document
 - async reference lookup API
 
