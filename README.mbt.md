@@ -25,6 +25,7 @@ See also:
 - `docs/schema-contract-v1.md`
 - `docs/reference-lookup-contract.md`
 - `docs/audit-event-manifest.md`
+- `docs/runtime-adapter-boundary.md`
 - `issues/2026-05-06T195600-spec-stabilize-versioned-contract-roadmap.md`
 
 ## Status
@@ -87,6 +88,10 @@ engine:
 - no HTTP server
 - no persistence adapter
 - no browser-side interactivity
+
+Production hosts should keep persistence, actor resolution, reference lookup,
+clock / ID generation, transaction management, and audit delivery behind the
+adapter roles described in `docs/runtime-adapter-boundary.md`.
 
 ## YAML scope
 
