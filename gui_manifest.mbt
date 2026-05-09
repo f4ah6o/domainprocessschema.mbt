@@ -2,7 +2,7 @@
 fn render_gui_manifest(schema : Schema, locale : String) -> String {
   let rendered_entities : Array[String] = []
   for entity in schema.entities {
-    rendered_entities.push(render_gui_entity(entity, locale))
+    rendered_entities.push(render_gui_entity(schema, entity, locale))
   }
   let entities_block = indent_block(rendered_entities.join(",\n"), 4)
   let payload = "{\n  \"entities\": [\n\{entities_block}\n  ]\n}"
@@ -10,7 +10,7 @@ fn render_gui_manifest(schema : Schema, locale : String) -> String {
 }
 
 ///|
-fn render_gui_entity(entity : Entity, locale : String) -> String {
+fn render_gui_entity(schema : Schema, entity : Entity, locale : String) -> String {
   let rendered_states : Array[String] = []
   let rendered_views : Array[String] = []
   let rendered_rules : Array[String] = []
@@ -19,7 +19,7 @@ fn render_gui_entity(entity : Entity, locale : String) -> String {
     rendered_states.push(render_gui_state(state, locale))
   }
   for view in entity.views {
-    rendered_views.push(render_gui_view(entity, view, locale))
+    rendered_views.push(render_gui_view(schema, entity, view, locale))
   }
   for rule in entity.rules {
     rendered_rules.push(render_gui_rule(rule))
@@ -47,16 +47,21 @@ fn render_gui_state(state : State, locale : String) -> String {
 }
 
 ///|
-fn render_gui_view(entity : Entity, view : View, locale : String) -> String {
+fn render_gui_view(
+  schema : Schema,
+  entity : Entity,
+  view : View,
+  locale : String,
+) -> String {
   let rendered_controls : Array[String] = []
   let rendered_actions : Array[String] = []
 
   for field in entity.fields {
-    rendered_controls.push(render_gui_field_control(field, view, locale))
+    rendered_controls.push(render_gui_field_control(schema, field, view, locale))
   }
   for transition in entity.transitions {
     if transition.from == view.name {
-      rendered_actions.push(render_gui_action(entity, transition, locale))
+      rendered_actions.push(render_gui_action(schema, entity, transition, locale))
     }
   }
 
@@ -71,6 +76,7 @@ fn render_gui_view(entity : Entity, view : View, locale : String) -> String {
 
 ///|
 fn render_gui_field_control(
+  schema : Schema,
   field : Field,
   view : View,
   locale : String,
@@ -81,6 +87,9 @@ fn render_gui_field_control(
     "\"label\": \{json_quote(resolve_localized_text(field.label, field.labels, locale))}",
     "\"component\": \{json_quote(gui_component(field.field_type))}",
     "\"mode\": \{json_quote(mode)}",
+    "\"target\": \{json_optional_string(field.target)}",
+    "\"labelField\": \{json_optional_string(reference_label_field_name(schema, field.target))}",
+    "\"valueField\": \{json_optional_string(reference_value_field_name(schema, field.target))}",
   ]
   let body = indent_block(body_lines.join(",\n"), 2)
   "{\n\{body}\n}"
@@ -88,13 +97,14 @@ fn render_gui_field_control(
 
 ///|
 fn render_gui_action(
+  schema : Schema,
   entity : Entity,
   transition : Transition,
   locale : String,
 ) -> String {
   let rendered_inputs : Array[String] = []
   for input in transition.inputs {
-    rendered_inputs.push(render_gui_action_input(entity, input, locale))
+    rendered_inputs.push(render_gui_action_input(schema, entity, input, locale))
   }
   let body_lines = [
     "\"name\": \{json_quote(transition.name)}",
@@ -109,6 +119,7 @@ fn render_gui_action(
 
 ///|
 fn render_gui_action_input(
+  schema : Schema,
   entity : Entity,
   input : TransitionInput,
   locale : String,
@@ -119,6 +130,9 @@ fn render_gui_action_input(
     "\"kind\": \{json_quote(transition_input_kind_name(input.kind))}",
     "\"component\": \{json_quote(gui_component(input.field_type))}",
     "\"required\": \{json_bool(input.required)}",
+    "\"target\": \{json_optional_string(input.target)}",
+    "\"labelField\": \{json_optional_string(reference_label_field_name(schema, input.target))}",
+    "\"valueField\": \{json_optional_string(reference_value_field_name(schema, input.target))}",
   ]
   let body = indent_block(body_lines.join(",\n"), 2)
   "{\n\{body}\n}"
