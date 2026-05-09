@@ -26,6 +26,7 @@ See also:
 - `docs/reference-lookup-contract.md`
 - `docs/audit-event-manifest.md`
 - `docs/runtime-adapter-boundary.md`
+- `docs/transition-semantics-v1.md`
 - `docs/versioned-contract-roadmap.md`
 
 ## Status
@@ -96,6 +97,8 @@ engine:
 Production hosts should keep persistence, actor resolution, reference lookup,
 clock / ID generation, transaction management, and audit delivery behind the
 adapter roles described in `docs/runtime-adapter-boundary.md`.
+Transition availability and mutation behavior are fixed in
+`docs/transition-semantics-v1.md`.
 
 ## YAML scope
 
@@ -257,6 +260,8 @@ python3 -m http.server
 
 The runtime uses the validated `Schema` and `Expr` AST directly instead of
 parsing the generated JSON manifests back into memory.
+Transition availability and mutation semantics are documented in
+`docs/transition-semantics-v1.md`.
 
 ### Cloudflare Worker deploy
 

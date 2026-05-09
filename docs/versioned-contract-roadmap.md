@@ -18,6 +18,7 @@ The initial contract family is split into small, reviewable surfaces:
 4. Reference lookup metadata: `docs/reference-lookup-contract.md`
 5. Audit event shape: `docs/audit-event-manifest.md`
 6. Runtime adapter ownership: `docs/runtime-adapter-boundary.md`
+7. Transition semantics: `docs/transition-semantics-v1.md`
 
 Each surface has a separate issue so future changes can be reviewed without
 turning the roadmap into a large implementation PR.
@@ -34,16 +35,16 @@ Follow-up stabilization work is represented by these issue files:
 
 - `issues/closed/2026-05-06T195640-test-freeze-generated-artifact-goldens.md`
 - `issues/closed/2026-05-06T195650-cli-add-normalized-schema-output.md`
-- `issues/2026-05-06T195700-spec-define-transition-semantics.md`
+- `issues/closed/2026-05-06T195700-spec-define-transition-semantics.md`
 - `issues/2026-05-06T195710-spec-document-expression-language-v1.md`
 - `issues/closed/2026-05-06T195720-spec-define-runtime-adapter-boundary.md`
 - `issues/closed/2026-05-06T195730-spec-define-reference-lookup-contract.md`
 - `issues/closed/2026-05-06T195740-spec-add-audit-event-manifest.md`
 
 The closed follow-up issues already define normalized schema output, generated
-artifact golden fixtures, the runtime adapter boundary, reference lookup
-contract, and audit event shape. The open follow-up issues remain separate
-because they require runtime semantics work.
+artifact golden fixtures, transition semantics, the runtime adapter boundary,
+reference lookup contract, and audit event shape. The open follow-up issue
+remains separate because it requires expression-language behavior work.
 
 ## Stabilization Order
 
