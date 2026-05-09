@@ -180,9 +180,45 @@ fn render_demo_runtime_issue_json(issue : @schema.Diagnostic) -> String {
   builder.write_string("\"code\":\"\{json_escape(issue.code)}\",")
   builder.write_string("\"severity\":\"\{json_escape(severity)}\",")
   builder.write_string("\"target\":\"\{json_escape(issue.target)}\",")
-  builder.write_string("\"message\":\"\{json_escape(issue.message)}\"")
+  builder.write_string("\"message\":\"\{json_escape(issue.message)}\",")
+  builder.write_string("\"hint\":\{json_string_or_null(issue.hint)},")
+  builder.write_string("\"context\":\{render_demo_issue_context_json(issue.context)}")
   builder.write_string("}")
   builder.to_string()
+}
+
+///|
+fn render_demo_issue_context_json(values : Map[String, String]) -> String {
+  let keys : Array[String] = []
+  for key, _ in values {
+    keys.push(key)
+  }
+  sort_demo_context_keys(keys)
+  let builder = StringBuilder::new()
+  builder.write_string("{")
+  for i in 0..<keys.length() {
+    if i > 0 {
+      builder.write_string(",")
+    }
+    let key = keys[i]
+    let value = values.get(key).unwrap_or("")
+    builder.write_string("\"\{json_escape(key)}\":\"\{json_escape(value)}\"")
+  }
+  builder.write_string("}")
+  builder.to_string()
+}
+
+///|
+fn sort_demo_context_keys(values : Array[String]) -> Unit {
+  for i in 1..<values.length() {
+    let current = values[i]
+    let mut j = i
+    while j > 0 && values[j - 1] > current {
+      values[j] = values[j - 1]
+      j = j - 1
+    }
+    values[j] = current
+  }
 }
 
 ///|
