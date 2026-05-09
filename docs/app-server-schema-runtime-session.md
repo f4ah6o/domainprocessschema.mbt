@@ -132,15 +132,17 @@ Read-only tools do not change durable session state and never require approval:
 | Tool | Input | Output |
 | ---- | ----- | ------ |
 | `get_session_snapshot` | none | `SessionSnapshot` |
-| `compile_current_source` | none | `{ normalizedSchema, diagnostics }` |
+| `compile_current_source` | none | `{ normalizedSchema, apiManifest, validationManifest, guiManifest, diagnostics }` |
 | `get_runtime_view` | none | `{ view, diagnostics }` |
 | `list_available_transitions` | none | `{ transitions }` |
 | `get_graph` | none | `{ nodes, edges }` |
 | `get_diagnostics` | none | `{ diagnostics }` |
 
-`compile_current_source` may return generated artifacts to the caller, but if
-the host persists them back into the session it must expose that as a separate
-mutating operation or as part of a host-owned refresh policy.
+`compile_current_source` returns the same generated artifact fields that appear
+under the snapshot `compile` section. The tool itself is read-only: a host that
+wants to persist those returned artifacts back into the durable session must do
+so through an explicit mutating refresh operation or a documented host-owned
+refresh policy.
 
 ### Mutating Tools
 
@@ -156,9 +158,9 @@ proposal before changing it:
 | `select_transition` | `{ name }` | `{ selection, snapshot }` |
 | `set_actor_role` | `{ role }` | `{ actor, snapshot }` |
 | `update_record_payload` | `{ payload }` | `{ record, diagnostics, snapshot }` |
-| `apply_transition` | `{ name, input }` | `{ snapshot }` after approval, or `{ proposal }` before approval |
+| `apply_transition` | `{ name, transitionInput }` | `{ snapshot }` after approval, or `{ proposal }` before approval |
 | `set_locale` | `{ locale }` | `{ locale, snapshot }` |
-| `reset_session` | `{ example }` | `{ proposal }` before approval, `{ snapshot }` after approval |
+| `reset_session` | `{ example? }` | `{ proposal }` before approval, `{ snapshot }` after approval |
 
 The host may implement these as direct function calls, RPC methods, or App
 Server tools. The contract is the input/output vocabulary, not the transport.
@@ -172,6 +174,8 @@ The approval boundary is fixed before persistence implementation:
 - `reset_session` is approval-required because it discards current source,
   selection, actor, record, compile, runtime, graph, locale, and last-action
   state.
+- `reset_session.example` is optional. When omitted, the host resets to its
+  configured empty/default session.
 - `replace_source`, inspector edits, selection updates, actor role changes,
   record payload updates, and locale changes are mutating but not approval-
   required by default.
