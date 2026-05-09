@@ -26,7 +26,7 @@ turning the roadmap into a large implementation PR.
 
 Initial stabilization work is represented by these issue files:
 
-- `issues/2026-05-06T195610-spec-stabilize-schema-contract-v1.md`
+- `issues/closed/2026-05-06T195610-spec-stabilize-schema-contract-v1.md`
 - `issues/2026-05-06T195620-spec-add-versioned-manifest-envelope.md`
 - `issues/2026-05-06T195630-spec-define-structured-diagnostics.md`
 
