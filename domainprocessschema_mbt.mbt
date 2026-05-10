@@ -420,6 +420,53 @@ pub(all) struct SchemaRuntimeSessionStore {
 } derive(Eq, Show)
 
 ///|
+pub(all) enum SchemaAppServerToolAccess {
+  ReadOnly
+  Mutating
+  ApprovalRequired
+} derive(Eq, Show)
+
+///|
+pub(all) struct SchemaAppServerToolShape {
+  name : String
+  access : SchemaAppServerToolAccess
+  input_shape : String
+  output_shape : String
+} derive(Eq, Show)
+
+///|
+pub(all) struct SchemaAppServerToolApprovalProposal {
+  id : String
+  tool : String
+  title : String
+  summary : String
+  input_json : String
+} derive(Eq, Show)
+
+///|
+pub(all) struct SchemaAppServerToolEnvelope {
+  tool : String
+  access : SchemaAppServerToolAccess
+  diagnostics : Array[SchemaSessionDiagnostic]
+  snapshot : SchemaRuntimeSessionStore
+  approval : SchemaAppServerToolApprovalProposal?
+} derive(Eq, Show)
+
+///|
+pub(all) struct SchemaToolInspectorEditInput {
+  entity_name : String
+  source_path : String
+  schema_path : String
+  value : RuntimeValue
+} derive(Eq, Show)
+
+///|
+pub(all) struct SchemaToolTransitionApplyInput {
+  transition_name : String
+  input : Map[String, RuntimeValue]
+} derive(Eq, Show)
+
+///|
 pub(all) suberror RuntimeError {
   UnknownEntity(entity~ : String)
   EntityMismatch(expected~ : String, found~ : String)
@@ -464,6 +511,124 @@ pub fn SchemaSessionSelection::empty() -> SchemaSessionSelection {
     transition_name: None,
     field_name: None,
   }
+}
+
+///|
+pub fn schema_app_server_tool_shapes() -> Array[SchemaAppServerToolShape] {
+  schema_app_server_tool_shape_catalog()
+}
+
+///|
+pub fn schema_tool_session_snapshot(
+  store : SchemaRuntimeSessionStore,
+) -> SchemaAppServerToolEnvelope {
+  schema_tool_read_session_snapshot(store)
+}
+
+///|
+pub fn schema_tool_compile_current_source(
+  store : SchemaRuntimeSessionStore,
+) -> SchemaAppServerToolEnvelope {
+  schema_tool_read_compile_current_source(store)
+}
+
+///|
+pub fn schema_tool_runtime_view(
+  store : SchemaRuntimeSessionStore,
+) -> SchemaAppServerToolEnvelope {
+  schema_tool_read_runtime_view(store)
+}
+
+///|
+pub fn schema_tool_available_transitions(
+  store : SchemaRuntimeSessionStore,
+) -> SchemaAppServerToolEnvelope {
+  schema_tool_read_available_transitions(store)
+}
+
+///|
+pub fn schema_tool_graph(
+  store : SchemaRuntimeSessionStore,
+) -> SchemaAppServerToolEnvelope {
+  schema_tool_read_graph(store)
+}
+
+///|
+pub fn schema_tool_diagnostics(
+  store : SchemaRuntimeSessionStore,
+) -> SchemaAppServerToolEnvelope {
+  schema_tool_read_diagnostics(store)
+}
+
+///|
+pub fn schema_tool_replace_source(
+  store : SchemaRuntimeSessionStore,
+  source_yaml : String,
+) -> SchemaAppServerToolEnvelope {
+  schema_tool_mutate_replace_source(store, source_yaml)
+}
+
+///|
+pub fn schema_tool_inspector_edit(
+  store : SchemaRuntimeSessionStore,
+  input : SchemaToolInspectorEditInput,
+) -> SchemaAppServerToolEnvelope {
+  schema_tool_mutate_inspector_edit(store, input)
+}
+
+///|
+pub fn schema_tool_select(
+  store : SchemaRuntimeSessionStore,
+  selection : SchemaSessionSelection,
+) -> SchemaAppServerToolEnvelope {
+  schema_tool_mutate_select(store, selection)
+}
+
+///|
+pub fn schema_tool_set_actor_role(
+  store : SchemaRuntimeSessionStore,
+  role : String,
+) -> SchemaAppServerToolEnvelope {
+  schema_tool_mutate_set_actor_role(store, role)
+}
+
+///|
+pub fn schema_tool_update_record_payload(
+  store : SchemaRuntimeSessionStore,
+  entity_name : String,
+  payload : Map[String, RuntimeValue],
+) -> SchemaAppServerToolEnvelope {
+  schema_tool_mutate_update_record_payload(store, entity_name, payload)
+}
+
+///|
+pub fn schema_tool_set_locale(
+  store : SchemaRuntimeSessionStore,
+  locale : String,
+) -> SchemaAppServerToolEnvelope {
+  schema_tool_mutate_set_locale(store, locale)
+}
+
+///|
+pub fn schema_tool_propose_transition_apply(
+  store : SchemaRuntimeSessionStore,
+  input : SchemaToolTransitionApplyInput,
+) -> SchemaAppServerToolEnvelope {
+  schema_tool_approval_transition_apply(store, input)
+}
+
+///|
+pub fn schema_tool_propose_reset_session(
+  store : SchemaRuntimeSessionStore,
+) -> SchemaAppServerToolEnvelope {
+  schema_tool_approval_reset_session(store)
+}
+
+///|
+pub fn export_schema_tool_envelope(
+  envelope : SchemaAppServerToolEnvelope,
+) -> String {
+  render_schema_tool_envelope_json(envelope)
 }
 
 ///|
