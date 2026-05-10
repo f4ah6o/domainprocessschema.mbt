@@ -109,8 +109,5 @@ test "render_runtime_preview returns manager-submitted HTML" {
 test "render_validation_manifest returns validation json" {
   let result = render_validation_manifest(demo_yaml())
   inspect(result_is_ok(result), content="true")
-  inspect(
-    result_unwrap(result).contains("\"constraints\""),
-    content="true",
-  )
+  inspect(result_unwrap(result).contains("\"constraints\""), content="true")
 }

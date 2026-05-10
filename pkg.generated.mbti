@@ -20,7 +20,11 @@ pub fn compile_sql_from_yaml(String) -> String raise SchemaError
 
 pub fn compile_validation_manifest_from_yaml(String) -> String raise SchemaError
 
+pub fn create_schema_runtime_session(String, actor? : RuntimeActor, record? : RuntimeRecord, selection? : SchemaSessionSelection, locale? : String) -> SchemaRuntimeSessionStore
+
 pub fn evaluate_rules(Runtime, RuntimeRecord, actor? : RuntimeActor) -> Array[RuntimeRuleStatus] raise RuntimeError
+
+pub fn export_schema_runtime_session(SchemaRuntimeSessionStore) -> String
 
 pub fn generate_api_manifest(Schema) -> String
 
@@ -41,6 +45,18 @@ pub fn project_gui(Runtime, RuntimeRecord, actor? : RuntimeActor) -> RuntimeGuiV
 pub fn render_gui_html_from_manifest(String) -> String raise HtmlRenderError
 
 pub fn render_runtime_gui_html(Runtime, RuntimeRecord, actor? : RuntimeActor) -> String raise RuntimeError
+
+pub fn schema_session_apply_transition(SchemaRuntimeSessionStore, String, input? : Map[String, RuntimeValue]) -> SchemaRuntimeSessionStore
+
+pub fn schema_session_edit_record(SchemaRuntimeSessionStore, String, Map[String, RuntimeValue]) -> SchemaRuntimeSessionStore
+
+pub fn schema_session_set_actor(SchemaRuntimeSessionStore, RuntimeActor) -> SchemaRuntimeSessionStore
+
+pub fn schema_session_set_locale(SchemaRuntimeSessionStore, String) -> SchemaRuntimeSessionStore
+
+pub fn schema_session_set_selection(SchemaRuntimeSessionStore, SchemaSessionSelection) -> SchemaRuntimeSessionStore
+
+pub fn schema_session_set_source(SchemaRuntimeSessionStore, String) -> SchemaRuntimeSessionStore
 
 pub fn validate_record(Runtime, String, Map[String, RuntimeValue], current? : RuntimeRecord) -> RuntimeValidation raise RuntimeError
 
@@ -326,6 +342,68 @@ pub(all) enum RuntimeValue {
 
 pub(all) struct Schema {
   entities : Array[Entity]
+} derive(Eq, Show)
+
+pub(all) struct SchemaRuntimeSessionStore {
+  source : SchemaSessionSource
+  selection : SchemaSessionSelection
+  actor : RuntimeActor
+  record : RuntimeRecord?
+  compile : SchemaSessionCompileSnapshot
+  runtime : SchemaSessionRuntimeSnapshot
+  graph : SchemaSessionGraphSnapshot
+  locale : String
+  last_action : String
+} derive(Eq, Show)
+
+pub(all) struct SchemaSessionCompileSnapshot {
+  ok : Bool
+  diagnostics : Array[SchemaSessionDiagnostic]
+  api_manifest : String?
+  validation_manifest : String?
+  gui_manifest : String?
+} derive(Eq, Show)
+
+pub(all) struct SchemaSessionDiagnostic {
+  path : String
+  message : String
+} derive(Eq, Show)
+
+pub(all) struct SchemaSessionGraphEdge {
+  from : String
+  to : String
+  label : String
+  kind : String
+} derive(Eq, Show)
+
+pub(all) struct SchemaSessionGraphNode {
+  id : String
+  label : String
+  kind : String
+} derive(Eq, Show)
+
+pub(all) struct SchemaSessionGraphSnapshot {
+  nodes : Array[SchemaSessionGraphNode]
+  edges : Array[SchemaSessionGraphEdge]
+} derive(Eq, Show)
+
+pub(all) struct SchemaSessionRuntimeSnapshot {
+  transitions : Array[RuntimeTransitionStatus]
+  rules : Array[RuntimeRuleStatus]
+  view : RuntimeGuiView?
+  diagnostics : Array[SchemaSessionDiagnostic]
+} derive(Eq, Show)
+
+pub(all) struct SchemaSessionSelection {
+  entity_name : String?
+  state_name : String?
+  transition_name : String?
+  field_name : String?
+} derive(Eq, Show)
+pub fn SchemaSessionSelection::empty() -> Self
+
+pub(all) struct SchemaSessionSource {
+  yaml : String
 } derive(Eq, Show)
 
 pub(all) struct State {

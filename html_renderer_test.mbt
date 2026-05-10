@@ -116,7 +116,6 @@ test "render_gui_html_from_manifest renders static html preview" {
       #|</section>
       #|</body>
       #|</html>
-
     ),
   )
 }
@@ -185,7 +184,6 @@ test "render_runtime_gui_html renders stateful html preview" {
       #|</section>
       #|</body>
       #|</html>
-
     ),
   )
 }
