@@ -26,6 +26,8 @@ pub fn evaluate_rules(Runtime, RuntimeRecord, actor? : RuntimeActor) -> Array[Ru
 
 pub fn export_schema_runtime_session(SchemaRuntimeSessionStore) -> String
 
+pub fn export_schema_tool_envelope(SchemaAppServerToolEnvelope) -> String
+
 pub fn generate_api_manifest(Schema) -> String
 
 pub fn generate_gui_manifest(Schema) -> String
@@ -46,6 +48,8 @@ pub fn render_gui_html_from_manifest(String) -> String raise HtmlRenderError
 
 pub fn render_runtime_gui_html(Runtime, RuntimeRecord, actor? : RuntimeActor) -> String raise RuntimeError
 
+pub fn schema_app_server_tool_shapes() -> Array[SchemaAppServerToolShape]
+
 pub fn schema_session_apply_transition(SchemaRuntimeSessionStore, String, input? : Map[String, RuntimeValue]) -> SchemaRuntimeSessionStore
 
 pub fn schema_session_edit_record(SchemaRuntimeSessionStore, String, Map[String, RuntimeValue]) -> SchemaRuntimeSessionStore
@@ -57,6 +61,34 @@ pub fn schema_session_set_locale(SchemaRuntimeSessionStore, String) -> SchemaRun
 pub fn schema_session_set_selection(SchemaRuntimeSessionStore, SchemaSessionSelection) -> SchemaRuntimeSessionStore
 
 pub fn schema_session_set_source(SchemaRuntimeSessionStore, String) -> SchemaRuntimeSessionStore
+
+pub fn schema_tool_available_transitions(SchemaRuntimeSessionStore) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_compile_current_source(SchemaRuntimeSessionStore) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_diagnostics(SchemaRuntimeSessionStore) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_graph(SchemaRuntimeSessionStore) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_inspector_edit(SchemaRuntimeSessionStore, SchemaToolInspectorEditInput) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_propose_reset_session(SchemaRuntimeSessionStore) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_propose_transition_apply(SchemaRuntimeSessionStore, SchemaToolTransitionApplyInput) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_replace_source(SchemaRuntimeSessionStore, String) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_runtime_view(SchemaRuntimeSessionStore) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_select(SchemaRuntimeSessionStore, SchemaSessionSelection) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_session_snapshot(SchemaRuntimeSessionStore) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_set_actor_role(SchemaRuntimeSessionStore, String) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_set_locale(SchemaRuntimeSessionStore, String) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_update_record_payload(SchemaRuntimeSessionStore, String, Map[String, RuntimeValue]) -> SchemaAppServerToolEnvelope
 
 pub fn validate_record(Runtime, String, Map[String, RuntimeValue], current? : RuntimeRecord) -> RuntimeValidation raise RuntimeError
 
@@ -344,6 +376,35 @@ pub(all) struct Schema {
   entities : Array[Entity]
 } derive(Eq, Show)
 
+pub(all) enum SchemaAppServerToolAccess {
+  ReadOnly
+  Mutating
+  ApprovalRequired
+} derive(Eq, Show)
+
+pub(all) struct SchemaAppServerToolApprovalProposal {
+  id : String
+  tool : String
+  title : String
+  summary : String
+  input_json : String
+} derive(Eq, Show)
+
+pub(all) struct SchemaAppServerToolEnvelope {
+  tool : String
+  access : SchemaAppServerToolAccess
+  diagnostics : Array[SchemaSessionDiagnostic]
+  snapshot : SchemaRuntimeSessionStore
+  approval : SchemaAppServerToolApprovalProposal?
+} derive(Eq, Show)
+
+pub(all) struct SchemaAppServerToolShape {
+  name : String
+  access : SchemaAppServerToolAccess
+  input_shape : String
+  output_shape : String
+} derive(Eq, Show)
+
 pub(all) struct SchemaRuntimeSessionStore {
   source : SchemaSessionSource
   selection : SchemaSessionSelection
@@ -404,6 +465,18 @@ pub fn SchemaSessionSelection::empty() -> Self
 
 pub(all) struct SchemaSessionSource {
   yaml : String
+} derive(Eq, Show)
+
+pub(all) struct SchemaToolInspectorEditInput {
+  entity_name : String
+  source_path : String
+  schema_path : String
+  value : RuntimeValue
+} derive(Eq, Show)
+
+pub(all) struct SchemaToolTransitionApplyInput {
+  transition_name : String
+  input : Map[String, RuntimeValue]
 } derive(Eq, Show)
 
 pub(all) struct State {
