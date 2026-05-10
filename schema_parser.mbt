@@ -219,12 +219,11 @@ fn parse_transition_local_inputs(
           path,
         )
         let default_value = optional_string_value(input_map, "default", path)
-        let required =
-          if input_map.contains("required") {
-            optional_bool_value(input_map, "required", path, false)
-          } else {
-            default_value is None
-          }
+        let required = if input_map.contains("required") {
+          optional_bool_value(input_map, "required", path, false)
+        } else {
+          default_value is None
+        }
         inputs.push(ParsedTransitionInput::{
           name: input_name,
           type_name: required_string_value(input_map, "type", "\{path}.type"),
