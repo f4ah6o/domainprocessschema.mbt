@@ -178,6 +178,12 @@ fn json_escape(value : String) -> String {
       builder.write_string("\\\\")
     } else if char == '"' {
       builder.write_string("\\\"")
+    } else if char == '\n' {
+      builder.write_string("\\n")
+    } else if char == '\r' {
+      builder.write_string("\\r")
+    } else if char == '\t' {
+      builder.write_string("\\t")
     } else {
       builder.write_char(char)
     }

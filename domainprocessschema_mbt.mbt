@@ -441,6 +441,7 @@ pub(all) struct SchemaAppServerToolApprovalProposal {
   title : String
   summary : String
   input_json : String
+  detail_json : String
 } derive(Eq, Show)
 
 ///|
@@ -464,6 +465,22 @@ pub(all) struct SchemaToolInspectorEditInput {
 pub(all) struct SchemaToolTransitionApplyInput {
   transition_name : String
   input : Map[String, RuntimeValue]
+} derive(Eq, Show)
+
+///|
+pub(all) enum SchemaSessionArtifactFormat {
+  SourceYaml
+  NormalizedSchema
+  RuntimeSession
+  DiagnosticReport
+} derive(Eq, Show)
+
+///|
+pub(all) struct SchemaSessionArtifactEnvelope {
+  version : Int
+  format : SchemaSessionArtifactFormat
+  media_type : String
+  payload : String
 } derive(Eq, Show)
 
 ///|
@@ -629,6 +646,21 @@ pub fn export_schema_tool_envelope(
   envelope : SchemaAppServerToolEnvelope,
 ) -> String {
   render_schema_tool_envelope_json(envelope)
+}
+
+///|
+pub fn export_schema_session_artifact(
+  store : SchemaRuntimeSessionStore,
+  format : SchemaSessionArtifactFormat,
+) -> SchemaSessionArtifactEnvelope {
+  schema_session_export_artifact(store, format)
+}
+
+///|
+pub fn render_schema_session_artifact(
+  artifact : SchemaSessionArtifactEnvelope,
+) -> String {
+  render_schema_session_artifact_envelope_json(artifact)
 }
 
 ///|
