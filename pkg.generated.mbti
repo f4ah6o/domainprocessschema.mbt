@@ -445,8 +445,12 @@ pub(all) struct SchemaSessionCompileSnapshot {
 } derive(Eq, Show)
 
 pub(all) struct SchemaSessionDiagnostic {
-  path : String
+  code : String
+  severity : String
+  target : String
   message : String
+  hint : String?
+  context : Map[String, String]
 } derive(Eq, Show)
 
 pub(all) struct SchemaSessionGraphEdge {
