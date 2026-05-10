@@ -85,6 +85,12 @@ fn schema_app_server_tool_shape_catalog() -> Array[SchemaAppServerToolShape] {
       input_shape: "{}",
       output_shape: "{ diagnostics, snapshot, approval }",
     },
+    SchemaAppServerToolShape::{
+      name: "schema.artifact.export",
+      access: SchemaAppServerToolAccess::ReadOnly,
+      input_shape: "{ format: source-yaml | normalized-schema | runtime-session | diagnostic-report }",
+      output_shape: "{ version, format, mediaType, payload }",
+    },
   ]
 }
 
@@ -276,6 +282,7 @@ fn schema_tool_approval_transition_apply(
   input : SchemaToolTransitionApplyInput,
 ) -> SchemaAppServerToolEnvelope {
   let input_json = render_schema_tool_transition_apply_input_json(input)
+  let detail_json = render_schema_transition_approval_detail_json(store, input)
   SchemaAppServerToolEnvelope::{
     ..schema_tool_envelope(
       "schema.transition.apply",
@@ -289,6 +296,7 @@ fn schema_tool_approval_transition_apply(
       title: "Apply transition \{input.transition_name}",
       summary: "Apply transition \{input.transition_name} to the current runtime record.",
       input_json,
+      detail_json,
     }),
   }
 }
@@ -310,6 +318,7 @@ fn schema_tool_approval_reset_session(
       title: "Reset schema session",
       summary: "Reset source, selection, actor, record, locale, and runtime snapshots after approval.",
       input_json: "{}",
+      detail_json: render_schema_reset_approval_detail_json(store),
     }),
   }
 }
@@ -383,6 +392,114 @@ fn render_schema_tool_approval_proposal_json(
     "\"title\": \{json_quote(proposal.title)}",
     "\"summary\": \{json_quote(proposal.summary)}",
     "\"input\": \{proposal.input_json}",
+    "\"detail\": \{proposal.detail_json}",
+  ]
+  let body = indent_block(body_lines.join(",\n"), 2)
+  "{\n\{body}\n}"
+}
+
+///|
+fn render_schema_transition_approval_detail_json(
+  store : SchemaRuntimeSessionStore,
+  input : SchemaToolTransitionApplyInput,
+) -> String {
+  let body_lines = [
+    "\"actor\": \{render_runtime_actor_json(store.actor)}",
+    "\"transition\": \{render_transition_approval_transition_json(store, input.transition_name)}",
+    "\"currentState\": \{json_quote(schema_session_current_state(store))}",
+    "\"targetState\": \{json_quote(schema_session_target_state(store, input.transition_name))}",
+    "\"record\": \{render_record_summary_json(store.record)}",
+    "\"expectedEffects\": \{render_transition_expected_effects_json(store, input)}",
+  ]
+  let body = indent_block(body_lines.join(",\n"), 2)
+  "{\n\{body}\n}"
+}
+
+///|
+fn render_transition_approval_transition_json(
+  store : SchemaRuntimeSessionStore,
+  transition_name : String,
+) -> String {
+  for transition in store.runtime.transitions {
+    if transition.name == transition_name {
+      let body_lines = [
+        "\"name\": \{json_quote(transition.name)}",
+        "\"from\": \{json_quote(transition.from)}",
+        "\"to\": \{json_quote(transition.to)}",
+        "\"role\": \{json_optional_string(transition.role)}",
+        "\"available\": \{json_bool(transition.is_available())}",
+        "\"issues\": \{render_runtime_issues_json(transition.issues)}",
+      ]
+      let body = indent_block(body_lines.join(",\n"), 2)
+      return "{\n\{body}\n}"
+    }
+  }
+  let body = indent_block("\"name\": \{json_quote(transition_name)}", 2)
+  "{\n\{body}\n}"
+}
+
+///|
+fn render_transition_expected_effects_json(
+  store : SchemaRuntimeSessionStore,
+  input : SchemaToolTransitionApplyInput,
+) -> String {
+  let body_lines = [
+    "\"stateChange\": \{render_state_change_json(store, input.transition_name)}",
+    "\"input\": \{render_runtime_value_map_json(input.input)}",
+    "\"recordAfterApproval\": \{render_transition_result_record_json(store, input)}",
+    "\"snapshotRefresh\": true",
+  ]
+  let body = indent_block(body_lines.join(",\n"), 2)
+  "{\n\{body}\n}"
+}
+
+///|
+fn render_state_change_json(
+  store : SchemaRuntimeSessionStore,
+  transition_name : String,
+) -> String {
+  let body_lines = [
+    "\"from\": \{json_quote(schema_session_current_state(store))}",
+    "\"to\": \{json_quote(schema_session_target_state(store, transition_name))}",
+  ]
+  let body = indent_block(body_lines.join(",\n"), 2)
+  "{\n\{body}\n}"
+}
+
+///|
+fn render_transition_result_record_json(
+  store : SchemaRuntimeSessionStore,
+  input : SchemaToolTransitionApplyInput,
+) -> String {
+  match (schema_session_compile_runtime(store.source.yaml), store.record) {
+    (Some(runtime), Some(record)) => {
+      let applied = try? apply_transition(
+        runtime,
+        record,
+        input.transition_name,
+        input=input.input,
+        actor=store.actor,
+      )
+      match applied {
+        Ok(next_record) => render_runtime_record_json(next_record)
+        Err(_) => "null"
+      }
+    }
+    _ => "null"
+  }
+}
+
+///|
+fn render_schema_reset_approval_detail_json(
+  store : SchemaRuntimeSessionStore,
+) -> String {
+  let body_lines = [
+    "\"lostSource\": \{render_source_summary_json(store.source)}",
+    "\"lostSelection\": \{render_schema_session_selection_json(store.selection)}",
+    "\"lostActor\": \{render_runtime_actor_json(store.actor)}",
+    "\"lostRecord\": \{render_record_summary_json(store.record)}",
+    "\"lostLocale\": \{json_quote(store.locale)}",
+    "\"lostRuntime\": \{render_runtime_summary_json(store)}",
   ]
   let body = indent_block(body_lines.join(",\n"), 2)
   "{\n\{body}\n}"

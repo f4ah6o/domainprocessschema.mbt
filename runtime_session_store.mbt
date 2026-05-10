@@ -230,6 +230,251 @@ fn render_schema_runtime_session_json(
 }
 
 ///|
+fn schema_session_export_artifact(
+  store : SchemaRuntimeSessionStore,
+  format : SchemaSessionArtifactFormat,
+) -> SchemaSessionArtifactEnvelope {
+  match format {
+    SchemaSessionArtifactFormat::SourceYaml =>
+      SchemaSessionArtifactEnvelope::{
+        version: 1,
+        format,
+        media_type: "application/x-yaml",
+        payload: store.source.yaml,
+      }
+    SchemaSessionArtifactFormat::NormalizedSchema =>
+      SchemaSessionArtifactEnvelope::{
+        version: 1,
+        format,
+        media_type: "application/json",
+        payload: render_normalized_schema_artifact_payload(store),
+      }
+    SchemaSessionArtifactFormat::RuntimeSession =>
+      SchemaSessionArtifactEnvelope::{
+        version: 1,
+        format,
+        media_type: "application/json",
+        payload: render_schema_runtime_session_json(store),
+      }
+    SchemaSessionArtifactFormat::DiagnosticReport =>
+      SchemaSessionArtifactEnvelope::{
+        version: 1,
+        format,
+        media_type: "application/json",
+        payload: render_diagnostic_report_payload(store),
+      }
+  }
+}
+
+///|
+fn render_schema_session_artifact_envelope_json(
+  artifact : SchemaSessionArtifactEnvelope,
+) -> String {
+  let body_lines = [
+    "\"version\": \{artifact.version}",
+    "\"format\": \{json_quote(schema_session_artifact_format_name(artifact.format))}",
+    "\"mediaType\": \{json_quote(artifact.media_type)}",
+    "\"payload\": \{json_quote(artifact.payload)}",
+  ]
+  let body = indent_block(body_lines.join(",\n"), 2)
+  "{\n\{body}\n}"
+}
+
+///|
+fn schema_session_artifact_format_name(
+  format : SchemaSessionArtifactFormat,
+) -> String {
+  match format {
+    SchemaSessionArtifactFormat::SourceYaml => "source-yaml"
+    SchemaSessionArtifactFormat::NormalizedSchema => "normalized-schema"
+    SchemaSessionArtifactFormat::RuntimeSession => "runtime-session"
+    SchemaSessionArtifactFormat::DiagnosticReport => "diagnostic-report"
+  }
+}
+
+///|
+fn render_normalized_schema_artifact_payload(
+  store : SchemaRuntimeSessionStore,
+) -> String {
+  let compiled = try? compile_runtime_from_yaml(store.source.yaml)
+  match compiled {
+    Ok(runtime) => render_normalized_schema_json(runtime.schema)
+    Err(_) => "null"
+  }
+}
+
+///|
+fn render_diagnostic_report_payload(
+  store : SchemaRuntimeSessionStore,
+) -> String {
+  let body_lines = [
+    "\"ok\": \{json_bool(store.compile.ok && store.runtime.diagnostics.length() == 0)}",
+    "\"compile\": \{render_session_diagnostics_json(store.compile.diagnostics)}",
+    "\"runtime\": \{render_session_diagnostics_json(store.runtime.diagnostics)}",
+    "\"all\": \{render_session_diagnostics_json(schema_tool_collect_diagnostics(store))}",
+  ]
+  let body = indent_block(body_lines.join(",\n"), 2)
+  "{\n\{body}\n}"
+}
+
+///|
+fn render_normalized_schema_json(schema : Schema) -> String {
+  let rendered_entities : Array[String] = []
+  for entity in schema.entities {
+    rendered_entities.push(render_normalized_entity_json(entity))
+  }
+  let body = indent_block(
+    render_named_object_array("entities", rendered_entities),
+    2,
+  )
+  "{\n\{body}\n}"
+}
+
+///|
+fn render_normalized_entity_json(entity : Entity) -> String {
+  let rendered_fields : Array[String] = []
+  let rendered_states : Array[String] = []
+  let rendered_transitions : Array[String] = []
+  for field in entity.fields {
+    rendered_fields.push(render_normalized_field_json(field))
+  }
+  for state in entity.states {
+    rendered_states.push(render_normalized_state_json(state))
+  }
+  for transition in entity.transitions {
+    rendered_transitions.push(render_normalized_transition_json(transition))
+  }
+  let body_lines = [
+    "\"name\": \{json_quote(entity.name)}",
+    "\"label\": \{json_quote(entity.label)}",
+    "\"table\": \{json_quote(entity.table_name)}",
+    render_named_object_array("fields", rendered_fields),
+    render_named_object_array("states", rendered_states),
+    render_named_object_array("transitions", rendered_transitions),
+  ]
+  let body = indent_block(body_lines.join(",\n"), 2)
+  "{\n\{body}\n}"
+}
+
+///|
+fn render_normalized_field_json(field : Field) -> String {
+  let body_lines = [
+    "\"name\": \{json_quote(field.name)}",
+    "\"column\": \{json_quote(field.column_name)}",
+    "\"type\": \{json_quote(field_type_name(field.field_type))}",
+    "\"required\": \{json_bool(field.required)}",
+    "\"primary\": \{json_bool(field.primary)}",
+    "\"readOnly\": \{json_bool(field.read_only)}",
+    "\"system\": \{json_bool(field.system)}",
+    "\"target\": \{json_optional_string(field.target)}",
+    "\"initial\": \{json_optional_string(field.initial)}",
+  ]
+  let body = indent_block(body_lines.join(",\n"), 2)
+  "{\n\{body}\n}"
+}
+
+///|
+fn render_normalized_state_json(state : State) -> String {
+  let body_lines = [
+    "\"name\": \{json_quote(state.name)}",
+    "\"label\": \{json_quote(state.label)}",
+  ]
+  let body = indent_block(body_lines.join(",\n"), 2)
+  "{\n\{body}\n}"
+}
+
+///|
+fn render_normalized_transition_json(transition : Transition) -> String {
+  let body_lines = [
+    "\"name\": \{json_quote(transition.name)}",
+    "\"from\": \{json_quote(transition.from)}",
+    "\"to\": \{json_quote(transition.to)}",
+    "\"role\": \{json_optional_string(transition.role)}",
+    "\"inputs\": \{render_transition_inputs_json(transition.inputs)}",
+  ]
+  let body = indent_block(body_lines.join(",\n"), 2)
+  "{\n\{body}\n}"
+}
+
+///|
+fn schema_session_current_state(store : SchemaRuntimeSessionStore) -> String {
+  match store.record {
+    Some(record) =>
+      match schema_session_record_state(record) {
+        Some(state) => state
+        None => ""
+      }
+    None => ""
+  }
+}
+
+///|
+fn schema_session_target_state(
+  store : SchemaRuntimeSessionStore,
+  transition_name : String,
+) -> String {
+  for transition in store.runtime.transitions {
+    if transition.name == transition_name {
+      return transition.to
+    }
+  }
+  ""
+}
+
+///|
+fn schema_session_record_state(record : RuntimeRecord) -> String? {
+  match record.values.get("status") {
+    Some(RuntimeValue::Text(state)) => Some(state)
+    _ =>
+      match record.values.get("state") {
+        Some(RuntimeValue::Text(state)) => Some(state)
+        _ => None
+      }
+  }
+}
+
+///|
+fn render_record_summary_json(record : RuntimeRecord?) -> String {
+  match record {
+    Some(record) => {
+      let field_count = record.values.length()
+      let body_lines = [
+        "\"entity\": \{json_quote(record.entity_name)}",
+        "\"state\": \{json_optional_string(schema_session_record_state(record))}",
+        "\"fieldCount\": \{field_count}",
+        "\"values\": \{render_runtime_value_map_json(record.values)}",
+      ]
+      let body = indent_block(body_lines.join(",\n"), 2)
+      "{\n\{body}\n}"
+    }
+    None => "null"
+  }
+}
+
+///|
+fn render_source_summary_json(source : SchemaSessionSource) -> String {
+  let line_count = source.yaml.split("\n").to_array().length()
+  let body_lines = [
+    "\"bytes\": \{source.yaml.length()}",
+    "\"lineCount\": \{line_count}",
+  ]
+  let body = indent_block(body_lines.join(",\n"), 2)
+  "{\n\{body}\n}"
+}
+
+///|
+fn render_runtime_summary_json(store : SchemaRuntimeSessionStore) -> String {
+  let body_lines = [
+    "\"transitionCount\": \{store.runtime.transitions.length()}",
+    "\"ruleCount\": \{store.runtime.rules.length()}",
+    "\"hasView\": \{json_bool(store.runtime.view is Some(_))}",
+    "\"diagnosticCount\": \{store.runtime.diagnostics.length()}",
+  ]
+  let body = indent_block(body_lines.join(",\n"), 2)
+  "{\n\{body}\n}"
+}
+
+///|
 fn render_schema_session_source_json(source : SchemaSessionSource) -> String {
   let line = "\"yaml\": \{json_quote(source.yaml)}"
   let body = indent_block(line, 2)

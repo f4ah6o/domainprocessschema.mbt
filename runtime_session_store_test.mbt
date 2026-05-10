@@ -105,3 +105,58 @@ test "schema runtime session export is a stable json envelope" {
   inspect(exported.contains("\"alpha\": \"first\""), content="true")
   inspect(exported.contains("\"zeta\": \"last\""), content="true")
 }
+
+///|
+test "schema runtime session artifacts export stable envelopes" {
+  let store = create_schema_runtime_session(
+    runtime_sample_schema(),
+    record=RuntimeRecord::{
+      entity_name: "ExpenseRequest",
+      values: draft_payload(),
+    },
+    locale="ja-JP",
+  )
+  let source = export_schema_session_artifact(
+    store,
+    SchemaSessionArtifactFormat::SourceYaml,
+  )
+  inspect(source.version, content="1")
+  inspect(source.format, content="SourceYaml")
+  inspect(source.media_type, content="application/x-yaml")
+  inspect(source.payload.contains("ExpenseRequest:"), content="true")
+  inspect(
+    render_schema_session_artifact(source).contains(
+      "\"format\": \"source-yaml\"",
+    ),
+    content="true",
+  )
+  inspect(
+    render_schema_session_artifact(source).contains(
+      "\"payload\": \"entities:\\n  User:",
+    ),
+    content="true",
+  )
+
+  let normalized = export_schema_session_artifact(
+    store,
+    SchemaSessionArtifactFormat::NormalizedSchema,
+  )
+  inspect(normalized.media_type, content="application/json")
+  inspect(normalized.payload.contains("\"entities\": ["), content="true")
+  inspect(normalized.payload.contains("\"transitions\": ["), content="true")
+
+  let runtime = export_schema_session_artifact(
+    store,
+    SchemaSessionArtifactFormat::RuntimeSession,
+  )
+  inspect(runtime.payload.contains("\"runtime\": {"), content="true")
+  inspect(runtime.payload.contains("\"locale\": \"ja-JP\""), content="true")
+
+  let diagnostics = export_schema_session_artifact(
+    store,
+    SchemaSessionArtifactFormat::DiagnosticReport,
+  )
+  inspect(diagnostics.payload.contains("\"compile\": ["), content="true")
+  inspect(diagnostics.payload.contains("\"runtime\": ["), content="true")
+  inspect(diagnostics.payload.contains("\"all\": ["), content="true")
+}
