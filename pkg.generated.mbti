@@ -26,6 +26,8 @@ pub fn evaluate_rules(Runtime, RuntimeRecord, actor? : RuntimeActor) -> Array[Ru
 
 pub fn export_schema_runtime_session(SchemaRuntimeSessionStore) -> String
 
+pub fn export_schema_session_artifact(SchemaRuntimeSessionStore, SchemaSessionArtifactFormat) -> SchemaSessionArtifactEnvelope
+
 pub fn export_schema_tool_envelope(SchemaAppServerToolEnvelope) -> String
 
 pub fn generate_api_manifest(Schema) -> String
@@ -47,6 +49,8 @@ pub fn project_gui(Runtime, RuntimeRecord, actor? : RuntimeActor) -> RuntimeGuiV
 pub fn render_gui_html_from_manifest(String) -> String raise HtmlRenderError
 
 pub fn render_runtime_gui_html(Runtime, RuntimeRecord, actor? : RuntimeActor) -> String raise RuntimeError
+
+pub fn render_schema_session_artifact(SchemaSessionArtifactEnvelope) -> String
 
 pub fn schema_app_server_tool_shapes() -> Array[SchemaAppServerToolShape]
 
@@ -388,6 +392,7 @@ pub(all) struct SchemaAppServerToolApprovalProposal {
   title : String
   summary : String
   input_json : String
+  detail_json : String
 } derive(Eq, Show)
 
 pub(all) struct SchemaAppServerToolEnvelope {
@@ -415,6 +420,20 @@ pub(all) struct SchemaRuntimeSessionStore {
   graph : SchemaSessionGraphSnapshot
   locale : String
   last_action : String
+} derive(Eq, Show)
+
+pub(all) struct SchemaSessionArtifactEnvelope {
+  version : Int
+  format : SchemaSessionArtifactFormat
+  media_type : String
+  payload : String
+} derive(Eq, Show)
+
+pub(all) enum SchemaSessionArtifactFormat {
+  SourceYaml
+  NormalizedSchema
+  RuntimeSession
+  DiagnosticReport
 } derive(Eq, Show)
 
 pub(all) struct SchemaSessionCompileSnapshot {

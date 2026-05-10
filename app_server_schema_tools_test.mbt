@@ -1,7 +1,7 @@
 ///|
 test "app server tool shapes define access boundaries" {
   let shapes = schema_app_server_tool_shapes()
-  inspect(shapes.length(), content="14")
+  inspect(shapes.length(), content="15")
   inspect(shapes[0].name, content="schema.session.snapshot")
   inspect(shapes[0].access, content="ReadOnly")
   inspect(shapes[6].name, content="schema.source.replace")
@@ -10,6 +10,8 @@ test "app server tool shapes define access boundaries" {
   inspect(shapes[12].access, content="ApprovalRequired")
   inspect(shapes[13].name, content="schema.session.reset")
   inspect(shapes[13].access, content="ApprovalRequired")
+  inspect(shapes[14].name, content="schema.artifact.export")
+  inspect(shapes[14].access, content="ReadOnly")
 }
 
 ///|
@@ -133,4 +135,41 @@ test "app server transition apply is approval proposal only" {
     export_schema_tool_envelope(envelope).contains("\"approval\": {"),
     content="true",
   )
+  let exported = export_schema_tool_envelope(envelope)
+  inspect(exported.contains("\"detail\": {"), content="true")
+  inspect(exported.contains("\"actor\": {"), content="true")
+  inspect(exported.contains("\"transition\": {"), content="true")
+  inspect(exported.contains("\"currentState\": \"draft\""), content="true")
+  inspect(exported.contains("\"targetState\": \"submitted\""), content="true")
+  inspect(exported.contains("\"expectedEffects\": {"), content="true")
+  inspect(exported.contains("\"recordAfterApproval\": {"), content="true")
+}
+
+///|
+test "app server reset proposal summarizes lost session state" {
+  let store = create_schema_runtime_session(
+    runtime_sample_schema(),
+    actor=manager_actor(),
+    record=RuntimeRecord::{
+      entity_name: "ExpenseRequest",
+      values: draft_payload(),
+    },
+    selection=SchemaSessionSelection::{
+      entity_name: Some("ExpenseRequest"),
+      state_name: Some("draft"),
+      transition_name: Some("submit"),
+      field_name: Some("amount"),
+    },
+    locale="ja-JP",
+  )
+  let envelope = schema_tool_propose_reset_session(store)
+  let exported = export_schema_tool_envelope(envelope)
+  inspect(envelope.tool, content="schema.session.reset")
+  inspect(envelope.access, content="ApprovalRequired")
+  inspect(exported.contains("\"lostSource\": {"), content="true")
+  inspect(exported.contains("\"lostSelection\": {"), content="true")
+  inspect(exported.contains("\"lostActor\": {"), content="true")
+  inspect(exported.contains("\"lostRecord\": {"), content="true")
+  inspect(exported.contains("\"lostLocale\": \"ja-JP\""), content="true")
+  inspect(exported.contains("\"lostRuntime\": {"), content="true")
 }
