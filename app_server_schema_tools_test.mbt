@@ -22,9 +22,33 @@ test "app server compile read returns structured diagnostics" {
   inspect(envelope.access, content="ReadOnly")
   inspect(envelope.snapshot.compile.ok, content="false")
   inspect(envelope.diagnostics.length() > 0, content="true")
-  inspect(envelope.diagnostics[0].path.length() > 0, content="true")
+  inspect(envelope.diagnostics[0].code, content="SCHEMA_PARSE_ERROR")
+  inspect(envelope.diagnostics[0].severity, content="error")
+  inspect(envelope.diagnostics[0].target.length() > 0, content="true")
   inspect(
     export_schema_tool_envelope(envelope).contains("\"diagnostics\": ["),
+    content="true",
+  )
+  inspect(
+    export_schema_tool_envelope(envelope).contains(
+      "\"code\": \"SCHEMA_PARSE_ERROR\"",
+    ),
+    content="true",
+  )
+  inspect(
+    export_schema_tool_envelope(envelope).contains("\"severity\": \"error\""),
+    content="true",
+  )
+  inspect(
+    export_schema_tool_envelope(envelope).contains("\"target\": \"source:"),
+    content="true",
+  )
+  inspect(
+    export_schema_tool_envelope(envelope).contains("\"hint\": "),
+    content="true",
+  )
+  inspect(
+    export_schema_tool_envelope(envelope).contains("\"context\": {"),
     content="true",
   )
 }

@@ -364,8 +364,12 @@ pub(all) struct SchemaSessionSelection {
 
 ///|
 pub(all) struct SchemaSessionDiagnostic {
-  path : String
+  code : String
+  severity : String
+  target : String
   message : String
+  hint : String?
+  context : Map[String, String]
 } derive(Eq, Show)
 
 ///|
