@@ -22,9 +22,33 @@ test "app server compile read returns structured diagnostics" {
   inspect(envelope.access, content="ReadOnly")
   inspect(envelope.snapshot.compile.ok, content="false")
   inspect(envelope.diagnostics.length() > 0, content="true")
-  inspect(envelope.diagnostics[0].path.length() > 0, content="true")
+  inspect(envelope.diagnostics[0].code, content="INVALID_YAML_SYNTAX")
+  inspect(envelope.diagnostics[0].severity, content="error")
+  inspect(envelope.diagnostics[0].target.length() > 0, content="true")
   inspect(
     export_schema_tool_envelope(envelope).contains("\"diagnostics\": ["),
+    content="true",
+  )
+  inspect(
+    export_schema_tool_envelope(envelope).contains(
+      "\"code\": \"INVALID_YAML_SYNTAX\"",
+    ),
+    content="true",
+  )
+  inspect(
+    export_schema_tool_envelope(envelope).contains("\"severity\": \"error\""),
+    content="true",
+  )
+  inspect(
+    export_schema_tool_envelope(envelope).contains("\"target\": \"yaml.line."),
+    content="true",
+  )
+  inspect(
+    export_schema_tool_envelope(envelope).contains("\"hint\": "),
+    content="true",
+  )
+  inspect(
+    export_schema_tool_envelope(envelope).contains("\"context\": {"),
     content="true",
   )
 }
@@ -52,11 +76,11 @@ test "app server selection tool changes selected schema path" {
   inspect(envelope.tool, content="schema.selection.set")
   inspect(
     envelope.snapshot.selection.entity_name,
-    content="Some(\"ExpenseRequest\")",
+    content="Some(ExpenseRequest)",
   )
   inspect(
     envelope.snapshot.selection.transition_name,
-    content="Some(\"submit\")",
+    content="Some(submit)",
   )
   inspect(envelope.snapshot.last_action, content="selectionChanged")
 }
@@ -77,11 +101,11 @@ test "app server actor role change refreshes runtime view" {
   inspect(envelope.tool, content="schema.actor.role.set")
   inspect(
     envelope.snapshot.actor.attributes.get("role"),
-    content="Some(Text(\"manager\"))",
+    content="Some(Text(manager))",
   )
   inspect(
     available_transition_names(envelope.snapshot.runtime.transitions),
-    content="[\"approve\", \"reject\"]",
+    content="[approve, reject]",
   )
 }
 
@@ -130,7 +154,7 @@ test "app server transition apply is approval proposal only" {
     Some(record) => record.values.get("status")
     None => None
   }
-  inspect(status, content="Some(Text(\"draft\"))")
+  inspect(status, content="Some(Text(draft))")
   inspect(
     export_schema_tool_envelope(envelope).contains("\"approval\": {"),
     content="true",

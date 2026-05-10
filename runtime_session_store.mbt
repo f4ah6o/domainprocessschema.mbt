@@ -196,9 +196,23 @@ fn schema_session_error_diagnostic(
 ) -> SchemaSessionDiagnostic {
   match err {
     SchemaError::ParseError(line~, message) =>
-      SchemaSessionDiagnostic::{ path: "source:\{line}", message }
+      SchemaSessionDiagnostic::{
+        code: "SCHEMA_PARSE_ERROR",
+        severity: "error",
+        target: "source:\{line}",
+        message,
+        hint: Some("Fix the YAML syntax near the reported source line."),
+        context: { "line": line.to_string() },
+      }
     SchemaError::ValidationError(path~, message) =>
-      SchemaSessionDiagnostic::{ path, message }
+      SchemaSessionDiagnostic::{
+        code: "SCHEMA_VALIDATION_ERROR",
+        severity: "error",
+        target: path,
+        message,
+        hint: Some("Update the schema definition referenced by target."),
+        context: {},
+      }
   }
 }
 
@@ -206,7 +220,14 @@ fn schema_session_error_diagnostic(
 fn schema_session_runtime_error_diagnostic(
   err : RuntimeError,
 ) -> SchemaSessionDiagnostic {
-  SchemaSessionDiagnostic::{ path: "runtime", message: err.to_string() }
+  SchemaSessionDiagnostic::{
+    code: "RUNTIME_ERROR",
+    severity: "error",
+    target: "runtime",
+    message: err.to_string(),
+    hint: Some("Check the current actor, record payload, and transition state."),
+    context: {},
+  }
 }
 
 ///|
@@ -587,10 +608,33 @@ fn render_session_diagnostic_json(
   diagnostic : SchemaSessionDiagnostic,
 ) -> String {
   let body_lines = [
-    "\"path\": \{json_quote(diagnostic.path)}",
+    "\"code\": \{json_quote(diagnostic.code)}",
+    "\"severity\": \{json_quote(diagnostic.severity)}",
+    "\"target\": \{json_quote(diagnostic.target)}",
     "\"message\": \{json_quote(diagnostic.message)}",
+    "\"hint\": \{json_optional_string(diagnostic.hint)}",
+    "\"context\": \{render_string_map_json(diagnostic.context)}",
   ]
   let body = indent_block(body_lines.join(",\n"), 2)
+  "{\n\{body}\n}"
+}
+
+///|
+fn render_string_map_json(values : Map[String, String]) -> String {
+  let keys : Array[String] = []
+  for key, _ in values {
+    keys.push(key)
+  }
+  keys.sort()
+  let rendered : Array[String] = []
+  for key in keys {
+    match values.get(key) {
+      Some(value) =>
+        rendered.push("\"\{json_escape(key)}\": \{json_quote(value)}")
+      None => ()
+    }
+  }
+  let body = indent_block(rendered.join(",\n"), 2)
   "{\n\{body}\n}"
 }
 

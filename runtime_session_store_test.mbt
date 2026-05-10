@@ -16,7 +16,7 @@ test "schema runtime session store keeps required top-level sections" {
   )
   inspect(store.compile.ok, content="true")
   inspect(store.locale, content="ja-JP")
-  inspect(store.selection.entity_name, content="Some(\"ExpenseRequest\")")
+  inspect(store.selection.entity_name, content="Some(ExpenseRequest)")
   inspect(store.record is Some(_), content="true")
   inspect(store.runtime.view is Some(_), content="true")
   inspect(store.graph.nodes.length() > 0, content="true")
@@ -46,9 +46,9 @@ test "schema runtime session source refresh preserves resume fields" {
   inspect(refreshed.record is Some(_), content="true")
   inspect(
     refreshed.actor.attributes.get("role"),
-    content="Some(Text(\"manager\"))",
+    content="Some(Text(manager))",
   )
-  inspect(refreshed.selection.field_name, content="Some(\"reason\")")
+  inspect(refreshed.selection.field_name, content="Some(reason)")
   inspect(refreshed.locale, content="ja-JP")
   inspect(refreshed.last_action, content="sourceChanged")
 }
@@ -71,7 +71,7 @@ test "schema runtime session inspector edit and transition update snapshots" {
     Some(record) => record.values.get("status")
     None => None
   }
-  inspect(status, content="Some(Text(\"submitted\"))")
+  inspect(status, content="Some(Text(submitted))")
   inspect(submitted.last_action, content="transition:submit")
 }
 
