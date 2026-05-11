@@ -118,30 +118,76 @@ The public MoonBit API now includes:
 renders a semantic static HTML document with state badge, visible fields,
 action buttons, action-local inputs, and rule/action availability hints.
 
+## Cloudflare Schema Editor
+
+The production browser app is the **Schema Editor** served from `/` by
+Cloudflare Workers Static Assets. It is centered on the existing MoonBit WASM
+compiler/runtime rather than a separate JavaScript schema model:
+
+- source YAML editing with reset and compile controls
+- practical iframe preview for the static GUI manifest or runtime scenarios
+- artifact/export panel for source YAML, normalized schema, API manifest,
+  validation manifest, GUI manifest, runtime session snapshot, and diagnostics
+- Worker API guardrails for integration requests, including a 64 KiB request
+  size limit and stable JSON error envelopes
+- free-plan-friendly Cloudflare bindings: only the `ASSETS` binding is used
+
+The existing runtime preview remains available under `/demo/`.
+
+Build the deployable bundle with:
+
+```bash
+just demo-build
+```
+
+That command builds `wasm/demo` for `wasm-gc --release` and writes the
+Cloudflare static asset bundle to `dist/cloudflare-demo/`.
+
+Run the Worker checks and dry-run deployment with:
+
+```bash
+just test-js
+pnpm exec wrangler deploy --dry-run --env=""
+```
+
+Deploy production with:
+
+```bash
+just demo-build
+pnpm exec wrangler deploy --env=""
+```
+
+`wrangler.jsonc` deliberately avoids D1, KV, R2, Workers AI, and other paid or
+stateful bindings so the app can stay on Cloudflare's Assets-focused free-plan
+path.
+
 ## MoonBit WASM demo
 
 Issue #2 is broader than the static HTML proof. This branch also adds a first
-**MoonBit WASM browser demo** under `wasm/demo/`.
+**MoonBit WASM browser demo** under `wasm/demo/`. The source directory now
+contains both the production Schema Editor and the preserved runtime demo.
 
 It keeps the current HTML renderer as a WASM-exported preview engine:
 
 - `render_manifest_preview(yaml)` exports the schema-only HTML preview
 - `render_runtime_preview(yaml, scenario)` exports stateful runtime previews
-- `wasm/demo/index.html` loads the built `.wasm`, fetches
+- `wasm/demo/index.html` is the production editor shell
+- `wasm/demo/runtime-demo.html` keeps the previous scenario-oriented preview
+- both pages load the built `.wasm`, fetch
   `examples/expense_request.yaml`, and renders the returned full HTML document
   into an `<iframe srcdoc>`
-- the host page also exposes the YAML source as a textarea, so schema edits and
+- the editor page exposes a YAML textarea, so schema edits and
   compile/validation errors can be exercised directly in the browser demo
-- the host page chrome supports a minimal `en` / `ja` switch; schema labels
+- the runtime demo chrome supports a minimal `en` / `ja` switch; schema labels
   still pass through from YAML as-is
 
 Build and test it with:
 
 ```bash
 just wasm-demo-test
-just wasm-demo-build
+just demo-build
 python3 -m http.server
-# then open /wasm/demo/index.html
+# then open /dist/cloudflare-demo/index.html or /dist/cloudflare-demo/demo/
 ```
 
 The runtime uses the validated `Schema` and `Expr` AST directly instead of

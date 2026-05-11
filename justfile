@@ -20,6 +20,12 @@ wasm-demo-build:
 wasm-demo-test:
   moon test wasm/demo
 
+test-js:
+  pnpm test
+
+demo-build:
+  pnpm run build:demo
+
 info:
   moon info
 

@@ -43,6 +43,80 @@ pub fn render_validation_manifest(yaml : String) -> Result[String, Error] {
 }
 
 ///|
+pub fn render_api_manifest(yaml : String) -> Result[String, Error] {
+  try @schema.compile_api_manifest_from_yaml(yaml) catch {
+    err => Err(err)
+  } noraise {
+    manifest => Ok(manifest)
+  }
+}
+
+///|
+pub fn render_gui_manifest(yaml : String) -> Result[String, Error] {
+  try @schema.compile_gui_manifest_from_yaml(yaml) catch {
+    err => Err(err)
+  } noraise {
+    manifest => Ok(manifest)
+  }
+}
+
+///|
+pub fn render_runtime_snapshot(yaml : String) -> Result[String, Error] {
+  try {
+    let store = @schema.create_schema_runtime_session(
+      yaml,
+      actor=manager_actor(),
+      record=default_runtime_record(yaml),
+    )
+    @schema.export_schema_runtime_session(store)
+  } catch {
+    err => Err(err)
+  } noraise {
+    snapshot => Ok(snapshot)
+  }
+}
+
+///|
+pub fn render_diagnostics(yaml : String) -> Result[String, Error] {
+  try {
+    let store = @schema.create_schema_runtime_session(
+      yaml,
+      actor=manager_actor(),
+      record=default_runtime_record(yaml),
+    )
+    let artifact = @schema.export_schema_session_artifact(
+      store,
+      @schema.SchemaSessionArtifactFormat::DiagnosticReport,
+    )
+    artifact.payload
+  } catch {
+    err => Err(err)
+  } noraise {
+    diagnostics => Ok(diagnostics)
+  }
+}
+
+///|
+pub fn render_artifact(yaml : String, format : String) -> Result[String, Error] {
+  try {
+    let store = @schema.create_schema_runtime_session(
+      yaml,
+      actor=manager_actor(),
+      record=default_runtime_record(yaml),
+    )
+    let artifact = @schema.export_schema_session_artifact(
+      store,
+      parse_artifact_format(format),
+    )
+    @schema.render_schema_session_artifact(artifact)
+  } catch {
+    err => Err(err)
+  } noraise {
+    artifact => Ok(artifact)
+  }
+}
+
+///|
 pub fn result_is_ok(res : Result[String, Error]) -> Bool {
   res is Ok(_)
 }
@@ -107,6 +181,28 @@ fn build_demo_preview(
     _ =>
       raise @builtin.Failure::Failure(
         "unsupported preview scenario \{scenario}; use `draft`, `submitted`, `submitted-manager`, `approved-manager`, or `rejected-manager`",
+      )
+  }
+}
+
+///|
+fn default_runtime_record(yaml : String) -> @schema.RuntimeRecord raise {
+  let runtime = @schema.compile_runtime_from_yaml(yaml)
+  @schema.validate_record(runtime, "ExpenseRequest", draft_payload()).record
+}
+
+///|
+fn parse_artifact_format(
+  format : String,
+) -> @schema.SchemaSessionArtifactFormat raise {
+  match format {
+    "source-yaml" => @schema.SchemaSessionArtifactFormat::SourceYaml
+    "normalized-schema" => @schema.SchemaSessionArtifactFormat::NormalizedSchema
+    "runtime-session" => @schema.SchemaSessionArtifactFormat::RuntimeSession
+    "diagnostic-report" => @schema.SchemaSessionArtifactFormat::DiagnosticReport
+    _ =>
+      raise @builtin.Failure::Failure(
+        "unsupported artifact format \{format}; use `source-yaml`, `normalized-schema`, `runtime-session`, or `diagnostic-report`",
       )
   }
 }

@@ -2,3 +2,5 @@
 _build/
 .mooncakes/
 .moonagent/
+dist/
+node_modules/
