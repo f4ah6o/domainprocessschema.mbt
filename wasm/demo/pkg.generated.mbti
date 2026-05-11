@@ -2,9 +2,19 @@
 package "f4ah6o/domainprocessschema_mbt/wasm/demo"
 
 // Values
+pub fn render_api_manifest(String) -> Result[String, Error]
+
+pub fn render_artifact(String, String) -> Result[String, Error]
+
+pub fn render_diagnostics(String) -> Result[String, Error]
+
+pub fn render_gui_manifest(String) -> Result[String, Error]
+
 pub fn render_manifest_preview(String) -> Result[String, Error]
 
 pub fn render_runtime_preview(String, String) -> Result[String, Error]
+
+pub fn render_runtime_snapshot(String) -> Result[String, Error]
 
 pub fn render_validation_manifest(String) -> Result[String, Error]
 
