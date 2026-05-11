@@ -10,9 +10,11 @@
   },
   "scripts": {
     "build:cloudflare-demo-assets": "node scripts/build-cloudflare-demo.mjs",
+    "build:demo": "node scripts/build-cloudflare-demo.mjs",
     "dev:worker": "wrangler dev --env=\"\"",
     "deploy:worker": "wrangler deploy --env=\"\"",
     "deploy:preview-worker": "wrangler deploy --env preview",
+    "test": "node --test wasm/demo/*.test.mjs",
     "test:js": "node --test wasm/demo/worker.test.mjs wasm/demo/webmcp.test.mjs"
   },
   "devDependencies": {

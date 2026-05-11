@@ -428,7 +428,7 @@ fn render_transition_approval_transition_json(
         "\"to\": \{json_quote(transition.to)}",
         "\"role\": \{json_optional_string(transition.role)}",
         "\"available\": \{json_bool(transition.is_available())}",
-        "\"issues\": \{render_runtime_issues_json(transition.issues)}",
+        "\"issues\": \{render_diagnostics_json(transition.issues)}",
       ]
       let body = indent_block(body_lines.join(",\n"), 2)
       return "{\n\{body}\n}"

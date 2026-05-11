@@ -12,11 +12,15 @@ pub fn build_runtime(Schema) -> Runtime
 
 pub fn compile_api_manifest_from_yaml(String) -> String raise SchemaError
 
+pub fn compile_emitted_yaml_from_yaml(String) -> String raise SchemaError
+
 pub fn compile_gui_html_from_yaml(String, locale? : String) -> String raise
 
 pub fn compile_gui_manifest_from_yaml(String, locale? : String) -> String raise SchemaError
 
 pub fn compile_migration_sql_from_yaml(String) -> String raise SchemaError
+
+pub fn compile_normalized_schema_from_yaml(String) -> String raise SchemaError
 
 pub fn compile_runtime_from_yaml(String) -> Runtime raise SchemaError
 
@@ -25,6 +29,8 @@ pub fn compile_sql_from_yaml(String) -> String raise SchemaError
 pub fn compile_validation_manifest_from_yaml(String) -> String raise SchemaError
 
 pub fn create_schema_runtime_session(String, actor? : RuntimeActor, record? : RuntimeRecord, selection? : SchemaSessionSelection, locale? : String) -> SchemaRuntimeSessionStore
+
+pub fn emit_schema_yaml(Schema) -> String
 
 pub fn evaluate_rules(Runtime, RuntimeRecord, actor? : RuntimeActor) -> Array[RuntimeRuleStatus] raise RuntimeError
 
@@ -39,6 +45,8 @@ pub fn generate_api_manifest(Schema) -> String
 pub fn generate_gui_manifest(Schema, locale? : String) -> String
 
 pub fn generate_migration_sql(Schema) -> String
+
+pub fn generate_normalized_schema(Schema) -> String
 
 pub fn generate_sql(Schema) -> String
 
@@ -58,9 +66,9 @@ pub fn render_gui_html_from_manifest(String) -> String raise HtmlRenderError
 
 pub fn render_runtime_gui_html(Runtime, RuntimeRecord, actor? : RuntimeActor, locale? : String) -> String raise RuntimeError
 
-pub fn resolve_localized_text(String, Map[String, String], String) -> String
-
 pub fn render_schema_session_artifact(SchemaSessionArtifactEnvelope) -> String
+
+pub fn resolve_localized_text(String, Map[String, String], String) -> String
 
 pub fn schema_app_server_tool_shapes() -> Array[SchemaAppServerToolShape]
 
@@ -580,4 +588,3 @@ type YamlValue derive(Eq, @debug.Debug)
 // Type aliases
 
 // Traits
-

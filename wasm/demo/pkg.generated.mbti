@@ -10,9 +10,25 @@ pub fn apply_session_transition(DemoSession, String, String) -> Result[DemoSessi
 
 pub fn create_demo_session(String, actor_role? : String) -> Result[DemoSession, Error]
 
+pub fn editor_apply_transition_json(String, String, String, actor_role? : String, record_json? : String, locale? : String) -> String
+
+pub fn editor_compile_json(String, locale? : String) -> String
+
+pub fn editor_runtime_preview_json(String, actor_role? : String, record_json? : String, locale? : String) -> String
+
+pub fn render_api_manifest(String) -> Result[String, Error]
+
+pub fn render_artifact(String, String) -> Result[String, Error]
+
+pub fn render_diagnostics(String) -> Result[String, Error]
+
+pub fn render_gui_manifest(String) -> Result[String, Error]
+
 pub fn render_manifest_preview(String, locale? : String) -> Result[String, Error]
 
 pub fn render_runtime_preview(String, String, locale? : String) -> Result[String, Error]
+
+pub fn render_runtime_snapshot(String) -> Result[String, Error]
 
 pub fn render_validation_manifest(String) -> Result[String, Error]
 
@@ -48,4 +64,3 @@ pub(all) struct DemoSession {
 // Type aliases
 
 // Traits
-

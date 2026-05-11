@@ -1,3 +1,5 @@
+const MAX_REQUEST_BYTES = 64 * 1024;
+
 let editorModulePromise;
 
 export default {
@@ -7,8 +9,36 @@ export default {
 };
 
 export async function handleRequest(request, env) {
+  try {
+    const url = new URL(request.url);
+
+    if (url.pathname === "/api/health") {
+      return json({ ok: true, version: 1 });
+    }
+
+    if (url.pathname === "/api/schema/compile") {
+      return compileSchemaRequest(request);
+    }
+
+    if (url.pathname.startsWith("/api/editor/")) {
+      return handleEditorRequest(request);
+    }
+
+    if (url.pathname === "/demo") {
+      return Response.redirect(new URL("/demo/", request.url), 308);
+    }
+
+    return withAssetHeaders(await env.ASSETS.fetch(request));
+  } catch (error) {
+    return jsonError(500, "INTERNAL_ERROR", "Unexpected worker error.", {
+      detail: String(error?.message ?? error),
+    });
+  }
+}
+
+async function handleEditorRequest(request) {
   const url = new URL(request.url);
-  const editorModule = url.pathname.startsWith("/api/editor/") ? await loadEditorModule() : null;
+  const editorModule = await loadEditorModule();
 
   if (request.method === "POST" && url.pathname === "/api/editor/compile") {
     const body = await readJsonBody(request);
@@ -41,19 +71,91 @@ export async function handleRequest(request, env) {
     );
   }
 
-  if (url.pathname.startsWith("/api/editor/")) {
-    return new Response(JSON.stringify({ ok: false, error: { kind: "not-found", message: "unknown editor route" } }), {
-      status: 404,
-      headers: { "content-type": "application/json; charset=utf-8" },
-    });
-  }
-
-  return env.ASSETS.fetch(request);
+  return new Response(JSON.stringify({ ok: false, error: { kind: "not-found", message: "unknown editor route" } }), {
+    status: 404,
+    headers: { "content-type": "application/json; charset=utf-8" },
+  });
 }
 
 async function loadEditorModule() {
   editorModulePromise ??= import("../../_build/js/release/build/wasm/demo/demo.js");
   return editorModulePromise;
+}
+
+async function compileSchemaRequest(request) {
+  if (request.method !== "POST") {
+    return jsonError(405, "METHOD_NOT_ALLOWED", "Use POST for schema compilation.");
+  }
+
+  const lengthHeader = request.headers.get("content-length");
+  const contentLength = lengthHeader === null ? 0 : Number(lengthHeader);
+  if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BYTES) {
+    return jsonError(413, "REQUEST_TOO_LARGE", "Request body exceeds 64 KiB.", {
+      maxBytes: MAX_REQUEST_BYTES,
+    });
+  }
+
+  const body = await readLimitedText(request, MAX_REQUEST_BYTES);
+  if (!body.ok) {
+    return jsonError(413, "REQUEST_TOO_LARGE", "Request body exceeds 64 KiB.", {
+      maxBytes: MAX_REQUEST_BYTES,
+    });
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(body.text);
+  } catch {
+    return jsonError(400, "BAD_JSON", "Request body must be JSON.");
+  }
+
+  if (typeof payload.sourceYaml !== "string") {
+    return jsonError(400, "BAD_SCHEMA_SOURCE", "`sourceYaml` must be a string.");
+  }
+
+  return json({
+    ok: true,
+    sourceBytes: new TextEncoder().encode(payload.sourceYaml).byteLength,
+    artifacts: [
+      "source-yaml",
+      "normalized-schema",
+      "api-manifest",
+      "validation-manifest",
+      "gui-manifest",
+      "runtime-session",
+      "diagnostic-report",
+    ],
+    note:
+      "Browser-side MoonBit WASM compiles the schema. The Worker API currently provides request validation for production integration.",
+  });
+}
+
+async function readLimitedText(request, maxBytes) {
+  const reader = request.body?.getReader();
+  if (!reader) {
+    return { ok: true, text: "" };
+  }
+  const chunks = [];
+  let size = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+    size += value.byteLength;
+    if (size > maxBytes) {
+      await reader.cancel("request body exceeded size limit");
+      return { ok: false, text: "" };
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return { ok: true, text: new TextDecoder().decode(bytes) };
 }
 
 async function readJsonBody(request) {
@@ -70,6 +172,16 @@ function serializeMaybeJson(value) {
   return JSON.stringify(value);
 }
 
+function json(value, init = {}) {
+  return new Response(JSON.stringify(value, null, 2), {
+    ...init,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      ...init.headers,
+    },
+  });
+}
+
 function jsonText(payload) {
   return new Response(payload, {
     status: 200,
@@ -79,3 +191,29 @@ function jsonText(payload) {
     },
   });
 }
+
+function withAssetHeaders(response) {
+  const headers = new Headers(response.headers);
+  headers.set("x-content-type-options", "nosniff");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+function jsonError(status, code, message, details = {}) {
+  return json(
+    {
+      ok: false,
+      error: {
+        code,
+        message,
+        details,
+      },
+    },
+    { status },
+  );
+}
+
+export { MAX_REQUEST_BYTES, readLimitedText };

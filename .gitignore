@@ -2,6 +2,7 @@
 _build/
 .mooncakes/
 .moonagent/
+dist/
 node_modules/
 .wrangler/
 wasm/demo/.env.opz

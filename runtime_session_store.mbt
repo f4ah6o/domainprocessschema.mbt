@@ -51,7 +51,7 @@ fn schema_session_refresh(
         record: None,
         compile: SchemaSessionCompileSnapshot::{
           ok: false,
-          diagnostics: [schema_session_error_diagnostic(err)],
+          diagnostics: schema_session_error_diagnostics(err),
           api_manifest: None,
           validation_manifest: None,
           gui_manifest: None,
@@ -191,29 +191,23 @@ fn schema_session_graph_snapshot(schema : Schema) -> SchemaSessionGraphSnapshot 
 }
 
 ///|
-fn schema_session_error_diagnostic(
+fn schema_session_error_diagnostics(
   err : SchemaError,
-) -> SchemaSessionDiagnostic {
-  match err {
-    SchemaError::ParseError(line~, message) =>
-      SchemaSessionDiagnostic::{
-        code: "SCHEMA_PARSE_ERROR",
-        severity: "error",
-        target: "source:\{line}",
-        message,
-        hint: Some("Fix the YAML syntax near the reported source line."),
-        context: { "line": line.to_string() },
-      }
-    SchemaError::ValidationError(path~, message) =>
-      SchemaSessionDiagnostic::{
-        code: "SCHEMA_VALIDATION_ERROR",
-        severity: "error",
-        target: path,
-        message,
-        hint: Some("Update the schema definition referenced by target."),
-        context: {},
-      }
+) -> Array[SchemaSessionDiagnostic] {
+  let issues = match err {
+    SchemaError::ParseError(issues~) => issues
+    SchemaError::ValidationError(issues~) => issues
   }
+  issues.map(fn(issue) {
+    SchemaSessionDiagnostic::{
+      code: issue.code,
+      severity: diagnostic_severity_text(issue.severity),
+      target: issue.target,
+      message: issue.message,
+      hint: issue.hint,
+      context: issue.context,
+    }
+  })
 }
 
 ///|
@@ -619,24 +613,6 @@ fn render_session_diagnostic_json(
   "{\n\{body}\n}"
 }
 
-///|
-fn render_string_map_json(values : Map[String, String]) -> String {
-  let keys : Array[String] = []
-  for key, _ in values {
-    keys.push(key)
-  }
-  keys.sort()
-  let rendered : Array[String] = []
-  for key in keys {
-    match values.get(key) {
-      Some(value) =>
-        rendered.push("\"\{json_escape(key)}\": \{json_quote(value)}")
-      None => ()
-    }
-  }
-  let body = indent_block(rendered.join(",\n"), 2)
-  "{\n\{body}\n}"
-}
 
 ///|
 fn render_runtime_actor_json(actor : RuntimeActor) -> String {
@@ -714,7 +690,7 @@ fn render_runtime_transition_status_json(
     "\"role\": \{json_optional_string(status.role)}",
     "\"inputs\": \{render_transition_inputs_json(status.inputs)}",
     "\"available\": \{json_bool(status.is_available())}",
-    "\"issues\": \{render_runtime_issues_json(status.issues)}",
+    "\"issues\": \{render_diagnostics_json(status.issues)}",
   ]
   let body = indent_block(body_lines.join(",\n"), 2)
   "{\n\{body}\n}"
@@ -736,7 +712,7 @@ fn render_runtime_rule_status_json(status : RuntimeRuleStatus) -> String {
   let body_lines = [
     "\"name\": \{json_quote(status.name)}",
     "\"active\": \{json_bool(status.active)}",
-    "\"issues\": \{render_runtime_issues_json(status.issues)}",
+    "\"issues\": \{render_diagnostics_json(status.issues)}",
   ]
   let body = indent_block(body_lines.join(",\n"), 2)
   "{\n\{body}\n}"
@@ -800,7 +776,7 @@ fn render_runtime_gui_action_json(action : RuntimeGuiAction) -> String {
     "\"name\": \{json_quote(action.name)}",
     "\"to\": \{json_quote(action.to)}",
     "\"available\": \{json_bool(action.available)}",
-    "\"issues\": \{render_runtime_issues_json(action.issues)}",
+    "\"issues\": \{render_diagnostics_json(action.issues)}",
     "\"inputs\": \{render_runtime_gui_action_inputs_json(action.inputs)}",
   ]
   let body = indent_block(body_lines.join(",\n"), 2)
@@ -841,14 +817,6 @@ fn render_optional_runtime_value_json(value : RuntimeValue?) -> String {
   }
 }
 
-///|
-fn render_runtime_issues_json(issues : Array[RuntimeIssue]) -> String {
-  let rendered : Array[String] = []
-  for issue in issues {
-    rendered.push(render_runtime_issue_json(issue))
-  }
-  render_json_array(rendered)
-}
 
 ///|
 fn render_json_array(rendered : Array[String]) -> String {
@@ -856,12 +824,3 @@ fn render_json_array(rendered : Array[String]) -> String {
   "[\{body}]"
 }
 
-///|
-fn render_runtime_issue_json(issue : RuntimeIssue) -> String {
-  let body_lines = [
-    "\"path\": \{json_quote(issue.path)}",
-    "\"message\": \{json_quote(issue.message)}",
-  ]
-  let body = indent_block(body_lines.join(",\n"), 2)
-  "{\n\{body}\n}"
-}
