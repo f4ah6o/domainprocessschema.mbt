@@ -54,6 +54,20 @@ test("runtime-preview route renders the draft expense request view", async () =>
   assert.match(result.json.previewHtml, /Expense Request - Draft/);
 });
 
+test("runtime-preview treats null record as missing record", async () => {
+  const result = await postJson("runtime-preview", {
+    source: yaml,
+    actorRole: "applicant",
+    record: null,
+    locale: "en",
+  });
+  assert.equal(result.status, 200);
+  assert.equal(result.json.ok, true);
+  assert.equal(result.json.record.entityName, "ExpenseRequest");
+  assert.equal(result.json.view.state, "draft");
+  assert.match(result.json.previewHtml, /Expense Request - Draft/);
+});
+
 test("apply-transition route advances to submitted", async () => {
   const preview = await postJson("runtime-preview", {
     source: yaml,

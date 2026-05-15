@@ -66,7 +66,7 @@ async function readJsonBody(request) {
 
 function serializeMaybeJson(value) {
   if (typeof value === "string") return value;
-  if (value === undefined) return "";
+  if (value == null) return "";
   return JSON.stringify(value);
 }
 
