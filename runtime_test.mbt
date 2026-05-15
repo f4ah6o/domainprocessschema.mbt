@@ -207,6 +207,99 @@ fn schema_with_default_local_input() -> String {
 }
 
 ///|
+fn high_value_payment_schema() -> String {
+  (
+    #|entities:
+    #|  Payment:
+    #|    label: Payment
+    #|    fields:
+    #|      id:
+    #|        type: id
+    #|        primary: true
+    #|      amount:
+    #|        type: money
+    #|        required: true
+    #|      managerComment:
+    #|        type: text
+    #|      status:
+    #|        type: state
+    #|        initial: draft
+    #|    states:
+    #|      draft:
+    #|        label: Draft
+    #|      autoApproved:
+    #|        label: Auto approved
+    #|      needsApproval:
+    #|        label: Needs approval
+    #|      approved:
+    #|        label: Approved
+    #|      rejected:
+    #|        label: Rejected
+    #|    transitions:
+    #|      submitSmall:
+    #|        from: draft
+    #|        to: autoApproved
+    #|        guard: amount < 1000
+    #|      submitLarge:
+    #|        from: draft
+    #|        to: needsApproval
+    #|        guard: amount >= 1000
+    #|      approve:
+    #|        from: needsApproval
+    #|        to: approved
+    #|        role: manager
+    #|        guard: amount >= 2000
+    #|      reject:
+    #|        from: needsApproval
+    #|        to: rejected
+    #|        role: manager
+    #|        input:
+    #|          - managerComment
+    #|    rules:
+    #|      defaultPrecedenceKeepsDraftActive:
+    #|        when: amount > 0 && user.role == "manager" || state == "draft"
+    #|      groupedPrecedenceRequiresPositiveAmount:
+    #|        when: amount > 0 && (user.role == "manager" || state == "draft")
+    #|      missingActorDepartment:
+    #|        when: user.department.name == "sales"
+    #|    views:
+    #|      draft:
+    #|        editable:
+    #|          - amount
+    #|      autoApproved:
+    #|        readonly:
+    #|          - amount
+    #|          - managerComment
+    #|      needsApproval:
+    #|        readonly:
+    #|          - amount
+    #|        editable:
+    #|          - managerComment
+    #|      approved:
+    #|        readonly:
+    #|          - amount
+    #|          - managerComment
+    #|      rejected:
+    #|        readonly:
+    #|          - amount
+    #|          - managerComment
+  )
+}
+
+///|
+fn high_value_payment_runtime() -> Runtime raise SchemaError {
+  compile_runtime_from_yaml(high_value_payment_schema())
+}
+
+///|
+fn high_value_payment_payload(amount : Int) -> Map[String, RuntimeValue] {
+  {
+    "id": RuntimeValue::Text("pay-\{amount}"),
+    "amount": RuntimeValue::Integer(amount),
+  }
+}
+
+///|
 fn available_transition_names(
   statuses : Array[RuntimeTransitionStatus],
 ) -> Array[String] {
@@ -220,6 +313,24 @@ fn available_transition_names(
 }
 
 ///|
+fn transition_issue_messages(
+  statuses : Array[RuntimeTransitionStatus],
+  transition_name : String,
+) -> Array[String] {
+  for status in statuses {
+    if status.name == transition_name {
+      return runtime_issue_messages(status.issues)
+    }
+  }
+  []
+}
+
+///|
+fn runtime_issue_messages(issues : Array[RuntimeIssue]) -> Array[String] {
+  issues.map(issue => "\{issue.path}: \{issue.message}")
+}
+
+///|
 fn active_rule_names(statuses : Array[RuntimeRuleStatus]) -> Array[String] {
   let names : Array[String] = []
   for status in statuses {
@@ -228,6 +339,32 @@ fn active_rule_names(statuses : Array[RuntimeRuleStatus]) -> Array[String] {
     }
   }
   names
+}
+
+///|
+fn rule_active_flag(
+  statuses : Array[RuntimeRuleStatus],
+  rule_name : String,
+) -> String {
+  for status in statuses {
+    if status.name == rule_name {
+      return if status.active { "active" } else { "inactive" }
+    }
+  }
+  "missing"
+}
+
+///|
+fn rule_issue_messages(
+  statuses : Array[RuntimeRuleStatus],
+  rule_name : String,
+) -> Array[String] {
+  for status in statuses {
+    if status.name == rule_name {
+      return runtime_issue_messages(status.issues)
+    }
+  }
+  []
 }
 
 ///|
@@ -245,6 +382,11 @@ fn action_input_names(
     }
   }
   []
+}
+
+///|
+fn gui_field_modes(view : RuntimeGuiView) -> Array[String] {
+  view.fields.map(field => "\{field.name}:\{field.mode}")
 }
 
 ///|
@@ -298,6 +440,85 @@ test "list_transitions exposes availability from current state and actor" {
 }
 
 ///|
+test "apply_transition rejects a transition from the wrong state" {
+  let runtime = sample_runtime()
+  let draft = validate_record(runtime, "ExpenseRequest", draft_payload()).record
+  let result : Result[RuntimeRecord, RuntimeError] = try? apply_transition(
+    runtime,
+    draft,
+    "approve",
+    actor=manager_actor(),
+  )
+  guard result
+    is Err(RuntimeError::TransitionRejected(entity~, transition~, issues~)) else {
+    fail("expected approve to be rejected from draft")
+  }
+  inspect(entity, content="ExpenseRequest")
+  inspect(transition, content="approve")
+  inspect(
+    runtime_issue_messages(issues),
+    content="[\"runtime.entities.ExpenseRequest.transitions.approve: transition approve requires state submitted, got draft\"]",
+  )
+}
+
+///|
+test "list_transitions requires role and guard before availability" {
+  let runtime = high_value_payment_runtime()
+  let below_limit = validate_record(
+      runtime,
+      "Payment",
+      high_value_payment_payload(1500),
+    ).record
+  let needs_approval_below_limit = apply_transition(
+    runtime, below_limit, "submitLarge",
+  )
+  let manager_statuses = list_transitions(
+    runtime,
+    needs_approval_below_limit,
+    actor=manager_actor(),
+  )
+  inspect(available_transition_names(manager_statuses), content="[\"reject\"]")
+  inspect(
+    transition_issue_messages(manager_statuses, "approve"),
+    content="[\"runtime.entities.Payment.transitions.approve: guard for transition approve evaluated to false\"]",
+  )
+
+  let at_limit = validate_record(
+      runtime,
+      "Payment",
+      high_value_payment_payload(2000),
+    ).record
+  let needs_approval_at_limit = apply_transition(
+    runtime, at_limit, "submitLarge",
+  )
+  let applicant_statuses = list_transitions(runtime, needs_approval_at_limit, actor=RuntimeActor::{
+    attributes: { "role": RuntimeValue::Text("staff") },
+  })
+  inspect(available_transition_names(applicant_statuses), content="[]")
+  inspect(
+    transition_issue_messages(applicant_statuses, "approve"),
+    content="[\"runtime.entities.Payment.transitions.approve: transition approve requires role manager\"]",
+  )
+
+  let manager_at_limit_statuses = list_transitions(
+    runtime,
+    needs_approval_at_limit,
+    actor=manager_actor(),
+  )
+  inspect(
+    available_transition_names(manager_at_limit_statuses),
+    content="[\"approve\", \"reject\"]",
+  )
+  let approved = apply_transition(
+    runtime,
+    needs_approval_at_limit,
+    "approve",
+    actor=manager_actor(),
+  )
+  inspect(approved.values.get("status"), content="Some(Text(\"approved\"))")
+}
+
+///|
 test "apply_transition updates the state in memory" {
   let runtime = sample_runtime()
   let validation = validate_record(runtime, "ExpenseRequest", draft_payload())
@@ -312,6 +533,104 @@ test "apply_transition updates the state in memory" {
     actor=manager_actor(),
   )
   inspect(approved.values.get("status"), content="Some(Text(\"approved\"))")
+}
+
+///|
+test "high value payment guards select exactly one submit path" {
+  let runtime = high_value_payment_runtime()
+  let small = validate_record(
+      runtime,
+      "Payment",
+      high_value_payment_payload(999),
+    ).record
+  let large = validate_record(
+      runtime,
+      "Payment",
+      high_value_payment_payload(1000),
+    ).record
+  inspect(
+    available_transition_names(list_transitions(runtime, small)),
+    content="[\"submitSmall\"]",
+  )
+  inspect(
+    available_transition_names(list_transitions(runtime, large)),
+    content="[\"submitLarge\"]",
+  )
+
+  let missing_amount = RuntimeRecord::{
+    entity_name: "Payment",
+    values: {
+      "id": RuntimeValue::Text("pay-missing"),
+      "status": RuntimeValue::Text("draft"),
+    },
+  }
+  inspect(
+    available_transition_names(list_transitions(runtime, missing_amount)),
+    content="[]",
+  )
+  inspect(
+    transition_issue_messages(
+      list_transitions(runtime, missing_amount),
+      "submitSmall",
+    ),
+    content="[\"runtime.entities.Payment.fields.amount: required field amount is missing\"]",
+  )
+}
+
+///|
+test "expression precedence is visible through runtime rules" {
+  let runtime = high_value_payment_runtime()
+  let draft = validate_record(
+      runtime,
+      "Payment",
+      high_value_payment_payload(-1),
+    ).record
+  let rules = evaluate_rules(runtime, draft, actor=RuntimeActor::{
+    attributes: { "role": RuntimeValue::Text("staff") },
+  })
+  inspect(
+    active_rule_names(rules),
+    content="[\"defaultPrecedenceKeepsDraftActive\"]",
+  )
+  inspect(
+    rule_active_flag(rules, "groupedPrecedenceRequiresPositiveAmount"),
+    content="inactive",
+  )
+}
+
+///|
+test "missing actor path reports a diagnostic instead of activating rule" {
+  let runtime = high_value_payment_runtime()
+  let record = validate_record(
+      runtime,
+      "Payment",
+      high_value_payment_payload(1200),
+    ).record
+  let rules = evaluate_rules(runtime, record, actor=manager_actor())
+  inspect(
+    rule_issue_messages(rules, "missingActorDepartment"),
+    content="[\"runtime.entities.Payment.rules.missingActorDepartment: missing actor attribute department.name\"]",
+  )
+}
+
+///|
+test "project_gui reflects state field modes for high value payments" {
+  let runtime = high_value_payment_runtime()
+  let draft = validate_record(
+      runtime,
+      "Payment",
+      high_value_payment_payload(1200),
+    ).record
+  inspect(
+    gui_field_modes(project_gui(runtime, draft)),
+    content="[\"amount:editable\"]",
+  )
+
+  let needs_approval = apply_transition(runtime, draft, "submitLarge")
+  inspect(
+    gui_field_modes(project_gui(runtime, needs_approval, actor=manager_actor())),
+    content="[\"amount:readonly\", \"managerComment:editable\"]",
+  )
 }
 
 ///|
