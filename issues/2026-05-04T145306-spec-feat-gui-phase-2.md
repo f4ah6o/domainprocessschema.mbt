@@ -1,12 +1,27 @@
-# feat: GUI 生成仕様 — Phase 2
+# GUI 生成仕様 — Phase 2 残タスク
 
 Created: 2026-05-04
 
-Model: gh-migrate
+Model: gh-migrate unknown
 
-## Summary
+## 背景
 
-feat: GUI 生成仕様 — Phase 2
+GUI manifest と runtime core の基礎はすでに揃っているが、Phase 2 として
+想定していた「UI フレームワークへつなぐ残りの application 層」はまだ
+未整理のまま open issue に残っている。
+
+runtime core の実装済み範囲と、これから詰めるべき UI integration の範囲を
+この issue で切り分け直す。
+
+## 提案
+
+この issue は Phase 2 全体を再実装する umbrella ではなく、次の残タスクの
+仕様整理として扱う。
+
+- runtime core の既完了範囲を前提として固定する
+- UI framework 選定と bridge layer の責務を明文化する
+- validation / i18n / error handling / runtime-to-UI bridge を残タスクとして
+  追跡する
 
 ## Original Issue
 
@@ -56,7 +71,7 @@ transition 実行後は再度 state を取得して再描画。
 | state         | state-badge       | `<span class="badge">`     |
 | file          | file-upload       | `<input type="file">`      |
 
-## 4. 実行モデル — ✅ 実装済み (456ebbe)
+## 4. 実行モデル — 実装済み (456ebbe)
 
 ~§16 の実行モデルは [`runtime_engine.mbt`](https://github.com/f4ah6o/domainprocessschema.mbt/blob/main/runtime_engine.mbt) でインメモリランタイムとして実装済み。~
 
@@ -91,3 +106,26 @@ transition 実行後は再度 state を取得して再描画。
 - [ ] 多言語対応（label の i18n）
 - [ ] エラーハンドリング UI
 - [ ] ランタイム → 画面描画のブリッジ（runtime の出力を UI フレームワークに接続するグルーコード生成）
+
+## 受け入れ条件
+
+- [ ] runtime core の既完了範囲と、この issue で扱う残タスクの境界が明記
+      されている
+- [ ] UI framework 選定で決めるべき論点が列挙されている
+- [ ] validation / i18n / error handling / runtime-to-UI bridge が残タスクと
+      して明文化されている
+- [ ] この issue 単体を読めば、実装済みの runtime core を再発明せずに
+      follow-up を始められる
+
+## 非目標
+
+- runtime core をこの issue で再実装すること
+- persistence / HTTP server を runtime core に足すこと
+- 具体的な UI framework 実装をこの issue の記述だけで確定させること
+
+## 根拠
+
+open issue のまま「実装済み」と「未実装」が混在すると、何が残件か分からず
+着手順序を誤りやすい。  
+先に既完了範囲を固定し、UI integration だけを残課題として分けることで、
+Phase 2 の follow-up を安全に進めやすくする。
