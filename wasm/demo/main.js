@@ -1,179 +1,152 @@
-const wasmUrl = "../../_build/wasm-gc/release/build/wasm/demo/demo.wasm";
-const yamlUrl = "../../examples/expense_request.yaml";
+const wasmUrl = "./demo.wasm";
+const yamlUrl = "./examples/expense_request.yaml";
 
+const sourceNode = document.getElementById("yaml-source");
+const scenarioNode = document.getElementById("preview-scenario");
 const statusNode = document.getElementById("status");
-const validationNode = document.getElementById("validation");
-const previewNode = document.getElementById("preview");
-const scenarioNode = document.getElementById("scenario");
-const yamlNode = document.getElementById("yaml");
-const localeNode = document.getElementById("locale");
-const renderButton = document.getElementById("render");
-const resetButton = document.getElementById("reset");
-const pageTitleNode = document.getElementById("page-title");
-const pageDescriptionNode = document.getElementById("page-description");
-const yamlLabelNode = document.getElementById("yaml-label");
-const scenarioLabelNode = document.getElementById("scenario-label");
-const localeLabelNode = document.getElementById("locale-label");
-const validationSummaryNode = document.getElementById("validation-summary");
+const frameNode = document.getElementById("preview-frame");
+const artifactNode = document.getElementById("artifact-output");
+const compileButton = document.getElementById("compile-source");
+const resetButton = document.getElementById("reset-source");
+const formatButton = document.getElementById("format-source");
+const downloadButton = document.getElementById("download-artifact");
+const tabNodes = [...document.querySelectorAll("[data-artifact]")];
 
-let api = null;
-let exampleYamlText = "";
-let currentLocale = "en";
-
-const translations = {
-  en: {
-    pageTitle: "domainprocessschema.mbt MoonBit WASM demo",
-    pageDescription:
-      'This page loads the MoonBit WASM build, fetches <code>examples/expense_request.yaml</code>, and renders either the static manifest preview or runtime scenarios into the iframe below.',
-    yamlLabel: "YAML source",
-    scenarioLabel: "Preview mode",
-    localeLabel: "Language",
-    renderButton: "Render preview",
-    resetButton: "Reset example",
-    validationSummary: "validation manifest",
-    loading: "Loading WASM demo…",
-    fetching: "Fetching schema and WASM module…",
-    wasmNotLoaded: "WASM module is not loaded yet.",
-    rendered: (scenario) => `Rendered scenario: ${scenario}`,
-    previewTitle: "MoonBit WASM preview",
-    validationLoading: "Loading validation manifest…",
-    scenarios: {
-      manifest: "manifest",
-      draft: "runtime: draft",
-      submitted: "runtime: submitted",
-      "submitted-manager": "runtime: submitted-manager",
-      "approved-manager": "runtime: approved-manager",
-      "rejected-manager": "runtime: rejected-manager",
-    },
-  },
-  ja: {
-    pageTitle: "domainprocessschema.mbt MoonBit WASM デモ",
-    pageDescription:
-      '<code>examples/expense_request.yaml</code> を読み込み、MoonBit WASM build を使って static preview または runtime scenario preview を下の iframe に描画します。',
-    yamlLabel: "YAML ソース",
-    scenarioLabel: "プレビューモード",
-    localeLabel: "表示言語",
-    renderButton: "プレビューを描画",
-    resetButton: "example を戻す",
-    validationSummary: "validation manifest",
-    loading: "WASM デモを読み込み中…",
-    fetching: "schema と WASM module を取得中…",
-    wasmNotLoaded: "WASM module がまだ読み込まれていません。",
-    rendered: (scenario) => `描画した scenario: ${scenario}`,
-    previewTitle: "MoonBit WASM プレビュー",
-    validationLoading: "validation manifest を読み込み中…",
-    scenarios: {
-      manifest: "manifest",
-      draft: "runtime: draft",
-      submitted: "runtime: submitted",
-      "submitted-manager": "runtime: submitted-manager",
-      "approved-manager": "runtime: approved-manager",
-      "rejected-manager": "runtime: rejected-manager",
-    },
-  },
+const artifactLabels = {
+  sourceYaml: "Source YAML",
+  normalizedSchema: "Normalized schema",
+  apiManifest: "API manifest",
+  validationManifest: "Validation manifest",
+  guiManifest: "GUI manifest",
+  runtimeSnapshot: "Runtime snapshot",
+  diagnostics: "Diagnostics",
 };
 
-function t() {
-  return translations[currentLocale];
-}
-
-function applyLocale() {
-  const text = t();
-  document.documentElement.lang = currentLocale;
-  document.title = text.pageTitle;
-  pageTitleNode.textContent = text.pageTitle;
-  pageDescriptionNode.innerHTML = text.pageDescription;
-  yamlLabelNode.textContent = text.yamlLabel;
-  scenarioLabelNode.textContent = text.scenarioLabel;
-  localeLabelNode.textContent = text.localeLabel;
-  renderButton.textContent = text.renderButton;
-  resetButton.textContent = text.resetButton;
-  validationSummaryNode.textContent = text.validationSummary;
-  previewNode.title = text.previewTitle;
-  validationNode.textContent = text.validationLoading;
-  for (const option of scenarioNode.options) {
-    option.textContent = text.scenarios[option.value] ?? option.value;
-  }
-}
+let api;
+let exampleYaml = "";
+let activeArtifact = "sourceYaml";
+let artifactState = {};
 
 async function loadWasm() {
-  const { instance } = await WebAssembly.instantiateStreaming(
-    fetch(wasmUrl),
-    {},
-    {
-      builtins: ["js-string"],
-      importedStringConstants: "_",
-    },
-  );
+  const { instance } = await WebAssembly.instantiateStreaming(fetch(wasmUrl), {}, {
+    builtins: ["js-string"],
+    importedStringConstants: "_",
+  });
   return instance.exports;
 }
 
-function renderResult(result) {
+function unwrap(result) {
   if (api.result_is_ok(result)) {
-    const html = api.result_unwrap(result);
-    previewNode.srcdoc = html;
-    statusNode.textContent = t().rendered(
-      t().scenarios[scenarioNode.value] ?? scenarioNode.value,
-    );
-  } else {
-    const error = api.result_error(result);
-    previewNode.srcdoc = "";
-    statusNode.textContent = error;
+    return { ok: true, value: api.result_unwrap(result) };
+  }
+  return { ok: false, value: api.result_error(result) };
+}
+
+function prettyJson(text) {
+  try {
+    return JSON.stringify(JSON.parse(text), null, 2);
+  } catch {
+    return text;
   }
 }
 
-function renderValidationResult(result) {
-  validationNode.textContent = api.result_is_ok(result)
-    ? api.result_unwrap(result)
-    : api.result_error(result);
+function artifactPayload(format) {
+  const result = unwrap(api.render_artifact(sourceNode.value, format));
+  if (!result.ok) {
+    return result.value;
+  }
+  try {
+    return JSON.parse(JSON.parse(result.value).payload);
+  } catch {
+    return result.value;
+  }
 }
 
-async function renderPreview() {
-  if (!api) {
-    statusNode.textContent = t().wasmNotLoaded;
-    return;
-  }
+function compileArtifacts() {
+  const yaml = sourceNode.value;
+  artifactState = {
+    sourceYaml: yaml,
+    normalizedSchema: artifactPayload("normalized-schema"),
+    apiManifest: unwrap(api.render_api_manifest(yaml)).value,
+    validationManifest: unwrap(api.render_validation_manifest(yaml)).value,
+    guiManifest: unwrap(api.render_gui_manifest(yaml)).value,
+    runtimeSnapshot: unwrap(api.render_runtime_snapshot(yaml)).value,
+    diagnostics: unwrap(api.render_diagnostics(yaml)).value,
+  };
+}
+
+function renderArtifact() {
+  const value = artifactState[activeArtifact] ?? "";
+  artifactNode.textContent =
+    typeof value === "string" ? prettyJson(value) : JSON.stringify(value, null, 2);
+}
+
+function renderPreview() {
+  const yaml = sourceNode.value;
   const scenario = scenarioNode.value;
-  const yamlText = yamlNode.value;
-  const result =
+  const result = unwrap(
     scenario === "manifest"
-      ? api.render_manifest_preview(yamlText)
-      : api.render_runtime_preview(yamlText, scenario);
-  renderResult(result);
-  renderValidationResult(api.render_validation_manifest(yamlText));
+      ? api.render_manifest_preview(yaml)
+      : api.render_runtime_preview(yaml, scenario),
+  );
+  if (result.ok) {
+    frameNode.srcdoc = result.value;
+    statusNode.textContent = `Compiled ${artifactLabels[activeArtifact]}`;
+  } else {
+    frameNode.srcdoc = "";
+    statusNode.textContent = result.value;
+  }
+}
+
+function compile() {
+  compileArtifacts();
+  renderArtifact();
+  renderPreview();
+}
+
+function setActiveArtifact(name) {
+  activeArtifact = name;
+  for (const tab of tabNodes) {
+    tab.classList.toggle("active", tab.dataset.artifact === name);
+  }
+  renderArtifact();
+}
+
+function normalizeSource() {
+  sourceNode.value = sourceNode.value.trimEnd() + "\n";
+  compile();
+}
+
+function downloadArtifact() {
+  const value = artifactState[activeArtifact] ?? "";
+  const blob = new Blob([typeof value === "string" ? value : JSON.stringify(value, null, 2)], {
+    type: activeArtifact === "sourceYaml" ? "application/x-yaml" : "application/json",
+  });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = activeArtifact === "sourceYaml" ? "source.yaml" : `${activeArtifact}.json`;
+  link.click();
+  URL.revokeObjectURL(link.href);
 }
 
 async function main() {
-  applyLocale();
-  statusNode.textContent = t().fetching;
-  [exampleYamlText, api] = await Promise.all([
-    fetch(yamlUrl).then((res) => res.text()),
+  [api, exampleYaml] = await Promise.all([
     loadWasm(),
+    fetch(yamlUrl).then((res) => res.text()),
   ]);
-  yamlNode.value = exampleYamlText;
-  localeNode.addEventListener("change", () => {
-    currentLocale = localeNode.value;
-    applyLocale();
-    if (api) {
-      renderPreview().catch((err) => {
-        statusNode.textContent = String(err);
-      });
-    } else {
-      statusNode.textContent = t().loading;
-    }
-  });
-  renderButton.addEventListener("click", () => {
-    renderPreview().catch((err) => {
-      statusNode.textContent = String(err);
-    });
-  });
+  sourceNode.value = exampleYaml;
+  compileButton.addEventListener("click", compile);
+  scenarioNode.addEventListener("change", renderPreview);
   resetButton.addEventListener("click", () => {
-    yamlNode.value = exampleYamlText;
-    renderPreview().catch((err) => {
-      statusNode.textContent = String(err);
-    });
+    sourceNode.value = exampleYaml;
+    compile();
   });
-  await renderPreview();
+  formatButton.addEventListener("click", normalizeSource);
+  downloadButton.addEventListener("click", downloadArtifact);
+  for (const tab of tabNodes) {
+    tab.addEventListener("click", () => setActiveArtifact(tab.dataset.artifact));
+  }
+  compile();
 }
 
 main().catch((err) => {

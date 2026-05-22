@@ -3,92 +3,70 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>domainprocessschema.mbt MoonBit WASM demo</title>
-    <style>
-      body {
-        font-family: sans-serif;
-        margin: 2rem;
-        line-height: 1.5;
-      }
-      .controls {
-        display: grid;
-        gap: 0.75rem;
-        max-width: 48rem;
-        margin-bottom: 1rem;
-      }
-      .controls label {
-        display: grid;
-        gap: 0.25rem;
-      }
-      textarea {
-        width: 100%;
-        min-height: 18rem;
-        font-family: ui-monospace, SFMono-Regular, monospace;
-      }
-      iframe {
-        width: 100%;
-        min-height: 70vh;
-        border: 1px solid #ccc;
-        border-radius: 12px;
-        background: white;
-      }
-      pre {
-        background: #111;
-        color: #f7f7f7;
-        padding: 1rem;
-        border-radius: 12px;
-        overflow-x: auto;
-      }
-      details {
-        margin-top: 1rem;
-      }
-    </style>
+    <title>Schema Editor</title>
+    <link rel="stylesheet" href="./editor/app.css" />
   </head>
   <body>
-    <h1 id="page-title">domainprocessschema.mbt MoonBit WASM demo</h1>
-    <p id="page-description">
-      This page loads the MoonBit WASM build, fetches
-      <code>examples/expense_request.yaml</code>, and renders either the static
-      manifest preview or runtime scenarios into the iframe below.
-    </p>
-
-    <div class="controls">
-      <label>
-        <span id="yaml-label">YAML source</span>
-        <textarea id="yaml"></textarea>
-      </label>
-      <label>
-        <span id="scenario-label">Preview mode</span>
-        <select id="scenario">
-          <option value="manifest">manifest</option>
-          <option value="draft">runtime: draft</option>
-          <option value="submitted">runtime: submitted</option>
-          <option value="submitted-manager" selected>
-            runtime: submitted-manager
-          </option>
-          <option value="approved-manager">runtime: approved-manager</option>
-          <option value="rejected-manager">runtime: rejected-manager</option>
-        </select>
-      </label>
-      <label>
-        <span id="locale-label">Language</span>
-        <select id="locale">
-          <option value="en" selected>English</option>
-          <option value="ja">日本語</option>
-        </select>
-      </label>
+    <header class="topbar">
       <div>
-        <button id="render">Render preview</button>
-        <button id="reset" type="button">Reset example</button>
+        <h1>Schema Editor</h1>
+        <p>Compile, inspect, preview, and export domain process schemas.</p>
       </div>
-    </div>
+      <nav aria-label="Demo links">
+        <a href="/demo/">Runtime demo</a>
+        <a href="https://github.com/f4ah6o/domainprocessschema.mbt">GitHub</a>
+      </nav>
+    </header>
 
-    <pre id="status">Loading WASM demo…</pre>
-    <iframe id="preview" title="MoonBit WASM preview"></iframe>
-    <details>
-      <summary id="validation-summary">validation manifest</summary>
-      <pre id="validation">Loading validation manifest…</pre>
-    </details>
+    <main class="app-shell">
+      <section class="source-pane" aria-label="YAML source">
+        <div class="pane-header">
+          <h2>Source YAML</h2>
+          <div class="button-row">
+            <button id="format-source" type="button">Normalize</button>
+            <button id="reset-source" type="button">Reset</button>
+            <button id="compile-source" type="button">Compile</button>
+          </div>
+        </div>
+        <textarea id="yaml-source" spellcheck="false"></textarea>
+      </section>
+
+      <section class="preview-pane" aria-label="Runtime preview">
+        <div class="pane-header">
+          <h2>Preview</h2>
+          <label>
+            <span>Scenario</span>
+            <select id="preview-scenario">
+              <option value="manifest">Manifest</option>
+              <option value="draft">Draft</option>
+              <option value="submitted">Submitted</option>
+              <option value="submitted-manager" selected>Submitted manager</option>
+              <option value="approved-manager">Approved manager</option>
+              <option value="rejected-manager">Rejected manager</option>
+            </select>
+          </label>
+        </div>
+        <div id="status" role="status">Loading editor...</div>
+        <iframe id="preview-frame" title="Schema runtime preview"></iframe>
+      </section>
+
+      <section class="artifact-pane" aria-label="Artifacts">
+        <div class="pane-header">
+          <h2>Artifacts</h2>
+          <button id="download-artifact" type="button">Export JSON</button>
+        </div>
+        <div class="tabs" role="tablist" aria-label="Artifact views">
+          <button class="tab active" data-artifact="sourceYaml" type="button">YAML</button>
+          <button class="tab" data-artifact="normalizedSchema" type="button">Schema</button>
+          <button class="tab" data-artifact="apiManifest" type="button">API</button>
+          <button class="tab" data-artifact="validationManifest" type="button">Validation</button>
+          <button class="tab" data-artifact="guiManifest" type="button">GUI</button>
+          <button class="tab" data-artifact="runtimeSnapshot" type="button">Runtime</button>
+          <button class="tab" data-artifact="diagnostics" type="button">Diagnostics</button>
+        </div>
+        <pre id="artifact-output"></pre>
+      </section>
+    </main>
 
     <script type="module" src="./main.js"></script>
   </body>

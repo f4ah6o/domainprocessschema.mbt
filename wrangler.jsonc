@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "domainprocessschema-schema-editor",
+  "main": "wasm/demo/worker.mjs",
+  "compatibility_date": "2026-05-11",
+  "assets": {
+    "directory": "./dist/cloudflare-demo",
+    "binding": "ASSETS",
+    "run_worker_first": ["/", "/api/*", "/demo", "/demo/*", "/demo.wasm", "/editor/app.css", "/main.js"],
+    "not_found_handling": "single-page-application"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test wasm/demo/*.test.mjs",
+    "build:demo": "node scripts/build-cloudflare-demo.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^4.14.4"
+  }
+}
