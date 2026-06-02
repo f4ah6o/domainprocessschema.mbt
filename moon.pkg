@@ -1,4 +1,5 @@
 import {
+  "f4ah6o/dslx" @dslx,
   "moonbitlang/core/json" @json,
 }
 
