@@ -20,6 +20,11 @@ static HTML renderer, and one in-memory runtime surface:
 The GitHub repository name contains `.mbt`, but the MoonBit module name is
 `f4ah6o/domainprocessschema_mbt` because MoonBit module names cannot contain `.`.
 
+The root package also keeps a private `dslx.mbt` contract test using `@dslx.domn()`.
+That contract checks a small domain/process DSL example through the `dslx`
+project API; it is a dependency contract and does not replace the current YAML
+compiler path.
+
 See also:
 
 - `docs/schema-contract-v1.md`
