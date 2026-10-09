@@ -28,3 +28,7 @@ README との整合を取るには package metadata の更新が必要。
 
 検索性と package discovery は module metadata に強く依存する。  
 ここを更新すると、この repository が単なる SQL generator ではなく contract-oriented schema compiler だと伝わりやすくなる。
+
+---
+
+Rechecked: 2026-10-09 — main 805e8b1 時点では `moon.mod.json` の description / keywords は未更新（"for SQL generation" のまま）のため open。相当変更は未マージの `origin/pr-21-r2` ブランチに存在（d9d18eb）。

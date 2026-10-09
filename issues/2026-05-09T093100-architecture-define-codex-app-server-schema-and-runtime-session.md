@@ -284,3 +284,7 @@ shared repo はこの issue の blocker ではない。この issue の成果は
 diagnostics、transition semantics をすでに持っている。不足しているのは durable
 session contract だけであり、ここを先に定義すれば runtime boundary を汚さずに
 App Server client 側の実装へつなげられる。
+
+---
+
+Rechecked: 2026-10-09 — main 805e8b1 時点では session contract の定義文書（`docs/app-server-schema-runtime-session.md`）が未追加のため open のまま。相当文書は未マージの `origin/pr-21-r2` ブランチに存在。

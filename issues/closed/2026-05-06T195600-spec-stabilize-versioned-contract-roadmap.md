@@ -1,6 +1,7 @@
 # domainprocessschema.mbt versioned contract 安定化ロードマップ
 
 Created: 2026-05-06
+Completed: 2026-10-09
 Model: GPT-5.4 1.0.41
 
 ## 背景
@@ -43,3 +44,9 @@ Model: GPT-5.4 1.0.41
 
 README にはすでに manifest / runtime / WASM demo までの実装が列挙されている一方、public contract の versioning と diagnostics shape は未固定。  
 まず issue を仕様単位に分けることで、外部依存可能な低レベル core への移行を小さな PR で進めやすくする。
+
+## 解決方法
+
+proposal は `issues/` 配下の 2026-05-06T195610〜195750 として分割登録済み（c11efb0、PR #17）。初回 PR は PR #17（2c6a4d4）で `schema contract v1` / `manifest envelope` / `structured diagnostics` が着地し、follow-up issue（normalized-schema / golden fixtures / transition semantics / expression language / runtime adapter boundary / reference lookup / audit event）もすべて登録されている。
+
+main 805e8b1 時点で受け入れ条件をすべて満たしたため close。

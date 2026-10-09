@@ -27,3 +27,7 @@ core を肥大化させずに実運用へ接続するためには、adapter boun
 
 README でも runtime は library/static-preview engine に限定すると明記されている。  
 boundary を定義しておけば、その制約を保ったまま外部接続だけを増やせる。
+
+---
+
+Rechecked: 2026-10-09 — main 805e8b1 時点では `docs/runtime-adapter-boundary.md` 未追加のため open のまま。相当文書は未マージの `origin/pr-21-r2` ブランチに存在。

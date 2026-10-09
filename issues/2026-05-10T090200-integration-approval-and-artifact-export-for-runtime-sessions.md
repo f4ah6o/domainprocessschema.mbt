@@ -53,3 +53,7 @@ deterministic に export できる必要がある。
 App Server integration では、state-changing action を明示的に承認し、成果物を安定した
 envelope で取り出せることが価値になる。これにより schema/runtime session を安全に
 共有・検証できる。
+
+---
+
+Rechecked: 2026-10-09 — main 805e8b1 時点では approval proposal / artifact export 未実装のため open のまま。実装は PR #40 のブランチ `codex/schema-editor-production-app` 上に存在。

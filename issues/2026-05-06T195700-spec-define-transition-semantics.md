@@ -27,3 +27,7 @@ API manifest と runtime behavior を一致させるには、transition semantic
 
 `runtime_engine.mbt` はすでに state / role / guard / input を評価しているので、暗黙の仕様は存在している。  
 それを文書として固定すれば、runtime と API/UI consumer のズレを減らせる。
+
+---
+
+Rechecked: 2026-10-09 — main 805e8b1 時点では `docs/transition-semantics-v1.md` 未追加のため open のまま。相当文書は未マージの `origin/pr-21-r2` ブランチに存在。

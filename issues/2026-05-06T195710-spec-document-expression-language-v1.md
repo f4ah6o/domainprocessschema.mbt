@@ -27,3 +27,7 @@ unknown identifier、null/missing、short-circuit、reserved context を明文�
 
 expr parser / runtime evaluator はすでに共通 AST を持っている。  
 この層を v1 spec として独立させると、validator と runtime の一貫性を今後も保ちやすい。
+
+---
+
+Rechecked: 2026-10-09 — main 805e8b1 時点では `docs/expression-language-v1.md` 未追加のため open のまま。相当文書は未マージの `origin/pr-21-r2` ブランチに存在。

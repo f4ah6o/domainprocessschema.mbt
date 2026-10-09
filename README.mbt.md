@@ -28,7 +28,7 @@ compiler path.
 See also:
 
 - `docs/schema-contract-v1.md`
-- `issues/2026-05-06T195600-spec-stabilize-versioned-contract-roadmap.md`
+- `issues/closed/2026-05-06T195600-spec-stabilize-versioned-contract-roadmap.md`
 
 ## Status
 

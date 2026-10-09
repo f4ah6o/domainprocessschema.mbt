@@ -1,6 +1,7 @@
 # Generated artifact の golden fixtures を固定する
 
 Created: 2026-05-06
+Completed: 2026-10-09
 Model: GPT-5.4 1.0.41
 
 ## 背景
@@ -38,3 +39,9 @@ manifest envelope や diagnostics を安定化した後は、生成物そのも�
 
 contract-first に移る以上、README の説明だけでなく参照可能な golden outputs が必要。  
 fixture があれば refactor と外部 consumer の両方に対して「何が安定しているか」を明示できる。
+
+## 解決方法
+
+`fixtures/expense_request/` に input.yaml と expected.* 成果物（normalized-schema / schema.sql / migration.up / migration.down / api-manifest / validation-manifest / gui-manifest）を配置し、`fixtures_test.mbt` が生成物を fixture と比較する（f9ebce8、PR #19。95850c2 で拡充）。破壊的変更は fixture 差分として検出できる。
+
+main 805e8b1 で確認。

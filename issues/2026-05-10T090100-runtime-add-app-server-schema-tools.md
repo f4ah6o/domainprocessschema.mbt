@@ -50,3 +50,7 @@ App Server tool 境界へ分割する。
 schema runtime は mutation の意味が明確な domain である。App Server tool boundary を
 定義すると、client は schema editing と runtime execution を ad hoc HTTP route ではなく
 typed tool flow として扱える。
+
+---
+
+Rechecked: 2026-10-09 — main 805e8b1 時点では `app_server_schema_tools.mbt` 未実装のため open のまま。実装は PR #40 のブランチ `codex/schema-editor-production-app` 上に存在。

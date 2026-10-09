@@ -1,6 +1,7 @@
 # Structured Diagnostics を導入する
 
 Created: 2026-05-06
+Completed: 2026-10-09
 Model: GPT-5.4 1.0.41
 
 ## 背景
@@ -36,3 +37,9 @@ validator / compiler / runtime は現在 `path + message` 中心でエラーを�
 
 browser host はすでに structured runtime payload を読む方向へ進んでおり、diagnostics だけが最後まで free-form string に寄っている。  
 ここを固定すると CLI、GUI、agent のどれでも同じ修正案内を扱いやすくなる。
+
+## 解決方法
+
+共通 `Diagnostic` shape（code / severity / target / message / hint / context）を導入（2c6a4d4、PR #17）。validator は `UNKNOWN_STATE` / `UNKNOWN_ENTITY` / `INVALID_EXPR` / `INVALID_TRANSITION_INPUT` / `VIEW_STATE_MISMATCH` 等の固定 code を返し、runtime は `Array[Diagnostic]` で transition / validation failure を返す。
+
+main 805e8b1 で確認。

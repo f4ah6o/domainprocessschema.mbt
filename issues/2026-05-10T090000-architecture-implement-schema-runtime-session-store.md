@@ -50,3 +50,7 @@ truth とする。
 domainprocessschema の強みは、schema compiler と runtime session を同じ domain model
 で扱えることにある。durable session store を先に実装すれば、schema editor、runtime
 preview、transition 実行を App Server client から一貫して操作できる。
+
+---
+
+Rechecked: 2026-10-09 — main 805e8b1 時点では `runtime_session_store.mbt` 未実装のため open のまま。実装は PR #40 のブランチ `codex/schema-editor-production-app`（ベース `issue1-complete`）上に存在。
