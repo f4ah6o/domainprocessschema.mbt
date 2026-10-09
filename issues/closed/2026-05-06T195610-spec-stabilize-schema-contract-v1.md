@@ -1,6 +1,7 @@
 # Schema Contract v1 を明文化する
 
 Created: 2026-05-06
+Completed: 2026-10-09
 Model: GPT-5.4 1.0.41
 
 ## 背景
@@ -35,3 +36,9 @@ GUI generator / API generator / migration tool / runtime が同じ入力に依�
 
 現在の public API は `parse_schema_yaml` / `validate_schema` / 各種 manifest generator を公開しているため、schema 自体が低レベル入力 contract になっている。  
 その contract を文書で固定しないと、上位ツールが「どこまで依存してよいか」を判断できない。
+
+## 解決方法
+
+`docs/schema-contract-v1.md` を 2c6a4d4（PR #17）で追加。YAML grammar、entity / field / relation / constraint / state / transition / rule / view / storage contract、label resolution、expression language との境界、stable / experimental / internal 分類、backward compatibility policy、unsupported features を v1 contract として定義済み。
+
+main 805e8b1 で確認。

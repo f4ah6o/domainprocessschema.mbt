@@ -27,3 +27,7 @@ field-level または schema-level で reference lookup metadata を持てる co
 
 WASM demo はすでに reference-select を表示する方向に進んでいる。  
 lookup contract を入れると、demo 専用 metadata から汎用 contract へ昇格させやすい。
+
+---
+
+Rechecked: 2026-10-09 — main 805e8b1 時点では manifest に `labelField` / `valueField` を出す lookup contract 未実装のため open のまま。`docs/reference-lookup-contract.md` と `reference_lookup.mbt` は未マージの `origin/pr-21-r2` ブランチに存在。

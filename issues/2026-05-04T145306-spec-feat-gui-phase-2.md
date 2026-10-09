@@ -129,3 +129,7 @@ open issue のまま「実装済み」と「未実装」が混在すると、何
 着手順序を誤りやすい。  
 先に既完了範囲を固定し、UI integration だけを残課題として分けることで、
 Phase 2 の follow-up を安全に進めやすくする。
+
+---
+
+Rechecked: 2026-10-09 — main 805e8b1 時点で再確認。runtime core・WASM demo editor は main に着地済みだが、UI framework 選定の確定・i18n UI・error handling UI・runtime→UI bridge glue は未完了のため open のまま。

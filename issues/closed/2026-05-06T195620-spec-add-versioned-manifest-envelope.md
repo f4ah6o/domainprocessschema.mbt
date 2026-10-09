@@ -1,6 +1,7 @@
 # Generated manifest に version envelope を追加する
 
 Created: 2026-05-06
+Completed: 2026-10-09
 Model: GPT-5.4 1.0.41
 
 ## 背景
@@ -41,3 +42,9 @@ Model: GPT-5.4 1.0.41
 
 現在の manifest renderer は `api_manifest.mbt` / `validation_manifest.mbt` / `gui_manifest.mbt` で個別に JSON を組み立てている。  
 ここに共通 envelope を入れると、外部 consumer は payload の意味と version を安全に見分けられる。
+
+## 解決方法
+
+`render_manifest_envelope`（contract_support.mbt）により `api-manifest` / `validation-manifest` / `gui-manifest` が `schemaVersion` / `manifestKind` / `generator` / `payload` の共通 envelope を返す（2c6a4d4、PR #17）。tests・fixtures も新しい shape を前提に更新済み。
+
+main 805e8b1 で確認。

@@ -27,3 +27,7 @@ transition 実行は runtime で扱えるようになったが、結果を安定
 
 structured diagnostics と runtime adapter boundary を導入すると、transition outcome は event contract として切り出しやすくなる。  
 これがあると、運用時の可観測性と履歴 UI の拡張点を先に確保できる。
+
+---
+
+Rechecked: 2026-10-09 — main 805e8b1 時点では audit event manifest 未定義のため open のまま。`docs/audit-event-manifest.md` は未マージの `origin/pr-21-r2` ブランチに存在。

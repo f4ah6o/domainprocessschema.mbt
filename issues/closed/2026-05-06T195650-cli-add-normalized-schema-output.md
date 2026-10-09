@@ -1,6 +1,7 @@
 # normalized-schema CLI / public API を追加する
 
 Created: 2026-05-06
+Completed: 2026-10-09
 Model: GPT-5.4 1.0.41
 
 ## 背景
@@ -29,3 +30,9 @@ validated `Schema` を正式 JSON output として公開すれば、GUI / API / 
 
 runtime と generators はすでに validated `Schema` を共有しており、normalized JSON は自然な公開面になる。  
 この出力があると、上位ツールは YAML subset の実装差異に引きずられずに済む。
+
+## 解決方法
+
+`normalized_schema.mbt` の renderer と public API、および `moon run cmd/main -- normalized-schema <schema.yaml>` の CLI mode を追加（5d04762、PR #18）。output は version envelope を含む。
+
+main 805e8b1 で確認。
