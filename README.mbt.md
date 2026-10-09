@@ -161,10 +161,55 @@ The public MoonBit API now includes:
 renders a semantic static HTML document with state badge, visible fields,
 action buttons, action-local inputs, and rule/action availability hints.
 
+## Cloudflare Schema Editor
+
+The production browser app is the **Schema Editor** served from `/` by
+Cloudflare Workers Static Assets. It is centered on the existing MoonBit WASM
+compiler/runtime rather than a separate JavaScript schema model:
+
+- source YAML editing with reset and compile controls
+- practical iframe preview for the static GUI manifest or runtime scenarios
+- artifact/export panel for source YAML, normalized schema, API manifest,
+  validation manifest, GUI manifest, runtime session snapshot, and diagnostics
+- Worker API guardrails for integration requests, including a 64 KiB request
+  size limit and stable JSON error envelopes
+- free-plan-friendly Cloudflare bindings: only the `ASSETS` binding is used
+
+The existing runtime preview remains available under `/demo/`.
+
+Build the deployable bundle with:
+
+```bash
+just demo-build
+```
+
+That command builds `wasm/demo` for `wasm-gc --release` and writes the
+Cloudflare static asset bundle to `dist/cloudflare-demo/`.
+
+Run the Worker checks and dry-run deployment with:
+
+```bash
+just test-js
+pnpm exec wrangler deploy --dry-run --env=""
+```
+
+Deploy production with:
+
+```bash
+just demo-build
+pnpm exec wrangler deploy --env=""
+```
+
+`wrangler.jsonc` deliberately avoids D1, KV, R2, Workers AI, and other paid or
+stateful bindings so the app can stay on Cloudflare's Assets-focused free-plan
+path.
+
 ## MoonBit WASM demo
 
 Issue #2 is broader than the static HTML proof. This branch also adds a
-**MoonBit WASM browser demo** under `wasm/demo/`.
+**MoonBit WASM browser demo** under `wasm/demo/`. The source directory now
+contains the production Schema Editor, the preserved runtime demo, and the
+worker-backed editor app.
 
 It keeps the current HTML renderer as a WASM-exported preview engine, and now
 also exposes a small browser-driven runtime session:
@@ -178,12 +223,18 @@ also exposes a small browser-driven runtime session:
   current state and available transitions
 - `apply_session_transition(session, name, input_json)` applies a transition and
   returns the updated session
-- `wasm/demo/index.html` loads the built `.wasm`, fetches
+- `render_api_manifest(yaml)`, `render_gui_manifest(yaml)`,
+  `render_runtime_snapshot(yaml)`, `render_diagnostics(yaml)`, and
+  `render_artifact(yaml, format)` export the Schema Editor artifact views
+- `wasm/demo/index.html` is the production editor shell
+- `wasm/demo/runtime-demo.html` keeps the runtime session preview under `/demo/`
+- `wasm/demo/editor/` hosts the worker-backed schema editor app under `/editor/`
+- both pages load the built `.wasm`, fetch
   `examples/expense_request.yaml`, and renders the returned full HTML document
   into an `<iframe srcdoc>`
-- the host page now keeps the current `DemoSession` in JS, shows available
-  transitions for the chosen actor role, collects action input values, and
-  rerenders after each transition
+- the runtime demo host page now keeps the current `DemoSession` in JS, shows
+  available transitions for the chosen actor role, collects action input
+  values, and rerenders after each transition
 - the host page also parses `validation_manifest`, so each action input can show
   schema-derived hints such as entity-field/local kind, type, target/default
   metadata, and read-only/system flags
@@ -196,8 +247,8 @@ also exposes a small browser-driven runtime session:
 - the demo now also exports a static reference catalog for target entities, so
   `reference-select` action inputs can render as actual `<select>` controls in
   the browser host without introducing async lookup yet
-- the host page still exposes the YAML source as a textarea, so schema edits and
-  compile / validation errors can be exercised directly in the browser demo
+- the editor page exposes a YAML textarea, so schema edits and
+  compile/validation errors can be exercised directly in the browser demo
 - the host page chrome supports a minimal `en` / `ja` switch, and schema-level
   entity / field / state labels now follow the same locale when YAML uses a
   locale-keyed label map
@@ -237,8 +288,9 @@ pnpm install
 just wasm-demo-test
 just wasm-demo-build
 just test-js
+pnpm run build:demo
 python3 -m http.server
-# then open /wasm/demo/index.html
+# then open /dist/cloudflare-demo/index.html or /dist/cloudflare-demo/demo/
 ```
 
 The runtime uses the validated `Schema` and `Expr` AST directly instead of
@@ -248,18 +300,20 @@ parsing the generated JSON manifests back into memory.
 
 The WASM demo can also be deployed to Cloudflare Workers. The deploy flow keeps
 the source demo under `wasm/demo/` unchanged, then assembles a Worker-ready
-asset bundle under `_build/cloudflare/wasm-demo/` with:
+asset bundle under `dist/cloudflare-demo/` with:
 
-- `index.html`
-- `editor/index.html`
-- `main.js` rebased to `./demo.wasm` and `./examples/expense_request.yaml`
+- `index.html` and `main.js` for the Schema Editor shell
+- `editor/` for the editor stylesheet and the worker-backed editor app
+- `demo/index.html` and `demo/runtime-demo.js` for the runtime session demo
 - the built `demo.wasm`
 - `examples/expense_request.yaml`
 
 The deployed Worker now serves:
 
-- `/` for the existing runtime demo
-- `/editor/` for the schema editor with local-only `localStorage` persistence
+- `/` for the Schema Editor
+- `/demo/` for the runtime session demo (with a `/demo` redirect)
+- `/editor/` for the editor app with local-only `localStorage` persistence
+- `/api/health` and `POST /api/schema/compile` behind the request guardrails
 - `/api/editor/*` for experimental internal browser-editor APIs
 
 The current editor API surface is:

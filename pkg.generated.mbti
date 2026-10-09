@@ -12,11 +12,15 @@ pub fn build_runtime(Schema) -> Runtime
 
 pub fn compile_api_manifest_from_yaml(String) -> String raise SchemaError
 
+pub fn compile_emitted_yaml_from_yaml(String) -> String raise SchemaError
+
 pub fn compile_gui_html_from_yaml(String, locale? : String) -> String raise
 
 pub fn compile_gui_manifest_from_yaml(String, locale? : String) -> String raise SchemaError
 
 pub fn compile_migration_sql_from_yaml(String) -> String raise SchemaError
+
+pub fn compile_normalized_schema_from_yaml(String) -> String raise SchemaError
 
 pub fn compile_runtime_from_yaml(String) -> Runtime raise SchemaError
 
@@ -24,13 +28,25 @@ pub fn compile_sql_from_yaml(String) -> String raise SchemaError
 
 pub fn compile_validation_manifest_from_yaml(String) -> String raise SchemaError
 
+pub fn create_schema_runtime_session(String, actor? : RuntimeActor, record? : RuntimeRecord, selection? : SchemaSessionSelection, locale? : String) -> SchemaRuntimeSessionStore
+
+pub fn emit_schema_yaml(Schema) -> String
+
 pub fn evaluate_rules(Runtime, RuntimeRecord, actor? : RuntimeActor) -> Array[RuntimeRuleStatus] raise RuntimeError
+
+pub fn export_schema_runtime_session(SchemaRuntimeSessionStore) -> String
+
+pub fn export_schema_session_artifact(SchemaRuntimeSessionStore, SchemaSessionArtifactFormat) -> SchemaSessionArtifactEnvelope
+
+pub fn export_schema_tool_envelope(SchemaAppServerToolEnvelope) -> String
 
 pub fn generate_api_manifest(Schema) -> String
 
 pub fn generate_gui_manifest(Schema, locale? : String) -> String
 
 pub fn generate_migration_sql(Schema) -> String
+
+pub fn generate_normalized_schema(Schema) -> String
 
 pub fn generate_sql(Schema) -> String
 
@@ -50,7 +66,51 @@ pub fn render_gui_html_from_manifest(String) -> String raise HtmlRenderError
 
 pub fn render_runtime_gui_html(Runtime, RuntimeRecord, actor? : RuntimeActor, locale? : String) -> String raise RuntimeError
 
+pub fn render_schema_session_artifact(SchemaSessionArtifactEnvelope) -> String
+
 pub fn resolve_localized_text(String, Map[String, String], String) -> String
+
+pub fn schema_app_server_tool_shapes() -> Array[SchemaAppServerToolShape]
+
+pub fn schema_session_apply_transition(SchemaRuntimeSessionStore, String, input? : Map[String, RuntimeValue]) -> SchemaRuntimeSessionStore
+
+pub fn schema_session_edit_record(SchemaRuntimeSessionStore, String, Map[String, RuntimeValue]) -> SchemaRuntimeSessionStore
+
+pub fn schema_session_set_actor(SchemaRuntimeSessionStore, RuntimeActor) -> SchemaRuntimeSessionStore
+
+pub fn schema_session_set_locale(SchemaRuntimeSessionStore, String) -> SchemaRuntimeSessionStore
+
+pub fn schema_session_set_selection(SchemaRuntimeSessionStore, SchemaSessionSelection) -> SchemaRuntimeSessionStore
+
+pub fn schema_session_set_source(SchemaRuntimeSessionStore, String) -> SchemaRuntimeSessionStore
+
+pub fn schema_tool_available_transitions(SchemaRuntimeSessionStore) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_compile_current_source(SchemaRuntimeSessionStore) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_diagnostics(SchemaRuntimeSessionStore) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_graph(SchemaRuntimeSessionStore) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_inspector_edit(SchemaRuntimeSessionStore, SchemaToolInspectorEditInput) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_propose_reset_session(SchemaRuntimeSessionStore) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_propose_transition_apply(SchemaRuntimeSessionStore, SchemaToolTransitionApplyInput) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_replace_source(SchemaRuntimeSessionStore, String) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_runtime_view(SchemaRuntimeSessionStore) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_select(SchemaRuntimeSessionStore, SchemaSessionSelection) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_session_snapshot(SchemaRuntimeSessionStore) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_set_actor_role(SchemaRuntimeSessionStore, String) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_set_locale(SchemaRuntimeSessionStore, String) -> SchemaAppServerToolEnvelope
+
+pub fn schema_tool_update_record_payload(SchemaRuntimeSessionStore, String, Map[String, RuntimeValue]) -> SchemaAppServerToolEnvelope
 
 pub fn validate_record(Runtime, String, Map[String, RuntimeValue], current? : RuntimeRecord) -> RuntimeValidation raise RuntimeError
 
@@ -359,6 +419,128 @@ pub(all) struct Schema {
   entities : Array[Entity]
 } derive(Eq, Show)
 
+pub(all) enum SchemaAppServerToolAccess {
+  ReadOnly
+  Mutating
+  ApprovalRequired
+} derive(Eq, Show)
+
+pub(all) struct SchemaAppServerToolApprovalProposal {
+  id : String
+  tool : String
+  title : String
+  summary : String
+  input_json : String
+  detail_json : String
+} derive(Eq, Show)
+
+pub(all) struct SchemaAppServerToolEnvelope {
+  tool : String
+  access : SchemaAppServerToolAccess
+  diagnostics : Array[SchemaSessionDiagnostic]
+  snapshot : SchemaRuntimeSessionStore
+  approval : SchemaAppServerToolApprovalProposal?
+} derive(Eq, Show)
+
+pub(all) struct SchemaAppServerToolShape {
+  name : String
+  access : SchemaAppServerToolAccess
+  input_shape : String
+  output_shape : String
+} derive(Eq, Show)
+
+pub(all) struct SchemaRuntimeSessionStore {
+  source : SchemaSessionSource
+  selection : SchemaSessionSelection
+  actor : RuntimeActor
+  record : RuntimeRecord?
+  compile : SchemaSessionCompileSnapshot
+  runtime : SchemaSessionRuntimeSnapshot
+  graph : SchemaSessionGraphSnapshot
+  locale : String
+  last_action : String
+} derive(Eq, Show)
+
+pub(all) struct SchemaSessionArtifactEnvelope {
+  version : Int
+  format : SchemaSessionArtifactFormat
+  media_type : String
+  payload : String
+} derive(Eq, Show)
+
+pub(all) enum SchemaSessionArtifactFormat {
+  SourceYaml
+  NormalizedSchema
+  RuntimeSession
+  DiagnosticReport
+} derive(Eq, Show)
+
+pub(all) struct SchemaSessionCompileSnapshot {
+  ok : Bool
+  diagnostics : Array[SchemaSessionDiagnostic]
+  api_manifest : String?
+  validation_manifest : String?
+  gui_manifest : String?
+} derive(Eq, Show)
+
+pub(all) struct SchemaSessionDiagnostic {
+  code : String
+  severity : String
+  target : String
+  message : String
+  hint : String?
+  context : Map[String, String]
+} derive(Eq, Show)
+
+pub(all) struct SchemaSessionGraphEdge {
+  from : String
+  to : String
+  label : String
+  kind : String
+} derive(Eq, Show)
+
+pub(all) struct SchemaSessionGraphNode {
+  id : String
+  label : String
+  kind : String
+} derive(Eq, Show)
+
+pub(all) struct SchemaSessionGraphSnapshot {
+  nodes : Array[SchemaSessionGraphNode]
+  edges : Array[SchemaSessionGraphEdge]
+} derive(Eq, Show)
+
+pub(all) struct SchemaSessionRuntimeSnapshot {
+  transitions : Array[RuntimeTransitionStatus]
+  rules : Array[RuntimeRuleStatus]
+  view : RuntimeGuiView?
+  diagnostics : Array[SchemaSessionDiagnostic]
+} derive(Eq, Show)
+
+pub(all) struct SchemaSessionSelection {
+  entity_name : String?
+  state_name : String?
+  transition_name : String?
+  field_name : String?
+} derive(Eq, Show)
+pub fn SchemaSessionSelection::empty() -> Self
+
+pub(all) struct SchemaSessionSource {
+  yaml : String
+} derive(Eq, Show)
+
+pub(all) struct SchemaToolInspectorEditInput {
+  entity_name : String
+  source_path : String
+  schema_path : String
+  value : RuntimeValue
+} derive(Eq, Show)
+
+pub(all) struct SchemaToolTransitionApplyInput {
+  transition_name : String
+  input : Map[String, RuntimeValue]
+} derive(Eq, Show)
+
 pub(all) struct State {
   name : String
   label : String
@@ -406,4 +588,3 @@ type YamlValue derive(Eq, @debug.Debug)
 // Type aliases
 
 // Traits
-

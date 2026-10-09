@@ -1,46 +1,42 @@
-import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { cp, mkdir, rm } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
 
-const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const outDir = resolve(rootDir, "_build/cloudflare/wasm-demo");
-const wasmSource = resolve(rootDir, "_build/wasm-gc/release/build/wasm/demo/demo.wasm");
-const jsBridgeSource = resolve(rootDir, "_build/js/release/build/wasm/demo/demo.js");
-const indexSource = resolve(rootDir, "wasm/demo/index.html");
-const mainJsSource = resolve(rootDir, "wasm/demo/main.js");
-const editorSourceDir = resolve(rootDir, "wasm/demo/editor");
-const yamlSource = resolve(rootDir, "examples/expense_request.yaml");
+const root = dirname(dirname(fileURLToPath(import.meta.url)));
+const dist = join(root, "dist", "cloudflare-demo");
+const wasm = join(root, "_build", "wasm-gc", "release", "build", "wasm", "demo", "demo.wasm");
+const editorSourceDir = join(root, "wasm", "demo", "editor");
+const yamlSource = join(root, "examples", "expense_request.yaml");
 
-for (const file of [wasmSource, jsBridgeSource, indexSource, mainJsSource, editorSourceDir, yamlSource]) {
+run("moon", ["build", "wasm/demo", "--target", "wasm-gc", "--release"]);
+
+for (const file of [wasm, editorSourceDir, yamlSource]) {
   if (!existsSync(file)) {
     throw new Error(`Missing required build input: ${file}`);
   }
 }
 
-rmSync(outDir, { recursive: true, force: true });
-mkdirSync(resolve(outDir, "examples"), { recursive: true });
+await rm(dist, { recursive: true, force: true });
+await mkdir(join(dist, "editor"), { recursive: true });
+await mkdir(join(dist, "demo"), { recursive: true });
+await mkdir(join(dist, "examples"), { recursive: true });
 
-copyFileSync(indexSource, resolve(outDir, "index.html"));
-copyFileSync(wasmSource, resolve(outDir, "demo.wasm"));
-copyFileSync(yamlSource, resolve(outDir, "examples/expense_request.yaml"));
-cpSync(editorSourceDir, resolve(outDir, "editor"), { recursive: true });
+await cp(join(root, "wasm", "demo", "index.html"), join(dist, "index.html"));
+await cp(join(root, "wasm", "demo", "main.js"), join(dist, "main.js"));
+await cp(join(root, "wasm", "demo", "runtime-demo.html"), join(dist, "demo", "index.html"));
+await cp(join(root, "wasm", "demo", "runtime-demo.js"), join(dist, "demo", "runtime-demo.js"));
+await cp(editorSourceDir, join(dist, "editor"), { recursive: true });
+await cp(yamlSource, join(dist, "examples", "expense_request.yaml"));
+await cp(wasm, join(dist, "demo.wasm"));
 
-let mainJs = readFileSync(mainJsSource, "utf8");
-mainJs = replaceExact(
-  mainJs,
-  'const wasmUrl = "../../_build/wasm-gc/release/build/wasm/demo/demo.wasm";',
-  'const wasmUrl = "./demo.wasm";',
-);
-mainJs = replaceExact(
-  mainJs,
-  'const yamlUrl = "../../examples/expense_request.yaml";',
-  'const yamlUrl = "./examples/expense_request.yaml";',
-);
-writeFileSync(resolve(outDir, "main.js"), mainJs);
-
-function replaceExact(source, search, replacement) {
-  if (!source.includes(search)) {
-    throw new Error(`Expected source snippet not found: ${search}`);
+function run(command, args) {
+  const result = spawnSync(command, args, {
+    cwd: root,
+    stdio: "inherit",
+  });
+  if (result.status !== 0) {
+    process.exit(result.status ?? 1);
   }
-  return source.replace(search, replacement);
 }
