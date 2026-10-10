@@ -976,7 +976,8 @@ test "validate_schema rejects unknown transition states" {
   inspect(
     result,
     content=(
-      #|Err(ValidationError(issues=[{code: "UNKNOWN_STATE", severity: Error, target: "schema.entities.ExpenseRequest.transitions.submit", message: "unknown target state submitted", hint: None, context: {}}]))
+      #|Err(ValidationError(issues=[{code: UNKNOWN_STATE, severity: Error, target: schema.entities.ExpenseRequest.transitions.submit, message: unknown target state submitted, hint: None, context: {}}]))
+
     ),
   )
 }
@@ -1005,7 +1006,8 @@ test "validate_schema rejects unknown identifiers in expressions" {
   inspect(
     result,
     content=(
-      #|Err(ValidationError(issues=[{code: "INVALID_EXPR", severity: Error, target: "schema.entities.ExpenseRequest.constraints.bad.expr", message: "unknown identifier path missing", hint: Some("Use a declared field name, `state`, or `user.<attr>` where that context is allowed."), context: {}}]))
+      #|Err(ValidationError(issues=[{code: INVALID_EXPR, severity: Error, target: schema.entities.ExpenseRequest.constraints.bad.expr, message: unknown identifier path missing, hint: Some(Use a declared field name, `state`, or `user.<attr>` where that context is allowed.), context: {}}]))
+
     ),
   )
 }
@@ -1022,7 +1024,8 @@ test "parse_schema_yaml rejects malformed yaml" {
   inspect(
     result,
     content=(
-      #|Err(ParseError(issues=[{code: "INVALID_YAML_SYNTAX", severity: Error, target: "yaml.line.2", message: "expected a `key: value` mapping entry", hint: None, context: {"line": "2"}}]))
+      #|Err(ParseError(issues=[{code: INVALID_YAML_SYNTAX, severity: Error, target: yaml.line.2, message: expected a `key: value` mapping entry, hint: None, context: {line: 2}}]))
+
     ),
   )
 }
