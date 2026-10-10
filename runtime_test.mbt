@@ -254,7 +254,9 @@ test "validate_record applies defaults for stateful entity payloads" {
   inspect(validation.is_ok(), content="true")
   inspect(
     validation.record.values.get("status"),
-    content="Some(Text(\"draft\"))",
+    content=(
+      #|Some(Text(draft))
+    ),
   )
 }
 
@@ -271,7 +273,9 @@ test "validate_record reports required and constraint issues" {
   })
   inspect(
     issue_messages,
-    content="[\"runtime.entities.ExpenseRequest.fields.reason: required field reason is missing\", \"runtime.entities.ExpenseRequest.constraints.amountPositive: constraint amountPositive evaluated to false\"]",
+    content=(
+      #|[runtime.entities.ExpenseRequest.fields.reason: required field reason is missing, runtime.entities.ExpenseRequest.constraints.amountPositive: constraint amountPositive evaluated to false]
+    ),
   )
 }
 
@@ -280,7 +284,9 @@ test "list_transitions exposes availability from current state and actor" {
   let runtime = sample_runtime()
   let validation = validate_record(runtime, "ExpenseRequest", draft_payload())
   let draft_statuses = list_transitions(runtime, validation.record)
-  inspect(available_transition_names(draft_statuses), content="[\"submit\"]")
+  inspect(available_transition_names(draft_statuses), content=(
+    #|[submit]
+  ))
 
   let submitted = apply_transition(runtime, validation.record, "submit", input={
     "amount": RuntimeValue::Integer(1200),
@@ -293,7 +299,9 @@ test "list_transitions exposes availability from current state and actor" {
   )
   inspect(
     available_transition_names(submitted_statuses),
-    content="[\"approve\", \"reject\"]",
+    content=(
+      #|[approve, reject]
+    ),
   )
 }
 
@@ -311,7 +319,9 @@ test "apply_transition updates the state in memory" {
     "approve",
     actor=manager_actor(),
   )
-  inspect(approved.values.get("status"), content="Some(Text(\"approved\"))")
+  inspect(approved.values.get("status"), content=(
+    #|Some(Text(approved))
+  ))
 }
 
 ///|
@@ -323,11 +333,15 @@ test "evaluate_rules and project_gui follow the issue runtime model" {
     "reason": RuntimeValue::Text("hotel"),
   })
   let rules = evaluate_rules(runtime, submitted, actor=manager_actor())
-  inspect(active_rule_names(rules), content="[\"canApprove\"]")
+  inspect(active_rule_names(rules), content=(
+    #|[canApprove]
+  ))
 
   let gui = project_gui(runtime, submitted, actor=manager_actor())
   inspect(gui.view_name, content="submitted")
-  inspect(action_input_names(gui, "reject"), content="[\"rejectReason\"]")
+  inspect(action_input_names(gui, "reject"), content=(
+    #|[rejectReason]
+  ))
 }
 
 ///|
@@ -354,5 +368,7 @@ test "defaulted transition-local input is not treated as missing" {
     "reject",
     actor=manager_actor(),
   )
-  inspect(rejected.values.get("status"), content="Some(Text(\"rejected\"))")
+  inspect(rejected.values.get("status"), content=(
+    #|Some(Text(rejected))
+  ))
 }
