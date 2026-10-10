@@ -299,7 +299,7 @@ just demo-deploy
 ```
 
 `worker.mjs` dynamically imports the JS target bridge under
-`_build/js/release/build/wasm/demo/demo.js`, so `wrangler dev` and deploy
+`_build/js/release/build/wasm/demo/demo.js`, so `cf dev` and deploy
 paths require both the JS and wasm-gc builds to exist.
 
 `demo-deploy-preview` deploys the `preview` Worker environment, and
