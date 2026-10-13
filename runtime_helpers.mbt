@@ -64,9 +64,9 @@ fn runtime_find_state_field(entity : Entity) -> Field? {
 fn runtime_issue(
   target : String,
   message : String,
-  code? : String = "RUNTIME_ERROR",
-  hint? : String = "",
-  context? : Map[String, String] = {},
+  code~ : String = "RUNTIME_ERROR",
+  hint~ : String = "",
+  context~ : Map[String, String] = {},
 ) -> Diagnostic {
   diagnostic(code, target, message, hint~, context~)
 }
@@ -130,7 +130,7 @@ fn runtime_current_state(
 }
 
 ///|
-fn parse_runtime_integer(text : String) -> Int {
+fn parse_runtime_integer(text : String) -> Int32 {
   let trimmed = text.trim()
   let chars = trimmed.to_array()
   let mut negative = false
@@ -353,7 +353,7 @@ fn runtime_value_equals(left : RuntimeValue, right : RuntimeValue) -> Bool? {
 }
 
 ///|
-fn runtime_value_compare(left : RuntimeValue, right : RuntimeValue) -> Int? {
+fn runtime_value_compare(left : RuntimeValue, right : RuntimeValue) -> Int32? {
   match (left, right) {
     (RuntimeValue::Text(left), RuntimeValue::Text(right)) =>
       if left < right {

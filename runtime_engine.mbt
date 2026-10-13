@@ -134,7 +134,7 @@ fn runtime_validate_record(
   }
 
   RuntimeValidation::{
-    record: RuntimeRecord::{ entity_name: entity.name, values: normalized },
+    record: RuntimeRecord::{ entity_name: entity.name, values: normalized, },
     issues,
   }
 }
@@ -445,7 +445,7 @@ fn runtime_apply_transition(
     runtime,
     entity.name,
     {},
-    Some(RuntimeRecord::{ entity_name: entity.name, values: next_values }),
+    Some(RuntimeRecord::{ entity_name: entity.name, values: next_values, }),
   )
   if !finalized.is_ok() {
     raise RuntimeError::TransitionRejected(

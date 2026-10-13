@@ -210,7 +210,7 @@ fn render_string_array_json(values : Array[String]) -> String {
 }
 
 ///|
-fn indent_block(text : String, spaces : Int) -> String {
+fn indent_block(text : String, spaces : Int32) -> String {
   let prefix = " ".repeat(spaces)
   let lines = text.split("\n").to_array()
   let indented : Array[String] = []

@@ -12,7 +12,13 @@ fn render_entity_yaml(lines : Array[String], entity : Entity) -> Unit {
   let entity_indent = "  "
   let child_indent = "    "
   lines.push("\{entity_indent}\{entity.name}:")
-  render_localized_value(lines, child_indent, "label", entity.label, entity.labels)
+  render_localized_value(
+    lines,
+    child_indent,
+    "label",
+    entity.label,
+    entity.labels,
+  )
   if entity.fields.length() > 0 {
     lines.push("\{child_indent}fields:")
     for field in entity.fields {
@@ -29,14 +35,22 @@ fn render_entity_yaml(lines : Array[String], entity : Entity) -> Unit {
     lines.push("\{child_indent}constraints:")
     for constraint in entity.constraints {
       lines.push("      \{constraint.name}:")
-      lines.push("        expr: \{yaml_scalar(expr_to_string(constraint.expr))}")
+      lines.push(
+        "        expr: \{yaml_scalar(expr_to_string(constraint.expr))}",
+      )
     }
   }
   if entity.states.length() > 0 {
     lines.push("\{child_indent}states:")
     for state in entity.states {
       lines.push("      \{state.name}:")
-      render_localized_value(lines, "        ", "label", state.label, state.labels)
+      render_localized_value(
+        lines,
+        "        ",
+        "label",
+        state.label,
+        state.labels,
+      )
     }
   }
   if entity.transitions.length() > 0 {
@@ -95,13 +109,18 @@ fn render_field_yaml(lines : Array[String], field : Field) -> Unit {
 ///|
 fn render_relation_yaml(lines : Array[String], relation : Relation) -> Unit {
   lines.push("      \{relation.name}:")
-  lines.push("        kind: \{yaml_scalar(yaml_relation_kind_name(relation.kind))}")
+  lines.push(
+    "        kind: \{yaml_scalar(yaml_relation_kind_name(relation.kind))}",
+  )
   lines.push("        target: \{yaml_scalar(relation.target)}")
   lines.push("        field: \{yaml_scalar(relation.field)}")
 }
 
 ///|
-fn render_transition_yaml(lines : Array[String], transition : Transition) -> Unit {
+fn render_transition_yaml(
+  lines : Array[String],
+  transition : Transition,
+) -> Unit {
   lines.push("      \{transition.name}:")
   lines.push("        from: \{yaml_scalar(transition.from)}")
   lines.push("        to: \{yaml_scalar(transition.to)}")
@@ -114,12 +133,16 @@ fn render_transition_yaml(lines : Array[String], transition : Transition) -> Uni
     for input in transition.inputs {
       lines.push("          - \{yaml_scalar(input.name)}")
     }
-    let local_inputs = transition.inputs.filter(input => input.kind == TransitionInputKind::Local)
+    let local_inputs = transition.inputs.filter(input => {
+      input.kind == TransitionInputKind::Local
+    })
     if local_inputs.length() > 0 {
       lines.push("        inputs:")
       for input in local_inputs {
         lines.push("          \{input.name}:")
-        lines.push("            type: \{yaml_scalar(field_type_name(input.field_type))}")
+        lines.push(
+          "            type: \{yaml_scalar(field_type_name(input.field_type))}",
+        )
         if input.required {
           lines.push("            required: true")
         }
@@ -127,18 +150,21 @@ fn render_transition_yaml(lines : Array[String], transition : Transition) -> Uni
           lines.push("            read_only: true")
         }
         match input.default_value {
-          Some(value) => lines.push("            default: \{yaml_scalar(value)}")
+          Some(value) =>
+            lines.push("            default: \{yaml_scalar(value)}")
           None => ()
         }
         match input.target {
-          Some(target) => lines.push("            target: \{yaml_scalar(target)}")
+          Some(target) =>
+            lines.push("            target: \{yaml_scalar(target)}")
           None => ()
         }
       }
     }
   }
   match transition.guard_expr {
-    Some(expr) => lines.push("        guard: \{yaml_scalar(expr_to_string(expr))}")
+    Some(expr) =>
+      lines.push("        guard: \{yaml_scalar(expr_to_string(expr))}")
     None => ()
   }
 }
@@ -162,8 +188,7 @@ fn render_view_yaml(lines : Array[String], view : View) -> Unit {
 
 ///|
 fn render_storage_yaml(lines : Array[String], entity : Entity) -> Unit {
-  let has_storage =
-    entity.table_name != pluralize_snake(entity.name) ||
+  let has_storage = entity.table_name != pluralize_snake(entity.name) ||
     entity.indexes.length() > 0 ||
     entity.unique_keys.length() > 0 ||
     entity.soft_delete
@@ -292,9 +317,9 @@ fn yaml_scalar(value : String) -> String {
         let code = ch.to_int()
         if code >= 0 && code < 0x20 {
           builder.write_string("\\u")
-          builder.write_string(hex_digit((code / 0x1000) % 0x10))
-          builder.write_string(hex_digit((code / 0x100) % 0x10))
-          builder.write_string(hex_digit((code / 0x10) % 0x10))
+          builder.write_string(hex_digit(code / 0x1000 % 0x10))
+          builder.write_string(hex_digit(code / 0x100 % 0x10))
+          builder.write_string(hex_digit(code / 0x10 % 0x10))
           builder.write_string(hex_digit(code % 0x10))
         } else {
           builder.write_char(ch)
@@ -307,7 +332,7 @@ fn yaml_scalar(value : String) -> String {
 }
 
 ///|
-fn hex_digit(value : Int) -> String {
+fn hex_digit(value : Int32) -> String {
   let digits = "0123456789abcdef"
   digits[value].to_string()
 }

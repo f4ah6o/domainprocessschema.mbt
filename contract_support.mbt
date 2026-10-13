@@ -42,9 +42,9 @@ fn diagnostic(
   code : String,
   target : String,
   message : String,
-  severity? : DiagnosticSeverity = DiagnosticSeverity::Error,
-  hint? : String = "",
-  context? : Map[String, String] = {},
+  severity~ : DiagnosticSeverity = DiagnosticSeverity::Error,
+  hint~ : String = "",
+  context~ : Map[String, String] = {},
 ) -> Diagnostic {
   Diagnostic::{
     code,
@@ -64,9 +64,9 @@ fn diagnostic(
 fn schema_validation_error(
   path~ : String,
   message : String,
-  code? : String = "SCHEMA_VALIDATION_ERROR",
-  hint? : String = "",
-  context? : Map[String, String] = {},
+  code~ : String = "SCHEMA_VALIDATION_ERROR",
+  hint~ : String = "",
+  context~ : Map[String, String] = {},
 ) -> SchemaError {
   SchemaError::ValidationError(issues=[
     diagnostic(code, path, message, hint~, context~),
@@ -75,11 +75,11 @@ fn schema_validation_error(
 
 ///|
 fn schema_parse_error(
-  line~ : Int,
+  line~ : Int32,
   message : String,
-  code? : String = "INVALID_YAML_SYNTAX",
-  hint? : String = "",
-  context? : Map[String, String] = {},
+  code~ : String = "INVALID_YAML_SYNTAX",
+  hint~ : String = "",
+  context~ : Map[String, String] = {},
 ) -> SchemaError {
   let full_context : Map[String, String] = {}
   for key, value in context {

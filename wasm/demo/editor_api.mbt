@@ -1,8 +1,5 @@
 ///|
-pub fn editor_compile_json(
-  yaml : String,
-  locale? : String = "",
-) -> String {
+pub fn editor_compile_json(yaml : String, locale~ : String = "") -> String {
   try {
     let parsed = @schema.parse_schema_yaml(yaml)
     let schema = @schema.validate_schema(parsed)
@@ -15,32 +12,28 @@ pub fn editor_compile_json(
 ///|
 pub fn editor_runtime_preview_json(
   yaml : String,
-  actor_role? : String = "",
-  record_json? : String = "",
-  locale? : String = "",
+  actor_role~ : String = "",
+  record_json~ : String = "",
+  locale~ : String = "",
 ) -> String {
   try {
     let runtime = @schema.compile_runtime_from_yaml(yaml)
     let entity_name = editor_default_entity_name(runtime)
     let actor = actor_for_role(actor_role)
     let validation = editor_validation_from_record_json(
-      runtime,
-      entity_name,
-      record_json,
+      runtime, entity_name, record_json,
     )
     if validation.issues.length() > 0 {
-      return render_editor_runtime_failure_json(validation.record, validation.issues)
+      return render_editor_runtime_failure_json(
+        validation.record,
+        validation.issues,
+      )
     }
-    let view = @schema.project_gui(
-      runtime,
-      validation.record,
-      actor=actor,
-      locale~,
-    )
+    let view = @schema.project_gui(runtime, validation.record, actor~, locale~)
     let html = @schema.render_runtime_gui_html(
       runtime,
       validation.record,
-      actor=actor,
+      actor~,
       locale~,
     )
     render_editor_runtime_success_json(validation.record, view, html)
@@ -54,21 +47,22 @@ pub fn editor_apply_transition_json(
   yaml : String,
   transition_name : String,
   input_json : String,
-  actor_role? : String = "",
-  record_json? : String = "",
-  locale? : String = "",
+  actor_role~ : String = "",
+  record_json~ : String = "",
+  locale~ : String = "",
 ) -> String {
   try {
     let runtime = @schema.compile_runtime_from_yaml(yaml)
     let entity_name = editor_default_entity_name(runtime)
     let actor = actor_for_role(actor_role)
     let validation = editor_validation_from_record_json(
-      runtime,
-      entity_name,
-      record_json,
+      runtime, entity_name, record_json,
     )
     if validation.issues.length() > 0 {
-      return render_editor_runtime_failure_json(validation.record, validation.issues)
+      return render_editor_runtime_failure_json(
+        validation.record,
+        validation.issues,
+      )
     }
     let input = parse_demo_input_json(input_json)
     let next_record = @schema.apply_transition(
@@ -76,18 +70,13 @@ pub fn editor_apply_transition_json(
       validation.record,
       transition_name,
       input~,
-      actor=actor,
+      actor~,
     )
-    let view = @schema.project_gui(
-      runtime,
-      next_record,
-      actor=actor,
-      locale~,
-    )
+    let view = @schema.project_gui(runtime, next_record, actor~, locale~)
     let html = @schema.render_runtime_gui_html(
       runtime,
       next_record,
-      actor=actor,
+      actor~,
       locale~,
     )
     render_editor_runtime_success_json(next_record, view, html)
@@ -135,15 +124,18 @@ fn render_editor_compile_success_json(
 ///|
 fn render_editor_compile_error_json(err : Error) -> String {
   match err {
-    @schema.SchemaError::ParseError(issues~) |
-    @schema.SchemaError::ValidationError(issues~) =>
+    @schema.SchemaError::ParseError(issues~)
+    | @schema.SchemaError::ValidationError(issues~) =>
       render_editor_diagnostics_only_json(issues)
     @schema.RuntimeError::InvalidRecord(issues~, ..) =>
       render_editor_diagnostics_only_json(issues)
     @schema.RuntimeError::TransitionRejected(issues~, ..) =>
       render_editor_diagnostics_only_json(issues)
     @schema.RuntimeError::UnknownEntity(entity~) =>
-      render_editor_text_error_json("unknown-entity", "unknown entity \{entity}")
+      render_editor_text_error_json(
+        "unknown-entity",
+        "unknown entity \{entity}",
+      )
     @schema.RuntimeError::EntityMismatch(expected~, found~) =>
       render_editor_text_error_json(
         "entity-mismatch",
@@ -244,9 +236,7 @@ fn editor_validation_from_record_json(
   record_json : String,
 ) -> @schema.RuntimeValidation raise {
   let (entity_name, payload) = editor_record_payload_from_json(
-    fallback_entity_name,
-    record_json,
-    runtime,
+    fallback_entity_name, record_json, runtime,
   )
   @schema.validate_record(runtime, entity_name, payload)
 }
@@ -434,9 +424,7 @@ fn render_string_context_json(values : Map[String, String]) -> String {
 }
 
 ///|
-fn render_schema_severity_text(
-  severity : @schema.DiagnosticSeverity,
-) -> String {
+fn render_schema_severity_text(severity : @schema.DiagnosticSeverity) -> String {
   match severity {
     @schema.DiagnosticSeverity::Error => "error"
     @schema.DiagnosticSeverity::Warning => "warning"
@@ -463,9 +451,7 @@ fn render_runtime_record_json(record : @schema.RuntimeRecord) -> String {
     builder.write_string("\"")
     builder.write_string(json_escape(key))
     builder.write_string("\":")
-    builder.write_string(
-      demo_runtime_value_json(record.values.get(key)),
-    )
+    builder.write_string(demo_runtime_value_json(record.values.get(key)))
   }
   builder.write_string("}}")
   builder.to_string()

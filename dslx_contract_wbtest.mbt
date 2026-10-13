@@ -6,8 +6,7 @@ fn dslx_domain_contract_spec() -> @dslx.Dslx {
 ///|
 fn dslx_domain_contract_example() -> @dslx.File {
   @dslx.file(
-    "examples/domainprocessschema.dsl",
-    "domain ExpenseRequest entity ExpenseRequest process Submit ExpenseRequest\n",
+    "examples/domainprocessschema.dsl", "domain ExpenseRequest entity ExpenseRequest process Submit ExpenseRequest\n",
   )
 }
 

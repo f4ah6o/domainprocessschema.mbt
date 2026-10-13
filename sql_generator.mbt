@@ -190,7 +190,7 @@ fn is_integer_literal(value : String) -> Bool {
       if i == 0 && char == '-' {
         continue
       }
-      if !(char is ('0'..='9')) {
+      if !(char is ('0'..<='9')) {
         return false
       }
     }
@@ -202,7 +202,7 @@ fn is_integer_literal(value : String) -> Bool {
 fn expr_to_sql(
   expr : Expr,
   field_map : Map[String, Field],
-  parent_prec : Int,
+  parent_prec : Int32,
 ) -> String {
   match expr {
     Expr::Path(parts) =>
@@ -280,7 +280,7 @@ fn camel_to_snake(name : String) -> String {
   let mut wrote_any = false
   let mut previous_lower_or_digit = false
   for char in name {
-    if char is ('A'..='Z') {
+    if char is ('A'..<='Z') {
       if wrote_any && previous_lower_or_digit {
         builder.write_char('_')
       }
@@ -295,7 +295,7 @@ fn camel_to_snake(name : String) -> String {
     } else {
       builder.write_char(char)
       wrote_any = true
-      previous_lower_or_digit = char is ('a'..='z') || char is ('0'..='9')
+      previous_lower_or_digit = char is ('a'..<='z') || char is ('0'..<='9')
     }
   }
   builder.to_string()
