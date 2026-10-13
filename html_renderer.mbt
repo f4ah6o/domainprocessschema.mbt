@@ -271,7 +271,7 @@ fn html_input_type(component : String) -> String {
 fn render_html_document(
   title : String,
   body : String,
-  lang? : String = "en",
+  lang~ : String = "en",
 ) -> String {
   (
     $|<!DOCTYPE html>
@@ -322,7 +322,7 @@ fn detect_document_lang(title : String, body : String) -> String {
 fn contains_japanese_text(text : String) -> Bool {
   for char in text {
     match char {
-      'ぁ'..='ゖ' | 'ァ'..='ヺ' | '一'..='龯' => return true
+      'ぁ'..<='ゖ' | 'ァ'..<='ヺ' | '一'..<='龯' => return true
       _ => ()
     }
   }

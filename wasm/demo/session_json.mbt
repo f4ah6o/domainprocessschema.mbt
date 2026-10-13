@@ -189,11 +189,11 @@ fn render_demo_runtime_issue_json(issue : @schema.Diagnostic) -> String {
 fn render_demo_error_payload_json(
   kind : String,
   message : String,
-  issues? : Array[@schema.Diagnostic] = [],
-  entity? : String = "",
-  transition? : String = "",
-  expected? : String = "",
-  found? : String = "",
+  issues~ : Array[@schema.Diagnostic] = [],
+  entity~ : String = "",
+  transition~ : String = "",
+  expected~ : String = "",
+  found~ : String = "",
 ) -> String {
   let issue_json = issues.map(render_demo_runtime_issue_json).join(",")
   let builder = StringBuilder::new()

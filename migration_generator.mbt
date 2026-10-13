@@ -23,7 +23,7 @@ fn render_migration_sql(schema : Schema) -> String {
 ///|
 fn append_drop_statements(
   entities : Array[Entity],
-  index : Int,
+  index : Int32,
   down_statements : Array[String],
 ) -> Unit {
   if index < 0 {

@@ -161,7 +161,7 @@ fn parse_states(
         let (label, labels) = optional_localized_label_value(
           state_map, "label", path, state_name,
         )
-        states.push(ParsedState::{ name: state_name, label, labels })
+        states.push(ParsedState::{ name: state_name, label, labels, })
       }
       states
     }

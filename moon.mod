@@ -1,0 +1,19 @@
+name = "f4ah6o/domainprocessschema_mbt"
+
+version = "0.1.0"
+
+import {
+  "f4ah6o/dslx@0.1.2",
+  "moonbitlang/x@0.5.5",
+  "moonbitlang/quickcheck@0.15.0",
+}
+
+readme = "README.mbt.md"
+
+repository = "https://github.com/f4ah6o/domainprocessschema.mbt"
+
+license = "Apache-2.0"
+
+keywords = [ "domain", "schema", "process", "sql" ]
+
+description = "MoonBit-first domain and process schema compiler for SQL generation"

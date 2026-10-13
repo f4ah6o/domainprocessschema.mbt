@@ -14,7 +14,7 @@ pub(all) struct DemoSession {
 ///|
 pub fn render_manifest_preview(
   yaml : String,
-  locale? : String = "",
+  locale~ : String = "",
 ) -> Result[String, Error] {
   try @schema.compile_gui_html_from_yaml(yaml, locale~) catch {
     err => Err(err)
@@ -27,7 +27,7 @@ pub fn render_manifest_preview(
 pub fn render_runtime_preview(
   yaml : String,
   scenario : String,
-  locale? : String = "",
+  locale~ : String = "",
 ) -> Result[String, Error] {
   try {
     let runtime = @schema.compile_runtime_from_yaml(yaml)
@@ -60,7 +60,7 @@ pub fn render_validation_manifest(yaml : String) -> Result[String, Error] {
 ///|
 pub fn create_demo_session(
   yaml : String,
-  actor_role? : String = "",
+  actor_role~ : String = "",
 ) -> Result[DemoSession, Error] {
   try {
     let runtime = @schema.compile_runtime_from_yaml(yaml)
@@ -69,7 +69,7 @@ pub fn create_demo_session(
         "ExpenseRequest",
         draft_payload(),
       ).record
-    Ok(DemoSession::{ runtime, record, actor: actor_for_role(actor_role) })
+    Ok(DemoSession::{ runtime, record, actor: actor_for_role(actor_role), })
   } catch {
     err => Err(err)
   }
@@ -78,7 +78,7 @@ pub fn create_demo_session(
 ///|
 pub fn session_preview_html(
   session : DemoSession,
-  locale? : String = "",
+  locale~ : String = "",
 ) -> Result[String, Error] {
   try
     @schema.render_runtime_gui_html(
@@ -97,7 +97,7 @@ pub fn session_preview_html(
 ///|
 pub fn session_snapshot_json(
   session : DemoSession,
-  locale? : String = "",
+  locale~ : String = "",
 ) -> Result[String, Error] {
   try {
     let view = @schema.project_gui(
@@ -115,7 +115,7 @@ pub fn session_snapshot_json(
 ///|
 pub fn session_reference_catalog_json(
   session : DemoSession,
-  locale? : String = "",
+  locale~ : String = "",
 ) -> Result[String, Error] {
   Ok(render_demo_reference_catalog_json(session.runtime, locale))
 }
@@ -135,7 +135,7 @@ pub fn apply_session_transition(
       input~,
       actor=session.actor,
     )
-    Ok(DemoSession::{ runtime: session.runtime, record, actor: session.actor })
+    Ok(DemoSession::{ runtime: session.runtime, record, actor: session.actor, })
   } catch {
     err => Err(err)
   }
@@ -212,10 +212,10 @@ fn build_demo_preview(
     "applicant": @schema.RuntimeValue::Text("user-1"),
   })
   match scenario {
-    "draft" => Ok(DemoPreview::{ record: draft, actor: anonymous })
-    "submitted" => Ok(DemoPreview::{ record: submitted, actor: anonymous })
+    "draft" => Ok(DemoPreview::{ record: draft, actor: anonymous, })
+    "submitted" => Ok(DemoPreview::{ record: submitted, actor: anonymous, })
     "submitted-manager" =>
-      Ok(DemoPreview::{ record: submitted, actor: manager })
+      Ok(DemoPreview::{ record: submitted, actor: manager, })
     "approved-manager" => {
       let approved = @schema.apply_transition(
         runtime,
@@ -223,7 +223,7 @@ fn build_demo_preview(
         "approve",
         actor=manager,
       )
-      Ok(DemoPreview::{ record: approved, actor: manager })
+      Ok(DemoPreview::{ record: approved, actor: manager, })
     }
     "rejected-manager" => {
       let rejected = @schema.apply_transition(
@@ -235,7 +235,7 @@ fn build_demo_preview(
         },
         actor=manager,
       )
-      Ok(DemoPreview::{ record: rejected, actor: manager })
+      Ok(DemoPreview::{ record: rejected, actor: manager, })
     }
     _ =>
       Err(
@@ -315,7 +315,7 @@ fn json_to_runtime_value(
     Json::False => @schema.RuntimeValue::Flag(false)
     Json::String(text) => @schema.RuntimeValue::Text(text)
     _ => {
-      let decoded : Result[Int, Error] = try? @json.from_json(json)
+      let decoded : Result[Int32, Error] = try? @json.from_json(json)
       match decoded {
         Ok(value) => @schema.RuntimeValue::Integer(value)
         Err(_) =>

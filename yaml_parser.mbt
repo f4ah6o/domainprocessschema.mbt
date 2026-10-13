@@ -7,8 +7,8 @@ enum YamlValue {
 
 ///|
 struct YamlLine {
-  line_no : Int
-  indent : Int
+  line_no : Int32
+  indent : Int32
   content : String
 } derive(Eq, Debug)
 
@@ -54,7 +54,7 @@ fn collect_yaml_lines(input : String) -> Array[YamlLine] raise SchemaError {
       None => raw_line.length()
     }
     let content = raw_line.sub(start=indent).trim_end().to_string()
-    collected.push(YamlLine::{ line_no: i + 1, indent, content })
+    collected.push(YamlLine::{ line_no: i + 1, indent, content, })
   }
   collected
 }
@@ -62,9 +62,9 @@ fn collect_yaml_lines(input : String) -> Array[YamlLine] raise SchemaError {
 ///|
 fn parse_yaml_node(
   lines : Array[YamlLine],
-  index : Int,
-  indent : Int,
-) -> (YamlValue, Int) raise SchemaError {
+  index : Int32,
+  indent : Int32,
+) -> (YamlValue, Int32) raise SchemaError {
   guard index < lines.length() else {
     raise schema_parse_error(
       line=1,
@@ -82,9 +82,9 @@ fn parse_yaml_node(
 ///|
 fn parse_yaml_map(
   lines : Array[YamlLine],
-  index : Int,
-  indent : Int,
-) -> (YamlValue, Int) raise SchemaError {
+  index : Int32,
+  indent : Int32,
+) -> (YamlValue, Int32) raise SchemaError {
   let entries : Map[String, YamlValue] = {}
   parse_yaml_map_entries(lines, index, indent, entries)
 }
@@ -92,10 +92,10 @@ fn parse_yaml_map(
 ///|
 fn parse_yaml_map_entries(
   lines : Array[YamlLine],
-  index : Int,
-  indent : Int,
+  index : Int32,
+  indent : Int32,
   entries : Map[String, YamlValue],
-) -> (YamlValue, Int) raise SchemaError {
+) -> (YamlValue, Int32) raise SchemaError {
   if index >= lines.length() {
     (YamlValue::YamlMap(entries), index)
   } else {
@@ -161,10 +161,10 @@ fn parse_mapping_head(
 ///|
 fn parse_nested_child(
   lines : Array[YamlLine],
-  index : Int,
-  indent : Int,
+  index : Int32,
+  indent : Int32,
   expectation : String,
-) -> (YamlValue, Int) raise SchemaError {
+) -> (YamlValue, Int32) raise SchemaError {
   let next_index = index + 1
   if next_index >= lines.length() {
     let line = lines[index]
@@ -186,9 +186,9 @@ fn parse_nested_child(
 ///|
 fn parse_yaml_list(
   lines : Array[YamlLine],
-  index : Int,
-  indent : Int,
-) -> (YamlValue, Int) raise SchemaError {
+  index : Int32,
+  indent : Int32,
+) -> (YamlValue, Int32) raise SchemaError {
   let items : Array[YamlValue] = []
   parse_yaml_list_items(lines, index, indent, items)
 }
@@ -196,10 +196,10 @@ fn parse_yaml_list(
 ///|
 fn parse_yaml_list_items(
   lines : Array[YamlLine],
-  index : Int,
-  indent : Int,
+  index : Int32,
+  indent : Int32,
   items : Array[YamlValue],
-) -> (YamlValue, Int) raise SchemaError {
+) -> (YamlValue, Int32) raise SchemaError {
   if index >= lines.length() {
     (YamlValue::YamlList(items), index)
   } else {
@@ -224,9 +224,9 @@ fn parse_yaml_list_items(
 ///|
 fn parse_yaml_list_item(
   lines : Array[YamlLine],
-  index : Int,
-  indent : Int,
-) -> (YamlValue, Int) raise SchemaError {
+  index : Int32,
+  indent : Int32,
+) -> (YamlValue, Int32) raise SchemaError {
   let line = lines[index]
   let rest = match line.content.split_once("-") {
     Some((before, after)) =>
@@ -287,7 +287,7 @@ fn parse_yaml_list_item(
 ///|
 fn parse_inline_mapping_entry(
   text : String,
-  line_no : Int,
+  line_no : Int32,
 ) -> (String, YamlValue) raise SchemaError {
   match text.split_once(":") {
     Some((raw_key, raw_value)) => {
@@ -318,7 +318,7 @@ fn parse_inline_mapping_entry(
 ///|
 fn parse_inline_yaml_value(
   text : String,
-  line_no : Int,
+  line_no : Int32,
 ) -> YamlValue raise SchemaError {
   let trimmed = text.trim()
   if trimmed.is_empty() {
@@ -344,14 +344,19 @@ fn parse_inline_yaml_value(
       YamlValue::YamlList(items)
     }
   } else if trimmed.has_prefix("\"") && trimmed.has_suffix("\"") {
-    YamlValue::YamlScalar(parse_double_quoted_yaml_scalar(trimmed.to_string(), line_no))
+    YamlValue::YamlScalar(
+      parse_double_quoted_yaml_scalar(trimmed.to_string(), line_no),
+    )
   } else {
     YamlValue::YamlScalar(trimmed.to_string())
   }
 }
 
 ///|
-fn split_inline_yaml_list(text : String, line_no : Int) -> Array[String] raise SchemaError {
+fn split_inline_yaml_list(
+  text : String,
+  line_no : Int32,
+) -> Array[String] raise SchemaError {
   let parts : Array[String] = []
   let mut builder = StringBuilder::new()
   let mut in_quotes = false
@@ -387,18 +392,27 @@ fn split_inline_yaml_list(text : String, line_no : Int) -> Array[String] raise S
     builder.write_char(ch)
   }
   if in_quotes || escaping {
-    raise schema_parse_error(line=line_no, "unterminated quoted scalar in inline list")
+    raise schema_parse_error(
+      line=line_no,
+      "unterminated quoted scalar in inline list",
+    )
   }
   let tail = builder.to_string().trim().to_string()
   if tail.is_empty() {
-    raise schema_parse_error(line=line_no, "inline lists must not contain empty elements")
+    raise schema_parse_error(
+      line=line_no,
+      "inline lists must not contain empty elements",
+    )
   }
   parts.push(tail)
   parts
 }
 
 ///|
-fn parse_double_quoted_yaml_scalar(text : String, line_no : Int) -> String raise SchemaError {
+fn parse_double_quoted_yaml_scalar(
+  text : String,
+  line_no : Int32,
+) -> String raise SchemaError {
   let prefix = match text.strip_prefix("\"") {
     Some(prefix) => prefix
     None => raise schema_parse_error(line=line_no, "invalid quoted scalar")
@@ -433,18 +447,24 @@ fn parse_double_quoted_yaml_scalar(text : String, line_no : Int) -> String raise
         if index + 5 >= chars.length() {
           raise schema_parse_error(line=line_no, "incomplete unicode escape")
         }
-        let code =
-          (hex_value(chars[index + 2], line_no) * 0x1000) +
-          (hex_value(chars[index + 3], line_no) * 0x100) +
-          (hex_value(chars[index + 4], line_no) * 0x10) +
+        let code = hex_value(chars[index + 2], line_no) * 0x1000 +
+          hex_value(chars[index + 3], line_no) * 0x100 +
+          hex_value(chars[index + 4], line_no) * 0x10 +
           hex_value(chars[index + 5], line_no)
         if code >= 0xD800 && code <= 0xDFFF {
-          raise schema_parse_error(line=line_no, "surrogate unicode escapes are not supported")
+          raise schema_parse_error(
+            line=line_no,
+            "surrogate unicode escapes are not supported",
+          )
         }
         builder.write_char(code.unsafe_to_char())
         index = index + 4
       }
-      _ => raise schema_parse_error(line=line_no, "unsupported escape sequence \\\{escaped}")
+      _ =>
+        raise schema_parse_error(
+          line=line_no,
+          "unsupported escape sequence \\\{escaped}",
+        )
     }
     index = index + 2
   }
@@ -452,7 +472,7 @@ fn parse_double_quoted_yaml_scalar(text : String, line_no : Int) -> String raise
 }
 
 ///|
-fn hex_value(ch : Char, line_no : Int) -> Int raise SchemaError {
+fn hex_value(ch : Char, line_no : Int32) -> Int32 raise SchemaError {
   if ch >= '0' && ch <= '9' {
     ch.to_int() - '0'.to_int()
   } else if ch >= 'a' && ch <= 'f' {

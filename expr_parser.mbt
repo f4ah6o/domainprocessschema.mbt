@@ -52,7 +52,7 @@ fn tokenize_expr(
 ///|
 fn tokenize_expr_chars(
   chars : Array[Char],
-  index : Int,
+  index : Int32,
   tokens : Array[ExprToken],
   path : String,
 ) -> Array[ExprToken] raise SchemaError {
@@ -73,7 +73,7 @@ fn tokenize_expr_chars(
         tokens.push(ExprToken::Ident(ident))
       }
       tokenize_expr_chars(chars, next_index, tokens, path)
-    } else if char is ('0'..='9') {
+    } else if char is ('0'..<='9') {
       let (number, next_index) = read_number_token(chars, index)
       tokens.push(ExprToken::Number(number))
       tokenize_expr_chars(chars, next_index, tokens, path)
@@ -165,7 +165,7 @@ fn tokenize_expr_chars(
 }
 
 ///|
-fn read_ident_token(chars : Array[Char], index : Int) -> (String, Int) {
+fn read_ident_token(chars : Array[Char], index : Int32) -> (String, Int32) {
   let builder = StringBuilder::new()
   read_ident_token_chars(chars, index, builder)
 }
@@ -173,9 +173,9 @@ fn read_ident_token(chars : Array[Char], index : Int) -> (String, Int) {
 ///|
 fn read_ident_token_chars(
   chars : Array[Char],
-  index : Int,
+  index : Int32,
   builder : StringBuilder,
-) -> (String, Int) {
+) -> (String, Int32) {
   if index >= chars.length() {
     (builder.to_string(), index)
   } else {
@@ -190,7 +190,7 @@ fn read_ident_token_chars(
 }
 
 ///|
-fn read_number_token(chars : Array[Char], index : Int) -> (String, Int) {
+fn read_number_token(chars : Array[Char], index : Int32) -> (String, Int32) {
   let builder = StringBuilder::new()
   read_number_token_chars(chars, index, builder)
 }
@@ -198,14 +198,14 @@ fn read_number_token(chars : Array[Char], index : Int) -> (String, Int) {
 ///|
 fn read_number_token_chars(
   chars : Array[Char],
-  index : Int,
+  index : Int32,
   builder : StringBuilder,
-) -> (String, Int) {
+) -> (String, Int32) {
   if index >= chars.length() {
     (builder.to_string(), index)
   } else {
     let char = chars[index]
-    if char is ('0'..='9') {
+    if char is ('0'..<='9') {
       builder.write_char(char)
       read_number_token_chars(chars, index + 1, builder)
     } else {
@@ -217,9 +217,9 @@ fn read_number_token_chars(
 ///|
 fn read_string_token(
   chars : Array[Char],
-  index : Int,
+  index : Int32,
   path : String,
-) -> (String, Int) raise SchemaError {
+) -> (String, Int32) raise SchemaError {
   let builder = StringBuilder::new()
   read_string_token_chars(chars, index, builder, path)
 }
@@ -227,10 +227,10 @@ fn read_string_token(
 ///|
 fn read_string_token_chars(
   chars : Array[Char],
-  index : Int,
+  index : Int32,
   builder : StringBuilder,
   path : String,
-) -> (String, Int) raise SchemaError {
+) -> (String, Int32) raise SchemaError {
   if index >= chars.length() {
     raise schema_validation_error(
       path~,
@@ -250,20 +250,20 @@ fn read_string_token_chars(
 
 ///|
 fn is_expr_ident_start(char : Char) -> Bool {
-  char is ('a'..='z') || char is ('A'..='Z') || char == '_'
+  char is ('a'..<='z') || char is ('A'..<='Z') || char == '_'
 }
 
 ///|
 fn is_expr_ident_continue(char : Char) -> Bool {
-  is_expr_ident_start(char) || char is ('0'..='9')
+  is_expr_ident_start(char) || char is ('0'..<='9')
 }
 
 ///|
 fn parse_or_expr(
   tokens : Array[ExprToken],
-  index : Int,
+  index : Int32,
   path : String,
-) -> (Expr, Int) raise SchemaError {
+) -> (Expr, Int32) raise SchemaError {
   let (left, next_index) = parse_and_expr(tokens, index, path)
   parse_or_expr_tail(tokens, next_index, left, path)
 }
@@ -271,10 +271,10 @@ fn parse_or_expr(
 ///|
 fn parse_or_expr_tail(
   tokens : Array[ExprToken],
-  index : Int,
+  index : Int32,
   left : Expr,
   path : String,
-) -> (Expr, Int) raise SchemaError {
+) -> (Expr, Int32) raise SchemaError {
   if index < tokens.length() && tokens[index] == ExprToken::OrOr {
     let (right, next_index) = parse_and_expr(tokens, index + 1, path)
     parse_or_expr_tail(
@@ -291,9 +291,9 @@ fn parse_or_expr_tail(
 ///|
 fn parse_and_expr(
   tokens : Array[ExprToken],
-  index : Int,
+  index : Int32,
   path : String,
-) -> (Expr, Int) raise SchemaError {
+) -> (Expr, Int32) raise SchemaError {
   let (left, next_index) = parse_comparison_expr(tokens, index, path)
   parse_and_expr_tail(tokens, next_index, left, path)
 }
@@ -301,10 +301,10 @@ fn parse_and_expr(
 ///|
 fn parse_and_expr_tail(
   tokens : Array[ExprToken],
-  index : Int,
+  index : Int32,
   left : Expr,
   path : String,
-) -> (Expr, Int) raise SchemaError {
+) -> (Expr, Int32) raise SchemaError {
   if index < tokens.length() && tokens[index] == ExprToken::AndAnd {
     let (right, next_index) = parse_comparison_expr(tokens, index + 1, path)
     parse_and_expr_tail(
@@ -321,9 +321,9 @@ fn parse_and_expr_tail(
 ///|
 fn parse_comparison_expr(
   tokens : Array[ExprToken],
-  index : Int,
+  index : Int32,
   path : String,
-) -> (Expr, Int) raise SchemaError {
+) -> (Expr, Int32) raise SchemaError {
   let (left, next_index) = parse_unary_expr(tokens, index, path)
   if next_index < tokens.length() {
     match comparison_op(tokens[next_index]) {
@@ -354,9 +354,9 @@ fn comparison_op(token : ExprToken) -> BinaryOp? {
 ///|
 fn parse_unary_expr(
   tokens : Array[ExprToken],
-  index : Int,
+  index : Int32,
   path : String,
-) -> (Expr, Int) raise SchemaError {
+) -> (Expr, Int32) raise SchemaError {
   if index < tokens.length() && tokens[index] == ExprToken::Bang {
     let (inner, next_index) = parse_unary_expr(tokens, index + 1, path)
     (Expr::Not(inner), next_index)
@@ -368,9 +368,9 @@ fn parse_unary_expr(
 ///|
 fn parse_primary_expr(
   tokens : Array[ExprToken],
-  index : Int,
+  index : Int32,
   path : String,
-) -> (Expr, Int) raise SchemaError {
+) -> (Expr, Int32) raise SchemaError {
   if index >= tokens.length() {
     raise schema_validation_error(
       path~,
@@ -408,10 +408,10 @@ fn parse_primary_expr(
 ///|
 fn parse_path_expr(
   tokens : Array[ExprToken],
-  index : Int,
+  index : Int32,
   parts : Array[String],
   path : String,
-) -> (Expr, Int) raise SchemaError {
+) -> (Expr, Int32) raise SchemaError {
   if index + 1 < tokens.length() && tokens[index] == ExprToken::Dot {
     match tokens[index + 1] {
       ExprToken::Ident(name) => {
@@ -482,7 +482,7 @@ fn expr_to_string(expr : Expr) -> String {
 }
 
 ///|
-fn render_expr(expr : Expr, parent_prec : Int) -> String {
+fn render_expr(expr : Expr, parent_prec : Int32) -> String {
   match expr {
     Expr::Path(parts) => parts.join(".")
     Expr::StringLiteral(text) => "\"\{text}\""
@@ -512,7 +512,7 @@ fn render_expr(expr : Expr, parent_prec : Int) -> String {
 }
 
 ///|
-fn binary_precedence(op : BinaryOp) -> Int {
+fn binary_precedence(op : BinaryOp) -> Int32 {
   match op {
     BinaryOp::Or => 1
     BinaryOp::And => 2

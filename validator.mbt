@@ -282,7 +282,7 @@ fn validate_constraints(
     }
     let expr = parse_expr_text(constraint.expr, expr_path)
     validate_expr(expr, field_names, expr_path, false, false)
-    constraints.push(Constraint::{ name: constraint.name, expr })
+    constraints.push(Constraint::{ name: constraint.name, expr, })
   }
   constraints
 }
@@ -517,7 +517,7 @@ fn validate_rules(
     }
     let expr = parse_expr_text(rule.when_expr, expr_path)
     validate_expr(expr, field_names, expr_path, true, true)
-    rules.push(Rule::{ name: rule.name, when_expr: expr })
+    rules.push(Rule::{ name: rule.name, when_expr: expr, })
   }
   rules
 }
@@ -580,7 +580,7 @@ fn validate_storage_keys(
         )
       }
     }
-    keys.push(StorageKey::{ fields: parsed_key.fields })
+    keys.push(StorageKey::{ fields: parsed_key.fields, })
   }
   keys
 }

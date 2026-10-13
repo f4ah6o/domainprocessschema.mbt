@@ -295,7 +295,7 @@ pub(all) struct Schema {
 pub(all) enum RuntimeValue {
   Null
   Text(String)
-  Integer(Int)
+  Integer(Int32)
   Flag(Bool)
 } derive(Eq, Show)
 
@@ -401,7 +401,7 @@ pub(all) suberror HtmlRenderError {
 
 ///|
 pub fn RuntimeActor::anonymous() -> RuntimeActor {
-  RuntimeActor::{ attributes: {} }
+  RuntimeActor::{ attributes: {}, }
 }
 
 ///|
@@ -455,7 +455,7 @@ pub fn generate_validation_manifest(schema : Schema) -> String {
 
 ///|
 /// Convert a validated schema into a machine-readable GUI manifest.
-pub fn generate_gui_manifest(schema : Schema, locale? : String = "") -> String {
+pub fn generate_gui_manifest(schema : Schema, locale~ : String = "") -> String {
   render_gui_manifest(schema, locale)
 }
 
@@ -478,7 +478,7 @@ pub fn render_gui_html_from_manifest(
 /// Compile YAML directly to a static HTML preview derived from GUI manifest output.
 pub fn compile_gui_html_from_yaml(
   input : String,
-  locale? : String = "",
+  locale~ : String = "",
 ) -> String raise {
   let manifest = compile_gui_manifest_from_yaml(input, locale~)
   render_gui_html_from_manifest(manifest)
@@ -489,8 +489,8 @@ pub fn compile_gui_html_from_yaml(
 pub fn render_runtime_gui_html(
   runtime : Runtime,
   record : RuntimeRecord,
-  actor? : RuntimeActor = RuntimeActor::anonymous(),
-  locale? : String = "",
+  actor~ : RuntimeActor = RuntimeActor::anonymous(),
+  locale~ : String = "",
 ) -> String raise RuntimeError {
   let projected = project_gui(runtime, record, actor~, locale~)
   render_runtime_gui_view_html(projected)
@@ -526,7 +526,7 @@ pub fn validate_record(
 pub fn list_transitions(
   runtime : Runtime,
   record : RuntimeRecord,
-  actor? : RuntimeActor = RuntimeActor::anonymous(),
+  actor~ : RuntimeActor = RuntimeActor::anonymous(),
 ) -> Array[RuntimeTransitionStatus] raise RuntimeError {
   runtime_list_transitions(runtime, record, actor)
 }
@@ -536,7 +536,7 @@ pub fn list_transitions(
 pub fn evaluate_rules(
   runtime : Runtime,
   record : RuntimeRecord,
-  actor? : RuntimeActor = RuntimeActor::anonymous(),
+  actor~ : RuntimeActor = RuntimeActor::anonymous(),
 ) -> Array[RuntimeRuleStatus] raise RuntimeError {
   runtime_evaluate_rules(runtime, record, actor)
 }
@@ -546,8 +546,8 @@ pub fn evaluate_rules(
 pub fn project_gui(
   runtime : Runtime,
   record : RuntimeRecord,
-  actor? : RuntimeActor = RuntimeActor::anonymous(),
-  locale? : String = "",
+  actor~ : RuntimeActor = RuntimeActor::anonymous(),
+  locale~ : String = "",
 ) -> RuntimeGuiView raise RuntimeError {
   runtime_project_gui(runtime, record, actor, locale)
 }
@@ -558,8 +558,8 @@ pub fn apply_transition(
   runtime : Runtime,
   record : RuntimeRecord,
   transition_name : String,
-  input? : Map[String, RuntimeValue] = {},
-  actor? : RuntimeActor = RuntimeActor::anonymous(),
+  input~ : Map[String, RuntimeValue] = {},
+  actor~ : RuntimeActor = RuntimeActor::anonymous(),
 ) -> RuntimeRecord raise RuntimeError {
   runtime_apply_transition(runtime, record, transition_name, input, actor)
 }
@@ -606,7 +606,7 @@ pub fn compile_validation_manifest_from_yaml(
 /// Compile YAML directly to a GUI manifest JSON document.
 pub fn compile_gui_manifest_from_yaml(
   input : String,
-  locale? : String = "",
+  locale~ : String = "",
 ) -> String raise SchemaError {
   let parsed = parse_schema_yaml(input)
   let schema = validate_schema(parsed)

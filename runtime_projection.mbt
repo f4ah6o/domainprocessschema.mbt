@@ -29,7 +29,7 @@ fn runtime_evaluate_rules(
         Err(issue) => issues.push(issue)
       }
     }
-    statuses.push(RuntimeRuleStatus::{ name: rule.name, active, issues })
+    statuses.push(RuntimeRuleStatus::{ name: rule.name, active, issues, })
   }
   statuses
 }
