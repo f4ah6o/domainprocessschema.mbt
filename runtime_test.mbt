@@ -358,9 +358,11 @@ test "evaluate_rules and project_gui follow the issue runtime model" {
 
 ///|
 test "compile_runtime_from_yaml rejects states without matching views" {
-  let result : Result[Runtime, SchemaError] = try? compile_runtime_from_yaml(
-    schema_missing_rejected_view(),
-  )
+  let result : Result[Runtime, SchemaError] = Ok(
+    compile_runtime_from_yaml(schema_missing_rejected_view()),
+  ) catch {
+    error => Err(error)
+  }
   guard result is Err(SchemaError::ValidationError(_, ..)) else {
     fail("expected a validation error for missing state view")
   }

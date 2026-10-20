@@ -315,7 +315,9 @@ fn json_to_runtime_value(
     Json::False => @schema.RuntimeValue::Flag(false)
     Json::String(text) => @schema.RuntimeValue::Text(text)
     _ => {
-      let decoded : Result[Int32, Error] = try? @json.from_json(json)
+      let decoded : Result[Int32, Error] = Ok(@json.from_json(json)) catch {
+        error => Err(error)
+      }
       match decoded {
         Ok(value) => @schema.RuntimeValue::Integer(value)
         Err(_) =>

@@ -972,7 +972,9 @@ test "validate_schema rejects unknown transition states" {
     #|      submit:
     #|        from: draft
     #|        to: submitted
-  let result : Result[String, SchemaError] = try? compile_sql_from_yaml(invalid)
+  let result : Result[String, SchemaError] = Ok(compile_sql_from_yaml(invalid)) catch {
+    error => Err(error)
+  }
   inspect(
     result,
     content=(
@@ -1001,7 +1003,9 @@ test "validate_schema rejects unknown identifiers in expressions" {
     #|    constraints:
     #|      bad:
     #|        expr: missing > 0
-  let result : Result[String, SchemaError] = try? compile_sql_from_yaml(invalid)
+  let result : Result[String, SchemaError] = Ok(compile_sql_from_yaml(invalid)) catch {
+    error => Err(error)
+  }
   inspect(
     result,
     content=(
@@ -1016,9 +1020,11 @@ test "parse_schema_yaml rejects malformed yaml" {
     #|entities:
     #|  ExpenseRequest
     #|    label: broken
-  let result : Result[ParsedSchema, SchemaError] = try? parse_schema_yaml(
-    malformed,
-  )
+  let result : Result[ParsedSchema, SchemaError] = Ok(
+    parse_schema_yaml(malformed),
+  ) catch {
+    error => Err(error)
+  }
   inspect(
     result,
     content=(
